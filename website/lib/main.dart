@@ -37,7 +37,7 @@ class _ShikiSiteState extends State<ShikiSite> {
         listenable: _theme,
         builder: (context, _) {
           return MaterialApp.router(
-            title: 'shiki_flutter — syntax highlighting for Flutter',
+            title: 'shiki_flutter: syntax highlighting for Flutter',
             debugShowCheckedModeBanner: false,
             theme: buildTheme(Brightness.light),
             darkTheme: buildTheme(Brightness.dark),

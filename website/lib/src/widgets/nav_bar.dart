@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../data/links.dart';
 import '../theme/theme_controller.dart';
 import '../theme/tokens.dart';
+import 'app_icon.dart';
 import 'brand.dart';
 import 'section.dart';
 
@@ -56,7 +57,7 @@ class NavBar extends StatelessWidget {
             ),
             const _NavDivider(),
             _IconAction(
-              icon: Icons.code_rounded,
+              diffIcon: DiffIcon.github,
               tooltip: 'GitHub',
               onTap: () => Links.open(Links.github),
             ),
@@ -64,7 +65,7 @@ class NavBar extends StatelessWidget {
           ] else ...[
             const _ThemeToggle(),
             _IconAction(
-              icon: Icons.menu_rounded,
+              diffIcon: DiffIcon.menu,
               tooltip: 'Menu',
               onTap: onMenu,
             ),
@@ -163,8 +164,8 @@ class _NavLinkState extends State<_NavLink> {
               ),
               if (widget.external) ...[
                 const SizedBox(width: 2),
-                Icon(
-                  Icons.arrow_outward_rounded,
+                AppIcon(
+                  DiffIcon.arrowUpRight,
                   size: 15,
                   color: colors.mutedForeground,
                 ),
@@ -196,9 +197,19 @@ class _NavDivider extends StatelessWidget {
 
 /// A square 36px (`size-9`) icon button with a `rounded-md` hover pill.
 class _IconAction extends StatefulWidget {
-  const _IconAction({required this.icon, required this.tooltip, this.onTap});
+  const _IconAction({
+    this.icon,
+    this.diffIcon,
+    required this.tooltip,
+    this.onTap,
+  }) : assert(icon != null || diffIcon != null);
 
-  final IconData icon;
+  /// A Material glyph. Provide this or [diffIcon].
+  final IconData? icon;
+
+  /// A diffs.com glyph. Takes precedence over [icon].
+  final DiffIcon? diffIcon;
+
   final String tooltip;
   final VoidCallback? onTap;
 
@@ -232,7 +243,13 @@ class _IconActionState extends State<_IconAction> {
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(AppRadii.sm),
             ),
-            child: Icon(widget.icon, size: 18, color: colors.foreground),
+            child: widget.diffIcon != null
+                ? AppIcon(
+                    widget.diffIcon!,
+                    size: 18,
+                    color: colors.foreground,
+                  )
+                : Icon(widget.icon, size: 18, color: colors.foreground),
           ),
         ),
       ),
@@ -248,9 +265,7 @@ class _ThemeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = AppTheme.of(context);
     return _IconAction(
-      icon: controller.isDark
-          ? Icons.light_mode_outlined
-          : Icons.dark_mode_outlined,
+      diffIcon: controller.isDark ? DiffIcon.sun : DiffIcon.moon,
       tooltip: controller.isDark ? 'Light mode' : 'Dark mode',
       onTap: controller.toggle,
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import 'app_icon.dart';
 
 enum AppButtonVariant { primary, secondary, ghost }
 
@@ -17,6 +18,8 @@ class AppButton extends StatefulWidget {
     this.size = AppButtonSize.md,
     this.icon,
     this.trailingIcon,
+    this.leadingDiffIcon,
+    this.trailingDiffIcon,
   });
 
   final String label;
@@ -25,6 +28,12 @@ class AppButton extends StatefulWidget {
   final AppButtonSize size;
   final IconData? icon;
   final IconData? trailingIcon;
+
+  /// A diffs.com leading glyph; takes precedence over [icon] when set.
+  final DiffIcon? leadingDiffIcon;
+
+  /// A diffs.com trailing glyph; takes precedence over [trailingIcon] when set.
+  final DiffIcon? trailingDiffIcon;
 
   @override
   State<AppButton> createState() => _AppButtonState();
@@ -89,7 +98,10 @@ class _AppButtonState extends State<AppButton> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (widget.icon != null) ...[
+              if (widget.leadingDiffIcon != null) ...[
+                AppIcon(widget.leadingDiffIcon!, size: iconSize, color: fg),
+                const SizedBox(width: 7),
+              ] else if (widget.icon != null) ...[
                 Icon(widget.icon, size: iconSize, color: fg),
                 const SizedBox(width: 7),
               ],
@@ -102,7 +114,10 @@ class _AppButtonState extends State<AppButton> {
                   letterSpacing: -0.1,
                 ),
               ),
-              if (widget.trailingIcon != null) ...[
+              if (widget.trailingDiffIcon != null) ...[
+                const SizedBox(width: 6),
+                AppIcon(widget.trailingDiffIcon!, size: iconSize, color: fg),
+              ] else if (widget.trailingIcon != null) ...[
                 const SizedBox(width: 6),
                 Icon(widget.trailingIcon, size: iconSize, color: fg),
               ],

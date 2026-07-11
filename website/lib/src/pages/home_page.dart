@@ -2,12 +2,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:simple_icons/simple_icons.dart';
 
 import '../data/links.dart';
 import '../data/snippets.dart';
 import '../highlight/highlighter_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_button.dart';
+import '../widgets/app_icon.dart';
 import '../widgets/code_block.dart';
 import '../widgets/footer.dart';
 import '../widgets/lang_switcher_demo.dart';
@@ -90,7 +92,9 @@ class _HeroState extends State<_Hero> {
     return Padding(
       padding: EdgeInsets.only(
         top: AppLayout.navHeight + (compact ? 48 : 80),
-        bottom: compact ? 40 : 80,
+        // Keep the hero→first-section gap close to the gap between later
+        // sections (the first _FeatureBlock adds 28 on top of this).
+        bottom: compact ? 22 : 36,
       ),
       child: ContentContainer(
         child: Column(
@@ -131,7 +135,7 @@ class _HeroState extends State<_Hero> {
                     ),
                     const TextSpan(
                       text: '. It brings the exact VS Code grammars and themes '
-                          'to Flutter — tokenized token-for-token and rendered '
+                          'to Flutter, tokenized token-for-token and rendered '
                           'as native TextSpans, with no WebView, JavaScript, or '
                           'asset bundles.',
                     ),
@@ -171,16 +175,8 @@ class _HeroMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(
-        color: colors.foreground,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Icon(Icons.palette_rounded, size: 27, color: colors.background),
-    );
+    // No background box — just the mark, in the foreground ink.
+    return Icon(Icons.palette_rounded, size: 44, color: context.colors.foreground);
   }
 }
 
@@ -202,7 +198,9 @@ class _FeatureBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final compact = context.isCompact;
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: compact ? 28 : 44),
+      // Symmetric vertical padding doubles up between stacked blocks, so keep it
+      // modest: this yields ~56px (compact ~36px) between section headers.
+      padding: EdgeInsets.symmetric(vertical: compact ? 18 : 28),
       child: ContentContainer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,21 +228,67 @@ class _ThemesFeature extends StatelessWidget {
       title: 'Every theme you already love.',
       subtitle:
           'Load any VS Code or TextMate theme. Foreground, background and font '
-          'styles resolve through scope-selector specificity — exactly like '
+          'styles resolve through scope-selector specificity, exactly like '
           'Shiki. Flip through a few below, or browse all 65.',
       subtitleLink: ('Shiki', Links.shiki),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const ThemeSwitcherDemo(),
-          const SizedBox(height: 24),
-          AppButton(
-            label: 'View all 65 themes',
-            variant: AppButtonVariant.secondary,
-            trailingIcon: Icons.arrow_forward,
-            onPressed: () => context.go('/docs?section=themes'),
+          const SizedBox(height: 18),
+          _InlineLink(
+            label: 'Browse all 65 themes in the docs',
+            onTap: () => context.go('/docs?section=themes'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A subtle inline text link with a trailing arrow and underline-on-hover, used
+/// for in-page "learn more" affordances.
+class _InlineLink extends StatefulWidget {
+  const _InlineLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_InlineLink> createState() => _InlineLinkState();
+}
+
+class _InlineLinkState extends State<_InlineLink> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return SelectionContainer.disabled(
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.label,
+                style: TextStyle(
+                  color: colors.foreground,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  decoration: _hovered ? TextDecoration.underline : null,
+                  decorationColor: colors.mutedForeground,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.arrow_forward, size: 16, color: colors.foreground),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -258,7 +302,7 @@ class _LanguagesFeature extends StatelessWidget {
     return const _FeatureBlock(
       title: 'One tokenizer, every grammar.',
       subtitle:
-          'The same faithful TextMate engine drives every language — rules, '
+          'The same faithful TextMate engine drives every language: rules, '
           'repositories, injections, and embedded grammars included.',
       child: LangSwitcherDemo(),
     );
@@ -340,7 +384,7 @@ class _SizeComparison extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            "Gzipped download the package adds (~180 KB–8.6 MB uncompressed). "
+            "Gzipped download the package adds (~180 KB to 8.6 MB uncompressed). "
             "Everything you don't import is tree-shaken away.",
             style: TextStyle(
               color: colors.mutedForeground,
@@ -507,7 +551,7 @@ class _EngineFeature extends StatelessWidget {
       title: 'A regex engine built from scratch.',
       subtitle:
           'Shiki leans on Oniguruma via WASM. shiki_flutter ships its own '
-          'Oniguruma-subset backtracking engine in Dart — so it runs anywhere '
+          'Oniguruma-subset backtracking engine in Dart, so it runs anywhere '
           'Flutter runs, with no native code.',
       subtitleLink: ('Shiki', Links.shiki),
       child: Column(
@@ -550,6 +594,12 @@ class _EngineFeature extends StatelessWidget {
   }
 }
 
+/// The closing call-to-action above the footer, mirroring diffs.com's
+/// `<section class="space-y-6 border-y py-16">` block 1:1: a 24px medium
+/// heading (`text-2xl font-medium`) over a muted 16px blurb capped at 672px
+/// (`max-w-2xl`), then two small brand buttons (`h-9 text-sm`). The top
+/// hairline pairs with the footer's own top border to frame the block — the
+/// same effect as diffs' `border-y`.
 class _CtaBand extends StatelessWidget {
   const _CtaBand();
 
@@ -557,48 +607,65 @@ class _CtaBand extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final compact = context.isCompact;
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: compact ? 56 : 104),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: colors.border)),
+      ),
       child: ContentContainer(
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: compact ? 28 : 64,
-            vertical: compact ? 44 : 72,
-          ),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(AppRadii.lg),
-            border: Border.all(color: colors.border),
-          ),
+        // diffs.com: py-16 (64px). Trimmed slightly on compact, like the rest
+        // of the site's sections.
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: compact ? 48 : 64),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // text-2xl font-medium — identical to every SectionHeading title.
               Text(
-                'Highlight your first snippet in minutes.',
-                textAlign: TextAlign.center,
+                'Free, open source, and built for Flutter.',
                 style: TextStyle(
                   color: colors.foreground,
-                  fontSize: compact ? 26 : 34,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.8,
-                  height: 1.1,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -0.3,
+                  height: 1.3,
                 ),
               ),
-              const SizedBox(height: 28),
+              // space-y-3 (12px) between heading and paragraph.
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                // max-w-2xl.
+                constraints: const BoxConstraints(maxWidth: 672),
+                child: Text(
+                  'shiki_flutter is crafted in the open and free for everyone to '
+                  'use. Star the repo, open an issue, or pull it in from pub.dev '
+                  '— every contribution and bug report makes the highlighter '
+                  'better.',
+                  style: TextStyle(
+                    color: colors.mutedForeground,
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              // space-y-6 (24px) between the text group and the buttons.
+              const SizedBox(height: 24),
               Wrap(
-                alignment: WrapAlignment.center,
                 spacing: 12,
                 runSpacing: 12,
                 children: [
                   AppButton(
-                    label: 'Read the docs',
-                    trailingIcon: Icons.arrow_forward_rounded,
-                    onPressed: () => context.go('/docs'),
+                    label: 'View on GitHub',
+                    leadingDiffIcon: DiffIcon.github,
+                    size: AppButtonSize.sm,
+                    trailingDiffIcon: DiffIcon.arrowUpRight,
+                    onPressed: () => Links.open(Links.github),
                   ),
                   AppButton(
                     label: 'pub.dev',
-                    icon: Icons.open_in_new_rounded,
+                    icon: SimpleIcons.dart,
                     variant: AppButtonVariant.secondary,
+                    size: AppButtonSize.sm,
+                    trailingDiffIcon: DiffIcon.arrowUpRight,
                     onPressed: () => Links.open(Links.pubDev),
                   ),
                 ],

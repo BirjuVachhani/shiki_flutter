@@ -4,20 +4,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/tokens.dart';
+import 'app_icon.dart';
 
 /// An icon button that copies [text] to the clipboard and briefly shows a
-/// checkmark as confirmation.
+/// checkmark as confirmation. Uses the diffs.com copy/check glyphs.
 class CopyButton extends StatefulWidget {
   const CopyButton({
     super.key,
     required this.text,
     this.color,
+    this.hoverColor,
     this.size = 16,
     this.tooltip = 'Copy',
   });
 
   final String text;
   final Color? color;
+
+  /// Color on hover. Defaults to the site `foreground`; pass a code block's
+  /// `onBg` so the button stays legible when floating over a light-themed block
+  /// in dark mode (or vice versa).
+  final Color? hoverColor;
+
   final double size;
   final String tooltip;
 
@@ -49,9 +57,10 @@ class _CopyButtonState extends State<CopyButton> {
   @override
   Widget build(BuildContext context) {
     final baseColor = widget.color ?? context.colors.mutedForeground;
+    final hoverColor = widget.hoverColor ?? context.colors.foreground;
     final color = _copied
         ? context.colors.accent
-        : (_hovered ? context.colors.foreground : baseColor);
+        : (_hovered ? hoverColor : baseColor);
 
     final Widget button = Tooltip(
       message: _copied ? 'Copied!' : widget.tooltip,
@@ -63,8 +72,8 @@ class _CopyButtonState extends State<CopyButton> {
           onTap: _copy,
           child: Padding(
             padding: const EdgeInsets.all(6),
-            child: Icon(
-              _copied ? Icons.check_rounded : Icons.content_copy_rounded,
+            child: AppIcon(
+              _copied ? DiffIcon.check : DiffIcon.copy,
               size: widget.size,
               color: color,
             ),

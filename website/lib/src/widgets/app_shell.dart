@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/links.dart';
 import '../theme/theme_controller.dart';
 import '../theme/tokens.dart';
+import 'app_icon.dart';
 import 'brand.dart';
 import 'nav_bar.dart';
 
@@ -117,7 +118,11 @@ class _MobileMenu extends StatelessWidget {
                   const Brand(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(Icons.close_rounded, color: colors.foreground),
+                    icon: AppIcon(
+                      DiffIcon.x,
+                      size: 20,
+                      color: colors.foreground,
+                    ),
                   ),
                 ],
               ),
@@ -185,8 +190,8 @@ class _MenuItem extends StatelessWidget {
             ),
             const Spacer(),
             if (external)
-              Icon(
-                Icons.north_east_rounded,
+              AppIcon(
+                DiffIcon.arrowUpRight,
                 size: 16,
                 color: colors.mutedForeground,
               ),
@@ -209,10 +214,8 @@ class _ThemeRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
         child: Row(
           children: [
-            Icon(
-              controller.isDark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
+            AppIcon(
+              controller.isDark ? DiffIcon.sun : DiffIcon.moon,
               size: 20,
               color: colors.foreground,
             ),

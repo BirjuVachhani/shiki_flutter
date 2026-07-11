@@ -70,42 +70,54 @@ class Footer extends StatelessWidget {
       ],
     );
 
+    // The credit divider is kept OUTSIDE the ContentContainer so it spans the
+    // full viewport width, edge to edge — matching the footer's own top border
+    // and the CTA band above it. The brand/columns and credit line stay inside
+    // their own containers so their content still aligns to the content column.
     return DecoratedBox(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: colors.border)),
       ),
-      child: ContentContainer(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (compact) ...[
-                brandBlock,
-                const SizedBox(height: 40),
-                columns,
-              ] else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: brandBlock),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ContentContainer(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 48, bottom: 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (compact) ...[
+                    brandBlock,
+                    const SizedBox(height: 40),
                     columns,
-                  ],
-                ),
-              const SizedBox(height: 40),
-              Divider(color: colors.border, height: 1),
-              const SizedBox(height: 24),
-              Text(
-                'Built with shiki_flutter — every code sample on this site is '
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: brandBlock),
+                        columns,
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Divider(color: colors.border, height: 1),
+          ContentContainer(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 24, bottom: 48),
+              child: Text(
+                'Built with shiki_flutter. Every code sample on this site is '
                 'tokenized live by the package.',
                 style: TextStyle(
                   color: colors.mutedForeground,
                   fontSize: 13,
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

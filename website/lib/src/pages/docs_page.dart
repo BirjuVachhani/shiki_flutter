@@ -399,8 +399,8 @@ List<Widget> _content(String id) {
           'like it does in VS Code.',
         ),
         DocProse(
-          "It's pure Dart — no WebView, no JavaScript, and no bundled JSON "
-          'assets — so it runs everywhere Flutter runs: iOS, Android, web, '
+          "It's pure Dart (no WebView, no JavaScript, and no bundled JSON "
+          'assets), so it runs everywhere Flutter runs: iOS, Android, web, '
           'macOS, Windows, and Linux.',
         ),
         DocProse(
@@ -426,7 +426,7 @@ List<Widget> _content(String id) {
         ),
         DocProse(
           '**Batteries included:** ~250 languages and ~65 VS Code themes ship '
-          'inside the package. You never bundle JSON assets — you import the '
+          'inside the package. You never bundle JSON assets. You import the '
           'ones you use.',
         ),
       ];
@@ -482,7 +482,7 @@ List<Widget> _content(String id) {
         DocProse(
           'A theme is a real VS Code / TextMate theme: foreground, background, '
           'and font styles resolve through scope-selector specificity, exactly '
-          'like Shiki. There are two ways to get one — pick from the **65 '
+          'like Shiki. There are two ways to get one: pick from the **65 '
           'bundled themes**, or load your own JSON at runtime.',
         ),
         DocH3('Using a bundled theme'),
@@ -498,13 +498,13 @@ List<Widget> _content(String id) {
         ),
         DocNote(
           'Each theme is its own library, so importing one pulls in only that '
-          'theme — the other 64 are tree-shaken away. Import '
+          'theme. The other 64 are tree-shaken away. Import '
           '`themes/all.dart` only for playgrounds that genuinely need every '
           'theme.',
         ),
         DocH3('Bring your own theme'),
         DocProse(
-          "Shiki doesn't own the themes — they're plain VS Code theme JSON. So "
+          "Shiki doesn't own the themes. They're plain VS Code theme JSON. So "
           'any theme works: grab one from a VS Code marketplace extension, the '
           'textmate-grammars-themes source, or hand-write your own, and load '
           'it live. Four entry points take a theme and return its id:',
@@ -542,7 +542,7 @@ List<Widget> _content(String id) {
         DocH3('Browse all 65 themes'),
         DocProse(
           'Every bundled theme, tokenizing the same Dart sample live. Search '
-          'by name and pick one to preview — the id shown is the exact value '
+          'by name and pick one to preview. The id shown is the exact value '
           'you pass as `theme:`.',
         ),
         ThemeGallery(),
@@ -567,7 +567,7 @@ List<Widget> _content(String id) {
           filename: 'embedded.dart',
         ),
         DocProse(
-          'Aliases work too — the `shellscript` grammar answers to `bash`, '
+          'Aliases work too: the `shellscript` grammar answers to `bash`, '
           '`sh`, `zsh`, and `shell`.',
         ),
         DocH3('Supported languages'),
@@ -589,7 +589,7 @@ List<Widget> _content(String id) {
           '**Do** import specific entries: `import '
               "'package:shiki_flutter/langs/dart.dart';`.",
           "**Don't** import the `all.dart` barrels unless you truly want every "
-              'grammar — they reference everything and defeat tree-shaking.',
+              'grammar. They reference everything and defeat tree-shaking.',
         ]),
         DocProse(
           'The barrels exist for tools and playgrounds that genuinely need '
@@ -645,7 +645,7 @@ List<Widget> _content(String id) {
         DocProse('A couple of things worth knowing:'),
         DocBullets([
           'A few very rare grammar constructs are unsupported. When one is '
-              'hit it is skipped gracefully — highlighting keeps going rather '
+              'hit it is skipped gracefully, and highlighting keeps going rather '
               'than failing, so at worst a small span is left uncolored.',
           'Unicode property classes (`\\p{...}`) use pragmatic approximations '
               '(ASCII is exact); full Unicode category tables are not bundled, '

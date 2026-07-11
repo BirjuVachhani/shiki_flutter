@@ -23,6 +23,11 @@ dependencies:
   # Clean-URL routing for the Home (/) and Docs (/docs) pages.
   go_router: ^14.6.2
   url_launcher: ^6.3.2
+  simple_icons: ^16.23.0
+
+  # Renders the diffs.com ("Pierre") icon set shipped under assets/icons/ as
+  # crisp, tintable vectors (see lib/src/widgets/app_icon.dart).
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -34,6 +39,7 @@ flutter:
 
   assets:
     - assets/fonts/
+    - assets/icons/
 
   fonts:
     # UI / body font (matches diffs.com, which uses Geist).

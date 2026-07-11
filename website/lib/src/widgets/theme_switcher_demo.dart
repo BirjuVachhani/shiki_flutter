@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../data/snippets.dart';
 import '../highlight/highlighter_service.dart';
 import 'code_block.dart';
-import 'pill.dart';
+import 'theme_dropdown.dart';
 
 /// Renders one Dart snippet and lets the visitor flip it through several real
-/// VS Code themes — all tokenized live by shiki_flutter.
+/// VS Code themes, all tokenized live by shiki_flutter. Theme selection uses the
+/// diffs.com-style [ThemeDropdown].
 class ThemeSwitcherDemo extends StatefulWidget {
   const ThemeSwitcherDemo({super.key});
 
@@ -24,17 +25,17 @@ class _ThemeSwitcherDemoState extends State<ThemeSwitcherDemo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var i = 0; i < themes.length; i++)
-              SelectPill(
-                label: themes[i].label,
-                selected: i == _selected,
-                onTap: () => setState(() => _selected = i),
-              ),
-          ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ThemeDropdown(
+            choices: [
+              for (final t in themes) (id: t.id, isDark: t.isDark),
+            ],
+            selectedId: theme.id,
+            onSelected: (id) => setState(
+              () => _selected = themes.indexWhere((t) => t.id == id),
+            ),
+          ),
         ),
         const SizedBox(height: 20),
         CodeBlock(

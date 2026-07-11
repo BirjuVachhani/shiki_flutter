@@ -15,7 +15,7 @@ final highlighter = createHighlighter(
   themes: [githubDark],
 );
 
-// Turn source straight into a styled TextSpan — no assets, no WASM.
+// Turn source straight into a styled TextSpan: no assets, no WASM.
 final span = codeToTextSpan(
   highlighter,
   sourceCode,
@@ -161,7 +161,7 @@ dependencies:
 import 'package:flutter/material.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 
-// Import ONLY what you use — the rest is tree-shaken away.
+// Import ONLY what you use. The rest is tree-shaken away.
 import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/themes/github_dark.dart';
 
@@ -248,7 +248,7 @@ final light = codeToTextSpan(
 ''';
 
   static const String themesBringYourOwn = r'''
-// A theme is just VS Code / TextMate theme JSON — load one at runtime from an
+// A theme is just VS Code / TextMate theme JSON. Load one at runtime from an
 // asset, the network, or a VS Code extension. No codegen, no rebuild.
 final json = await rootBundle.loadString('assets/aurora.json');
 // loadThemeFromJson returns the theme's id.
