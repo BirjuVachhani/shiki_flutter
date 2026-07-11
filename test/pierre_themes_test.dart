@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter_website/src/pierre_themes/pierre_themes.dart';
+import 'package:shiki_flutter/pierre_themes/pierre_themes.dart';
 
 /// Verifies the extracted Pierre themes load and tokenize with real colors —
 /// including the two "vibrant" themes, whose wide-gamut `color(display-p3 …)`

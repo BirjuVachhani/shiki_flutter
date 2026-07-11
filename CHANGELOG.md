@@ -1,3 +1,14 @@
+## 0.3.0
+
+* Added the **Pierre** theme collection (`lib/pierre_themes/`) — 10 custom Shiki
+  themes from diffs.com, including two wide-gamut `display-p3` variants and
+  colorblind-friendly sets. Import individually
+  (`package:shiki_flutter/pierre_themes/pierre_dark.dart`) or via the
+  `pierreThemes` barrel list. It's a separate, opt-in collection: not part of
+  `themes/all.dart` or the bundled-theme count, and tree-shaken unless imported.
+* Pierre's themes are MIT licensed, © The Pierre Computer Company; the notice
+  ships in `lib/pierre_themes/LICENSE`.
+
 ## 0.2.0
 
 * Batteries-included: ~250 languages and ~65 themes now ship in the package

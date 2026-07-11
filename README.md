@@ -124,6 +124,24 @@ highlighter.loadLanguageFromJson(myGrammarJsonString);
 highlighter.loadThemeFromJson(myThemeJsonString);
 ```
 
+### Pierre themes (opt-in)
+
+The package also bundles the 10 custom **Pierre** themes from
+[diffs.com](https://diffs.com) — including two wide-gamut `display-p3` variants
+and colorblind-friendly (protanopia/deuteranopia, tritanopia) sets. They are a
+separate, opt-in collection (not part of `themes/all.dart` or the ~65 count):
+
+```dart
+import 'package:shiki_flutter/pierre_themes/pierre_dark.dart';
+// or the whole set: package:shiki_flutter/pierre_themes/pierre_themes.dart
+
+final hl = createHighlighter(langs: [dart], themes: [pierreDark]);
+```
+
+Pierre's themes are MIT licensed, © The Pierre Computer Company; the notice
+ships in [`lib/pierre_themes/LICENSE`](lib/pierre_themes/LICENSE). See
+[`lib/pierre_themes/`](lib/pierre_themes/) for the full list.
+
 ## How it compares to Shiki
 
 | Shiki (JS)                     | shiki_flutter (Dart)            |

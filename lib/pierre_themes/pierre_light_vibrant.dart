@@ -1,9 +1,9 @@
-// Pierre theme extracted from diffs.com (built by Pierre, pierre.co).
-// Format mirrors lib/themes/*.dart so it can be moved into the package as-is.
+// Pierre theme — MIT, © The Pierre Computer Company (https://pierre.co).
+// See lib/pierre_themes/LICENSE for the full notice.
 //
 // This theme uses wide-gamut `color(display-p3 ...)` values, preserved
 // verbatim; shiki_flutter renders them via parseColor + ColorSpace.displayP3.
-import 'package:shiki_flutter/shiki_flutter.dart';
+import '../src/bundled/bundled_theme.dart';
 
 /// The `pierre-light-vibrant` theme.
 final pierreLightVibrant = BundledTheme(

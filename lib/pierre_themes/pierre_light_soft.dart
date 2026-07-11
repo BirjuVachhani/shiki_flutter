@@ -1,6 +1,6 @@
-// Pierre theme extracted from diffs.com (built by Pierre, pierre.co).
-// Format mirrors lib/themes/*.dart so it can be moved into the package as-is.
-import 'package:shiki_flutter/shiki_flutter.dart';
+// Pierre theme — MIT, © The Pierre Computer Company (https://pierre.co).
+// See lib/pierre_themes/LICENSE for the full notice.
+import '../src/bundled/bundled_theme.dart';
 
 /// The `pierre-light-soft` theme.
 final pierreLightSoft = BundledTheme(

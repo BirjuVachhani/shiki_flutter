@@ -1,9 +1,13 @@
-// Pierre theme collection extracted from diffs.com (Pierre, pierre.co).
+// Pierre theme collection (built by Pierre, pierre.co).
 //
-// A self-contained set of 10 custom Shiki themes (VS Code / TextMate JSON).
-// Each theme is a [BundledTheme] identical in shape to the package's own
-// lib/themes/*.dart, so this whole folder can be copied into the package.
-import 'package:shiki_flutter/shiki_flutter.dart';
+// A self-contained, opt-in set of 10 custom Shiki themes (VS Code / TextMate
+// JSON). Each theme is a [BundledTheme] with the same shape as the package's
+// own lib/themes/*.dart. Import a single theme (e.g.
+// `package:shiki_flutter/pierre_themes/pierre_dark.dart`) or this barrel's
+// `pierreThemes` list. These are not part of `themes/all.dart`.
+//
+// MIT licensed, © The Pierre Computer Company. See lib/pierre_themes/LICENSE.
+import '../src/bundled/bundled_theme.dart';
 
 import 'pierre_dark.dart';
 import 'pierre_dark_protanopia_deuteranopia.dart';
@@ -16,7 +20,7 @@ import 'pierre_light_soft.dart';
 import 'pierre_light_tritanopia.dart';
 import 'pierre_light_vibrant.dart';
 
-export 'package:shiki_flutter/shiki_flutter.dart' show BundledTheme;
+export '../src/bundled/bundled_theme.dart' show BundledTheme;
 export 'pierre_dark.dart';
 export 'pierre_dark_protanopia_deuteranopia.dart';
 export 'pierre_dark_soft.dart';

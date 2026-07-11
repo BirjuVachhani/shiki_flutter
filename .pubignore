@@ -29,6 +29,10 @@ shiki-main/
 # lib/langs/ and lib/themes/, and consumers don't run the package's tests.
 test/
 
+# The Pierre themes' verbatim JSON originals duplicate the JSON already embedded
+# in lib/pierre_themes/*.dart. Kept in git as reference; not shipped to pub.dev.
+lib/pierre_themes/json/
+
 playground/
 
 # The showcase website is a full Flutter app (fonts, its own deps). It's
