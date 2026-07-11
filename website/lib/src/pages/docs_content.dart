@@ -1,0 +1,284 @@
+import 'package:flutter/material.dart';
+
+import '../theme/tokens.dart';
+
+/// Prose components used to author the docs, matching diffs.com's `docs-prose`:
+/// foreground body text at 16px/1.6, a ~72ch reading measure, and inline
+/// `code` rendered as plain mono (no background box). Code blocks are left to
+/// span the full content width.
+
+/// The reading measure for prose. diffs.com caps docs prose at `max-w-3xl`
+/// (48rem = 768px); code blocks span the full content column.
+const double kProseWidth = 768;
+
+/// A body paragraph. Wrap inline code in backticks.
+class DocProse extends StatelessWidget {
+  const DocProse(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      // diffs.com paragraphs sit ~20px apart (line pitch 25.5 + ~20 margin).
+      padding: const EdgeInsets.only(bottom: 20),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kProseWidth),
+        child: Text.rich(
+          TextSpan(children: inlineSpans(text, colors)),
+          style: TextStyle(
+            color: colors.foreground,
+            fontSize: 16,
+            height: 1.6,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A second-level heading inside a docs section.
+class DocH3 extends StatelessWidget {
+  const DocH3(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 26, bottom: 8),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: context.colors.foreground,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+        ),
+      ),
+    );
+  }
+}
+
+/// A bulleted list; each item supports inline `code`.
+class DocBullets extends StatelessWidget {
+  const DocBullets(this.items, {super.key});
+
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kProseWidth),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final item in items)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10, left: 4, right: 14),
+                      child: Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colors.mutedForeground,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(children: inlineSpans(item, colors)),
+                        style: TextStyle(
+                          color: colors.foreground,
+                          fontSize: 16,
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A borderless table with horizontal row rules (diffs style).
+class DocTable extends StatelessWidget {
+  const DocTable({super.key, required this.headers, required this.rows});
+
+  final List<String> headers;
+  final List<List<String>> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 22),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kProseWidth),
+        child: Table(
+          border: TableBorder(
+            horizontalInside: BorderSide(color: colors.border),
+            bottom: BorderSide(color: colors.border),
+          ),
+          columnWidths: const {0: IntrinsicColumnWidth()},
+          defaultVerticalAlignment: TableCellVerticalAlignment.top,
+          children: [
+            TableRow(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: colors.mutedForeground),
+                ),
+              ),
+              children: [
+                for (final h in headers) _cell(context, h, header: true),
+              ],
+            ),
+            for (final row in rows)
+              TableRow(children: [for (final c in row) _cell(context, c)]),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _cell(BuildContext context, String text, {bool header = false}) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12, bottom: 12, right: 24),
+      child: Text.rich(
+        TextSpan(children: inlineSpans(text, colors)),
+        style: TextStyle(
+          color: colors.foreground,
+          fontSize: 14,
+          height: 1.5,
+          fontWeight: header ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+    );
+  }
+}
+
+/// A subtle callout box for tips.
+class DocNote extends StatelessWidget {
+  const DocNote(this.text, {super.key, this.icon = Icons.lightbulb_outline});
+
+  final String text;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 20),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kProseWidth),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(AppRadii.md),
+            border: Border.all(color: colors.border),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, size: 18, color: colors.mutedForeground),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(children: inlineSpans(text, colors)),
+                  style: TextStyle(
+                    color: colors.foreground,
+                    fontSize: 14.5,
+                    height: 1.6,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A compact, wrapped grid of language-id chips.
+class DocLangList extends StatelessWidget {
+  const DocLangList(this.ids, {super.key});
+
+  final List<String> ids;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 22),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          for (final id in ids)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: colors.border),
+              ),
+              child: Text(
+                id,
+                style: TextStyle(
+                  fontFamily: AppFonts.mono,
+                  fontSize: 12.5,
+                  color: colors.mutedForeground,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Parses a small subset of Markdown inline syntax: `` `code` `` becomes plain
+/// mono (no background box) and `**bold**` becomes semibold.
+List<InlineSpan> inlineSpans(String text, AppColors colors) {
+  final spans = <InlineSpan>[];
+  final pattern = RegExp(r'\*\*[^*]+\*\*|`[^`]+`');
+  var last = 0;
+  for (final m in pattern.allMatches(text)) {
+    if (m.start > last) spans.add(TextSpan(text: text.substring(last, m.start)));
+    final token = m.group(0)!;
+    if (token.startsWith('`')) {
+      spans.add(TextSpan(
+        text: token.substring(1, token.length - 1),
+        style: TextStyle(
+          fontFamily: AppFonts.mono,
+          fontSize: 14.5,
+          color: colors.foreground,
+        ),
+      ));
+    } else {
+      spans.add(TextSpan(
+        text: token.substring(2, token.length - 2),
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ));
+    }
+    last = m.end;
+  }
+  if (last < text.length) spans.add(TextSpan(text: text.substring(last)));
+  return spans;
+}

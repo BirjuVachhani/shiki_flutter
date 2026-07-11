@@ -1,0 +1,58 @@
+name: shiki_flutter_website
+description: "Showcase website for the shiki_flutter package."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Provides usePathUrlStrategy() for clean web URLs (has a non-web stub).
+  flutter_web_plugins:
+    sdk: flutter
+
+  # The package this site showcases. Every code sample on the page is rendered
+  # live by shiki_flutter itself.
+  shiki_flutter:
+    path: ../
+
+  # Clean-URL routing for the Home (/) and Docs (/docs) pages.
+  go_router: ^14.6.2
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/fonts/
+
+  fonts:
+    # UI / body font (matches diffs.com, which uses Geist).
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist-400.ttf
+          weight: 400
+        - asset: assets/fonts/Geist-500.ttf
+          weight: 500
+        - asset: assets/fonts/Geist-600.ttf
+          weight: 600
+        - asset: assets/fonts/Geist-700.ttf
+          weight: 700
+    # Code font.
+    - family: Geist Mono
+      fonts:
+        - asset: assets/fonts/GeistMono-400.ttf
+          weight: 400
+        - asset: assets/fonts/GeistMono-500.ttf
+          weight: 500
+        - asset: assets/fonts/GeistMono-700.ttf
+          weight: 700
