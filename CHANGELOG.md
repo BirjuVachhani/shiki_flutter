@@ -1,5 +1,12 @@
 ## 0.3.0
 
+* Added `ShikiCodeListView`, a virtualized widget that renders one line per
+  `ListView` row for smooth display of large files, with an optional line-number
+  gutter and horizontal scrolling for long lines.
+* New line-based rendering helpers: `codeToLineSpans` / `tokensToLineSpans`
+  return `List<List<TextSpan>>` (spans grouped by line, blank lines
+  height-preserving) for building your own lazy code UI, plus `lineToTextSpan`
+  to assemble one line into a single `TextSpan`.
 * Added the **Pierre** theme collection (`lib/pierre_themes/`) — 10 custom Shiki
   themes from diffs.com, including two wide-gamut `display-p3` variants and
   colorblind-friendly sets. Import individually

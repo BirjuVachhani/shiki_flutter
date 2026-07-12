@@ -21,11 +21,15 @@ export 'src/core/highlighter.dart'
 export 'src/core/theme_registration.dart'
     show ThemeRegistration, normalizeTheme;
 export 'src/core/themed_token.dart' show ThemedToken;
+export 'src/flutter/code_list_view.dart' show ShikiCodeListView;
 export 'src/flutter/code_view.dart' show ShikiCodeView;
 export 'src/flutter/render.dart'
     show
         codeToTextSpan,
         tokensToTextSpan,
+        codeToLineSpans,
+        tokensToLineSpans,
+        lineToTextSpan,
         themedTokenStyle,
         parseColor,
         parseHexColor;

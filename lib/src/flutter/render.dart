@@ -148,6 +148,31 @@ TextStyle themedTokenStyle(ThemedToken token, {TextStyle? baseStyle}) {
   );
 }
 
+/// A single token's [TextSpan], its style layered over [baseStyle].
+TextSpan _tokenSpan(ThemedToken token, TextStyle? baseStyle) => TextSpan(
+      text: token.content,
+      style: themedTokenStyle(token, baseStyle: baseStyle),
+    );
+
+/// Tokenizes [code] and bakes the theme's foreground into the base style — the
+/// shared front half of [codeToTextSpan] and [codeToLineSpans].
+({List<List<ThemedToken>> tokens, TextStyle baseStyle}) _tokenizeWithBase(
+  ShikiHighlighter highlighter,
+  String code, {
+  required String lang,
+  required String theme,
+  TextStyle? baseStyle,
+}) {
+  final tokens = highlighter.codeToTokens(
+    code,
+    TokenizeOptions(lang: lang, theme: theme),
+  );
+  final registration = highlighter.getThemeRegistration(theme);
+  final fg = parseColor(registration.fg);
+  final effectiveBase = (baseStyle ?? const TextStyle()).copyWith(color: fg);
+  return (tokens: tokens, baseStyle: effectiveBase);
+}
+
 /// Converts a grid of themed tokens (lines of tokens) into a single [TextSpan],
 /// inserting newlines between lines.
 TextSpan tokensToTextSpan(
@@ -157,10 +182,7 @@ TextSpan tokensToTextSpan(
   final children = <InlineSpan>[];
   for (var i = 0; i < lines.length; i++) {
     for (final token in lines[i]) {
-      children.add(TextSpan(
-        text: token.content,
-        style: themedTokenStyle(token, baseStyle: baseStyle),
-      ));
+      children.add(_tokenSpan(token, baseStyle));
     }
     if (i != lines.length - 1) {
       children.add(const TextSpan(text: '\n'));
@@ -177,12 +199,73 @@ TextSpan codeToTextSpan(
   required String theme,
   TextStyle? baseStyle,
 }) {
-  final tokens = highlighter.codeToTokens(
+  final resolved = _tokenizeWithBase(
+    highlighter,
     code,
-    TokenizeOptions(lang: lang, theme: theme),
+    lang: lang,
+    theme: theme,
+    baseStyle: baseStyle,
   );
-  final registration = highlighter.getThemeRegistration(theme);
-  final fg = parseColor(registration.fg);
-  final effectiveBase = (baseStyle ?? const TextStyle()).copyWith(color: fg);
-  return tokensToTextSpan(tokens, baseStyle: effectiveBase);
+  return tokensToTextSpan(resolved.tokens, baseStyle: resolved.baseStyle);
 }
+
+/// Converts a grid of themed tokens into styled spans grouped **by line**.
+///
+/// Mirrors [tokensToTextSpan] but keeps line boundaries instead of flattening
+/// to one span with `'\n'` separators: the outer list is lines, and each inner
+/// list holds that line's spans. This is the shape a lazily-built list such as
+/// `ListView.builder` wants, so large files only pay layout/paint cost for the
+/// lines actually on screen.
+///
+/// A blank line yields a single empty-text span carrying [baseStyle], so an
+/// empty line still reserves one line of height when rendered on its own.
+List<List<TextSpan>> tokensToLineSpans(
+  List<List<ThemedToken>> lines, {
+  TextStyle? baseStyle,
+}) {
+  return [
+    for (final line in lines)
+      if (line.isEmpty)
+        [TextSpan(text: '', style: baseStyle)]
+      else
+        [for (final token in line) _tokenSpan(token, baseStyle)],
+  ];
+}
+
+/// Highlights [code] and returns its styled spans grouped **by line**.
+///
+/// The outer list is lines; each inner list holds the [TextSpan]s for that
+/// line. Feed it to a `ListView.builder` (one row per line) to render large
+/// files without building the whole document up front — each inner span already
+/// carries its fully resolved style, so a row is just
+/// `Text.rich(TextSpan(children: lines[i]))`, or `Text.rich(lineToTextSpan(...))`.
+///
+/// The theme's foreground is baked into [baseStyle] (matching [codeToTextSpan]),
+/// and blank lines are height-preserving (see [tokensToLineSpans]).
+///
+/// Note the code is tokenized eagerly in a single pass — correct, because a
+/// line's highlighting can depend on earlier lines (multi-line strings and
+/// comments). Only the *rendering* is lazy.
+List<List<TextSpan>> codeToLineSpans(
+  ShikiHighlighter highlighter,
+  String code, {
+  required String lang,
+  required String theme,
+  TextStyle? baseStyle,
+}) {
+  final resolved = _tokenizeWithBase(
+    highlighter,
+    code,
+    lang: lang,
+    theme: theme,
+    baseStyle: baseStyle,
+  );
+  return tokensToLineSpans(resolved.tokens, baseStyle: resolved.baseStyle);
+}
+
+/// Assembles one line's [spans] into a single [TextSpan] for `Text.rich`.
+///
+/// A convenience for callers who prefer a `List<TextSpan>` (one span per line)
+/// over a `List<List<TextSpan>>`:
+/// `codeToLineSpans(...).map(lineToTextSpan).toList()`.
+TextSpan lineToTextSpan(List<TextSpan> spans) => TextSpan(children: spans);

@@ -160,6 +160,174 @@ void main() {
       expect(find.byType(ColoredBox), findsOneWidget);
     });
   });
+
+  group('tokensToLineSpans', () {
+    test('keeps line grouping and preserves blank lines', () {
+      final tokens = <List<ThemedToken>>[
+        [const ThemedToken(content: 'a', offset: 0, color: '#ff0000')],
+        [],
+        [const ThemedToken(content: 'b', offset: 2, color: '#00ff00')],
+      ];
+      final lines = tokensToLineSpans(tokens, baseStyle: const TextStyle());
+      expect(lines.length, 3);
+      expect(lines[0].single.text, 'a');
+      expect(lines[0].single.style?.color, const Color(0xFFFF0000));
+      // A blank line becomes a single height-preserving empty-text span.
+      expect(lines[1].single.text, '');
+      expect(lines[2].single.text, 'b');
+    });
+  });
+
+  group('codeToLineSpans', () {
+    test('splits into one entry per source line', () {
+      final hl = buildHighlighter();
+      final lines = codeToLineSpans(
+        hl,
+        'const a = 1;\nconst b = 2;',
+        lang: 'javascript',
+        theme: 'github-dark',
+      );
+      expect(lines.length, 2);
+    });
+
+    test('preserves blank lines as a single empty-text span', () {
+      final hl = buildHighlighter();
+      final lines = codeToLineSpans(
+        hl,
+        'const a = 1;\n\nconst b = 2;',
+        lang: 'javascript',
+        theme: 'github-dark',
+      );
+      expect(lines.length, 3);
+      expect(lines[1].single.text, '');
+    });
+
+    test('bakes the theme foreground onto every span', () {
+      final hl = buildHighlighter();
+      final lines = codeToLineSpans(
+        hl,
+        'const x = y;',
+        lang: 'javascript',
+        theme: 'github-dark',
+      );
+      final spans =
+          lines.expand((l) => l).where((s) => (s.text ?? '').isNotEmpty);
+      expect(spans, isNotEmpty);
+      expect(spans.every((s) => s.style?.color != null), isTrue);
+    });
+
+    test('joined lines reconstruct the source', () {
+      final hl = buildHighlighter();
+      const code = 'const a = 1;\nconst b = 2;';
+      final lines = codeToLineSpans(
+        hl,
+        code,
+        lang: 'javascript',
+        theme: 'github-dark',
+      );
+      final text =
+          lines.map((l) => l.map((s) => s.text ?? '').join()).join('\n');
+      expect(text, code);
+    });
+  });
+
+  test('lineToTextSpan wraps spans as children', () {
+    const line = [TextSpan(text: 'a'), TextSpan(text: 'b')];
+    final span = lineToTextSpan(line);
+    expect(span.children, line);
+    expect(_flatten(span), 'ab');
+  });
+
+  group('ShikiCodeListView widget', () {
+    testWidgets('renders highlighted code with background', (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: SizedBox(
+            width: 400,
+            height: 300,
+            child: ShikiCodeListView(
+              highlighter: hl,
+              code: 'const answer = x;',
+              lang: 'javascript',
+              theme: 'github-dark',
+            ),
+          ),
+        ),
+      );
+
+      final richTexts = tester.widgetList<RichText>(find.byType(RichText));
+      final joined = richTexts.map((rt) => _flatten(rt.text)).join();
+      expect(joined, contains('answer'));
+      expect(find.byType(ColoredBox), findsWidgets);
+    });
+
+    testWidgets('shows a line-number gutter when enabled', (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: SizedBox(
+            width: 400,
+            height: 300,
+            child: ShikiCodeListView(
+              highlighter: hl,
+              code: 'const a = x;\nconst b = y;\nconst c = z;',
+              lang: 'javascript',
+              theme: 'github-dark',
+              showLineNumbers: true,
+            ),
+          ),
+        ),
+      );
+
+      // Digits absent from the code, so these only match the gutter.
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+    });
+
+    testWidgets('shrink-wraps inside an unbounded parent without error',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: SingleChildScrollView(
+            child: ShikiCodeListView(
+              highlighter: hl,
+              code: 'const a = x;\nconst b = y;',
+              lang: 'javascript',
+              theme: 'github-dark',
+              showLineNumbers: true,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+    });
+
+    test('asserts showLineNumbers requires softWrap: false', () {
+      final hl = buildHighlighter();
+      expect(
+        () => ShikiCodeListView(
+          highlighter: hl,
+          code: 'x',
+          lang: 'javascript',
+          theme: 'github-dark',
+          showLineNumbers: true,
+          softWrap: true,
+        ),
+        throwsAssertionError,
+      );
+    });
+  });
 }
 
 String _flatten(InlineSpan span) {

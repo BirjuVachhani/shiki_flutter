@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shiki_flutter/shiki_flutter.dart';
 
 import '../highlight/highlighter_service.dart';
 import '../theme/tokens.dart';
@@ -56,63 +57,37 @@ class CodeBlock extends StatelessWidget {
     final onBg = bg.computeLuminance() > 0.5 ? Colors.black : Colors.white;
     final border = onBg.withValues(alpha: 0.10);
 
-    final span = service.span(
+    // Cached per-line spans feed a virtualized line view: a real (non-faked)
+    // line-number gutter that stays row-aligned with the code, plus horizontal
+    // scrolling for long lines. Shrink-wrapped so the block grows to fit and
+    // never traps the page's vertical scroll.
+    final lines = service.lineSpans(
       trimmed,
       lang: lang,
       theme: themeId,
       fontSize: fontSize,
     );
 
-    const vPad = 18.0;
-
-    // The code, in a horizontal scroller so long lines never wrap.
-    final codeArea = SelectionArea(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 20),
-          child: Text.rich(span, softWrap: false),
+    final body = SelectionArea(
+      child: ShikiCodeListView(
+        highlighter: service.highlighter,
+        code: trimmed,
+        lang: lang,
+        theme: themeId,
+        lines: lines,
+        textStyle: TextStyle(
+          fontFamily: AppFonts.mono,
+          fontSize: fontSize,
+          height: 1.55,
         ),
+        showLineNumbers: showLineNumbers,
+        lineNumberColor: onBg.withValues(alpha: 0.32),
+        paintBackground: false,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(left: 20, top: 18, bottom: 18, right: 20),
       ),
     );
-
-    Widget body;
-    if (showLineNumbers) {
-      final lineCount = '\n'.allMatches(trimmed).length + 1;
-      // Same font size + line height as the code so numbers align row-for-row.
-      final numberStyle = TextStyle(
-        fontFamily: AppFonts.mono,
-        fontSize: fontSize,
-        height: 1.55,
-        color: onBg.withValues(alpha: 0.32),
-      );
-      body = Padding(
-        padding: const EdgeInsets.symmetric(vertical: vPad),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SelectionContainer.disabled(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20, right: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    for (var i = 1; i <= lineCount; i++)
-                      Text('$i', style: numberStyle),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(child: codeArea),
-          ],
-        ),
-      );
-    } else {
-      body = Padding(
-        padding: const EdgeInsets.only(left: 20, top: vPad, bottom: vPad),
-        child: codeArea,
-      );
-    }
 
     // With a header the copy button lives in the header; without one it floats
     // over the code in the top-right.
