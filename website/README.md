@@ -1,6 +1,6 @@
 # shiki_flutter website
 
-The showcase site for [`shiki_flutter`](../) — a landing page and docs, styled
+The showcase site for [`shiki_flutter`](../): a landing page and docs, styled
 after [diffs.com](https://diffs.com) (the shadcn "neutral" palette: monochrome,
 dark-forward, subtle borders).
 

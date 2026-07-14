@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "description": "Device frame benchmark baseline (shiki_flutter), captured from integration_test/frame_benchmark_test.dart.",
+    "lang": "dart",
+    "theme": "github-dark",
+    "device": "macos (desktop)",
+    "mode": "debug (flutter test -d macos) — DEBUG numbers are inflated vs profile; use for tradeoff shape, not absolute perf",
+    "note": "Includes xl for the record; the checked-in test caps at m/l because xl-monolithic layout is pathological (~16 min first frame). Re-run with `flutter drive --profile` for accurate numbers."
+  },
+  "monolithic_l": {
+    "frame_count": 348,
+    "first_frame_ms": 2461.578,
+    "build_ms": {"avg": 0.82, "p50": 0.56, "p90": 2.204, "p99": 4.235, "worst": 8.539},
+    "raster_ms": {"avg": 1.532, "p50": 0.817, "p90": 2.5, "p99": 3.699, "worst": 140.413},
+    "total_ms": {"avg": 3.26, "p50": 1.541, "p90": 5.117, "p99": 10.994, "worst": 183.924},
+    "missed_frames_60fps": 3,
+    "missed_frames_120fps": 6
+  },
+  "lazy_l": {
+    "frame_count": 357,
+    "first_frame_ms": 81.776,
+    "build_ms": {"avg": 5.516, "p50": 2.752, "p90": 15.178, "p99": 58.775, "worst": 103.393},
+    "raster_ms": {"avg": 2.247, "p50": 0.888, "p90": 4.709, "p99": 15.757, "worst": 34.879},
+    "total_ms": {"avg": 10.369, "p50": 4.632, "p90": 24.098, "p99": 83.341, "worst": 118.062},
+    "missed_frames_60fps": 75,
+    "missed_frames_120fps": 131
+  },
+  "monolithic_xl": {
+    "frame_count": 348,
+    "first_frame_ms": 947972.357,
+    "build_ms": {"avg": 2725.553, "p50": 1.281, "p90": 3.107, "p99": 8.716, "worst": 947961.131},
+    "raster_ms": {"avg": 12.134, "p50": 3.669, "p90": 7.197, "p99": 18.242, "worst": 2678.585},
+    "total_ms": {"avg": 2748.92, "p50": 5.792, "p90": 17.633, "p99": 282.922, "worst": 947994.431},
+    "missed_frames_60fps": 39,
+    "missed_frames_120fps": 111,
+    "_comment": "first_frame_ms ~948s: one Text.rich with ~32k spans is pathological. This is why the device test caps at l."
+  },
+  "lazy_xl": {
+    "frame_count": 340,
+    "first_frame_ms": 187.911,
+    "build_ms": {"avg": 14.229, "p50": 8.489, "p90": 25.877, "p99": 137.701, "worst": 531.698},
+    "raster_ms": {"avg": 7.01, "p50": 3.985, "p90": 9.987, "p99": 53.852, "worst": 286.981},
+    "total_ms": {"avg": 42.199, "p50": 21.132, "p90": 60.418, "p99": 556.163, "worst": 1117.624},
+    "missed_frames_60fps": 243,
+    "missed_frames_120fps": 307
+  }
+}

@@ -21,9 +21,11 @@ const _sections = <_SectionMeta>[
   _SectionMeta('quick-start', 'Quick start'),
   _SectionMeta('rendering', 'Rendering code'),
   _SectionMeta('themes', 'Themes'),
+  _SectionMeta('extra-themes', 'Extra themes'),
   _SectionMeta('languages', 'Languages'),
   _SectionMeta('bundle-size', 'Bundle size'),
   _SectionMeta('shikicodeview', 'The widget'),
+  _SectionMeta('large-files', 'Large files'),
   _SectionMeta('custom', 'Custom grammars'),
   _SectionMeta('limitations', 'Limitations'),
 ];
@@ -33,7 +35,7 @@ const _sections = <_SectionMeta>[
 class DocsPage extends StatefulWidget {
   const DocsPage({super.key, this.initialSection});
 
-  /// A section id (e.g. `themes`) to scroll to on first load — set from the
+  /// A section id (e.g. `themes`) to scroll to on first load - set from the
   /// `?section=` query param so other pages can deep-link into the docs.
   final String? initialSection;
 
@@ -242,7 +244,7 @@ class _Sidebar extends StatelessWidget {
 }
 
 /// Pins its [child] to a fixed screen position while [controller] scrolls, by
-/// translating it downward by the current scroll offset — the equivalent of
+/// translating it downward by the current scroll offset - the equivalent of
 /// CSS `position: sticky` for a short left rail inside a page-level scroll.
 class _StickyBox extends StatelessWidget {
   const _StickyBox({required this.controller, required this.child});
@@ -285,7 +287,7 @@ class _SidebarItemState extends State<_SidebarItem> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final active = widget.active;
-    // diffs.com: selection changes colour + a subtle pill only — never weight.
+    // diffs.com: selection changes colour + a subtle pill only - never weight.
     // Active = foreground on an accent pill; others muted, brightening on hover.
     final color = active || _hovered
         ? colors.foreground
@@ -406,8 +408,9 @@ List<Widget> _content(String id) {
         DocProse(
           '**~250 languages and 65 themes are built in.** You import only the '
           'ones you use, and everything else is tree-shaken out of your app. '
-          'Reach for the `ShikiCodeView` widget for the common case, or drop '
-          'down to `codeToTextSpan` and raw tokens when you need more control.',
+          'Reach for the `ShikiCodeView` widget for the common case, '
+          '`ShikiCodeListView` for large files, or drop down to '
+          '`codeToTextSpan` and raw tokens when you need more control.',
         ),
       ];
     case 'installation':
@@ -444,7 +447,10 @@ List<Widget> _content(String id) {
       ];
     case 'rendering':
       return const [
-        DocProse('There are three ways to render tokenized code.'),
+        DocProse(
+          'There are three ways to render tokenized code. For very large files, '
+          'see **Large files** for a lazily rendered, line-based option.',
+        ),
         DocH3('As a TextSpan'),
         DocProse(
           'Use `codeToTextSpan` to build an `InlineSpan` for any `Text.rich` or '
@@ -547,6 +553,44 @@ List<Widget> _content(String id) {
         ),
         ThemeGallery(),
       ];
+    case 'extra-themes':
+      return const [
+        DocProse(
+          'Alongside the bundled VS Code themes, shiki_flutter ships the 10 '
+          'custom **Pierre** themes from diffs.com (built by Pierre), the same '
+          'set this site uses for its own code blocks. The collection spans '
+          'light and dark, plus soft, vibrant, and color-blind-friendly '
+          'variants:',
+        ),
+        DocBullets([
+          '`pierre-dark` and `pierre-light`: the defaults.',
+          '`pierre-dark-soft` and `pierre-light-soft`: gentler, lower '
+              'contrast.',
+          '`pierre-dark-vibrant` and `pierre-light-vibrant`: wide-gamut '
+              '`display-p3` colors on supported displays.',
+          '`pierre-dark-protanopia-deuteranopia` and '
+              '`pierre-light-protanopia-deuteranopia`: tuned for red-green '
+              'color blindness.',
+          '`pierre-dark-tritanopia` and `pierre-light-tritanopia`: tuned for '
+              'blue-yellow color blindness.',
+        ]),
+        DocProse(
+          'They live under `pierre_themes/` and behave like any other bundled '
+          'theme. Import one (or the whole set) and pass it to '
+          '`createHighlighter`:',
+        ),
+        CodeBlock(
+          code: Snippets.extraThemes,
+          lang: 'dart',
+          filename: 'pierre_themes.dart',
+        ),
+        DocNote(
+          'An opt-in collection: these are separate from the 65 bundled themes '
+          'and not part of `themes/all.dart`, so they add nothing to your build '
+          'unless you import them. The Pierre themes are MIT-licensed, © The '
+          'Pierre Computer Company.',
+        ),
+      ];
     case 'languages':
       return const [
         DocProse(
@@ -626,6 +670,62 @@ List<Widget> _content(String id) {
             ['`paintBackground`', '`bool`', "Paint the theme's background."],
             ['`textScaler`', '`TextScaler?`', 'Optional text scaling.'],
           ],
+        ),
+      ];
+    case 'large-files':
+      return const [
+        DocProse(
+          'Rendering a whole file as one `TextSpan` (via `codeToTextSpan` or '
+          '`ShikiCodeView`) lays out every line up front, which gets expensive '
+          'for very large files. shiki_flutter can group the highlighting by '
+          'line instead, so a `ListView.builder` renders only the lines '
+          'currently on screen.',
+        ),
+        DocH3('The widget'),
+        DocProse(
+          '`ShikiCodeListView` is the drop-in option: it renders one line per '
+          'row in a lazily built `ListView`, with an optional line-number '
+          'gutter and horizontal scrolling for long lines. Give it a bounded '
+          'height, like any `ListView`.',
+        ),
+        CodeBlock(
+          code: Snippets.largeFileView,
+          lang: 'dart',
+          filename: 'large_file.dart',
+        ),
+        DocTable(
+          headers: ['Property', 'Type', 'Description'],
+          rows: [
+            ['`highlighter`', '`ShikiHighlighter`', 'Loaded highlighter.'],
+            ['`code`', '`String`', 'Source to render.'],
+            ['`lang`', '`String`', 'Language id, e.g. `dart`.'],
+            ['`theme`', '`String`', 'Theme id, e.g. `github-dark`.'],
+            ['`showLineNumbers`', '`bool`', 'Show a line-number gutter.'],
+            ['`lineNumberColor`', '`Color?`', 'Gutter color; defaults from fg.'],
+            ['`softWrap`', '`bool`', 'Wrap long lines instead of scrolling.'],
+            ['`shrinkWrap`', '`bool`', 'Grow to fit instead of filling.'],
+            ['`textStyle`', '`TextStyle?`', 'Base style; use a monospace font.'],
+            ['`padding`', '`EdgeInsetsGeometry`', 'Defaults to `16` all round.'],
+            ['`paintBackground`', '`bool`', "Paint the theme's background."],
+          ],
+        ),
+        DocH3('Build your own list'),
+        DocProse(
+          'Prefer to build the list yourself? `codeToLineSpans` returns the '
+          'spans grouped by line, as a `List<List<TextSpan>>` (one inner list '
+          'per line), ready to feed straight into a `ListView.builder`:',
+        ),
+        CodeBlock(
+          code: Snippets.renderLineSpans,
+          lang: 'dart',
+          filename: 'line_spans.dart',
+        ),
+        DocNote(
+          'The file is still tokenized eagerly in one pass, because '
+          'highlighting on one line can depend on earlier lines (multi-line '
+          'strings and comments), so only the rendering is lazy. The horizontal '
+          'extent assumes a monospace font; use `softWrap: true` for '
+          'proportional fonts.',
         ),
       ];
     case 'custom':

@@ -1,0 +1,7 @@
+# The Oniguruma C sources are NOT vendored. The build hook downloads the pinned
+# source release (SHA-256 verified) into the hook's output directory when it has
+# to build from source. Keep any local extraction out of the package.
+/src/oniguruma/
+
+# Dart / build-hook artifacts.
+.dart_tool/

@@ -1,24 +1,14 @@
-name: shiki_flutter
-description: >-
-  A TextMate-grammar based syntax highlighter for Flutter, ported from Shiki.
-  Tokenizes source code with VS Code themes and renders it as styled TextSpans.
-version: 0.3.0
-homepage: https://github.com/BirjuVachhani/shiki_flutter
-repository: https://github.com/BirjuVachhani/shiki_flutter
+# Pub workspace root. This file defines no package of its own; it groups the
+# member packages below so `flutter pub get` resolves them into one shared
+# lockfile. See https://dart.dev/tools/pub/workspaces.
+name: shiki_flutter_workspace
+publish_to: none
 
 environment:
-  sdk: ^3.12.2
-  # Wide-gamut color support (Color.from + ColorSpace.displayP3, used to render
-  # `color(display-p3 ...)` theme colors) landed in Flutter 3.27.
-  flutter: ">=3.27.0"
+  sdk: ^3.12.0
 
-dependencies:
-  flutter:
-    sdk: flutter
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^6.0.0
-
-flutter:
+workspace:
+  - packages/shiki_flutter
+  - packages/oniguruma
+  - packages/shiki_flutter_ffi_engine
+  - website

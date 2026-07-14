@@ -40,7 +40,7 @@ class _BrandState extends State<Brand> {
     final colors = context.colors;
     final showTagline = !context.isCompact;
 
-    // "Shiki" — text-lg (18px) / leading-20 / semibold, dims on hover.
+    // "Shiki" - text-lg (18px) / leading-20 / semibold, dims on hover.
     final word = MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _wordHovered = true),

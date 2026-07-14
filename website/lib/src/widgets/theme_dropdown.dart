@@ -6,7 +6,7 @@ import 'app_icon.dart';
 /// One selectable theme in a [ThemeDropdown].
 typedef ThemeChoice = ({String id, bool isDark});
 
-/// The diffs.com (shadcn "neutral") dropdown palette for the active brightness —
+/// The diffs.com (shadcn "neutral") dropdown palette for the active brightness -
 /// the exact values read from diffs.com's stylesheet. The popup and the trigger
 /// have *different* fills/borders there, so both are captured here:
 ///
@@ -74,7 +74,7 @@ class _ThemeDropdownState extends State<ThemeDropdown>
   final LayerLink _link = LayerLink();
   final OverlayPortalController _portal = OverlayPortalController();
   // Initialized in initState (not as a `late final` inline field) so the Ticker
-  // is created while the element is active — otherwise disposing the dropdown
+  // is created while the element is active - otherwise disposing the dropdown
   // without ever opening it lazily builds the controller during teardown, which
   // throws (a Ticker can't look up TickerMode on a deactivated element).
   late final AnimationController _anim;
@@ -388,7 +388,7 @@ class _ThemeMenuItemState extends State<_ThemeMenuItem> {
   }
 }
 
-/// The exact chevron from diffs.com's trigger — a narrow, rounded "v" traced
+/// The exact chevron from diffs.com's trigger - a narrow, rounded "v" traced
 /// from their SVG (viewBox `0 0 10 16`, ~1.5px stroke, round caps/joins),
 /// rather than the chunkier Material chevron.
 class _ChevronDown extends StatelessWidget {

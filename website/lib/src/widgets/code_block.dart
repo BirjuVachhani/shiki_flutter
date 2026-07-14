@@ -12,8 +12,8 @@ import 'copy_button.dart';
 /// grows to fit its content vertically (no inner vertical scroll) so it never
 /// traps the page's scroll; long lines scroll horizontally.
 ///
-/// If [filename] is given the block gains a diffs.com-style header — a file-code
-/// glyph, the file name, and the copy button on the right — separated from the
+/// If [filename] is given the block gains a diffs.com-style header - a file-code
+/// glyph, the file name, and the copy button on the right - separated from the
 /// code by a hairline. Without a filename there is no header chrome and a subtle
 /// copy button floats in the top-right instead.
 class CodeBlock extends StatelessWidget {
@@ -130,7 +130,7 @@ class CodeBlock extends StatelessWidget {
 }
 
 /// The optional header bar: a file-code glyph + file name on the left and the
-/// copy button on the right, matching diffs.com's `data-diffs-header` — the same
+/// copy button on the right, matching diffs.com's `data-diffs-header` - the same
 /// background as the code (no divider), `padding-inline: 16`, an 8px icon↔name
 /// gap, and a min-height of roughly one line plus 24px.
 class _Header extends StatelessWidget {

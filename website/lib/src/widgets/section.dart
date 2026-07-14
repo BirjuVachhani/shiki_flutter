@@ -91,7 +91,7 @@ class SectionHeading extends StatelessWidget {
   final String title;
   final String? subtitle;
 
-  /// Optional (label, url) pair — the first occurrence of `label` in
+  /// Optional (label, url) pair - the first occurrence of `label` in
   /// [subtitle] is rendered as a link to `url`.
   final (String label, String url)? subtitleLink;
 

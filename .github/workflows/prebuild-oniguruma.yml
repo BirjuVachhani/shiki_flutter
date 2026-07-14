@@ -1,0 +1,122 @@
+name: prebuild-oniguruma
+
+# Builds the prebuilt `oniguruma_ffi` shared library (Oniguruma + our shim folded
+# into one self-contained dylib/so/dll) for every supported platform and
+# architecture, and uploads them as artifacts. Manually triggered.
+#
+# Oniguruma is archived at v6.9.10, so this only needs to run when the shim,
+# the source pin, or the platform matrix changes. After a run, download the
+# combined `oniguruma-prebuilt` artifact and unzip it into
+# packages/oniguruma/ so it lands at packages/oniguruma/prebuilt/... then commit.
+#
+# Nothing is committed or released by this workflow — artifacts only.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Where the hook expects each library, relative to packages/oniguruma/.
+  PKG_DIR: packages/oniguruma
+
+jobs:
+  build:
+    name: ${{ matrix.id }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # --- macOS ---
+          - { id: macos-arm64,        runner: macos-14,       dest: macos/arm64,          lib: liboniguruma_ffi.dylib, args: "-DCMAKE_OSX_ARCHITECTURES=arm64" }
+          - { id: macos-x64,          runner: macos-14,       dest: macos/x64,            lib: liboniguruma_ffi.dylib, args: "-DCMAKE_OSX_ARCHITECTURES=x86_64" }
+          # --- iOS (device + simulator) ---
+          - { id: ios-device-arm64,   runner: macos-14,       dest: ios/device/arm64,     lib: liboniguruma_ffi.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
+          - { id: ios-sim-arm64,      runner: macos-14,       dest: ios/simulator/arm64,  lib: liboniguruma_ffi.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
+          - { id: ios-sim-x64,        runner: macos-14,       dest: ios/simulator/x64,    lib: liboniguruma_ffi.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
+          # --- Linux ---
+          - { id: linux-x64,          runner: ubuntu-latest,  dest: linux/x64,            lib: liboniguruma_ffi.so,    args: "" }
+          - { id: linux-arm64,        runner: ubuntu-latest,  dest: linux/arm64,          lib: liboniguruma_ffi.so,    args: "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc", setup: linux-cross }
+          # --- Android (NDK) ---
+          - { id: android-arm64,      runner: ubuntu-latest,  dest: android/arm64,        lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21" }
+          - { id: android-arm,        runner: ubuntu-latest,  dest: android/arm,          lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=armeabi-v7a -DANDROID_PLATFORM=android-21" }
+          - { id: android-x64,        runner: ubuntu-latest,  dest: android/x64,          lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=x86_64 -DANDROID_PLATFORM=android-21" }
+          - { id: android-ia32,       runner: ubuntu-latest,  dest: android/ia32,         lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=x86 -DANDROID_PLATFORM=android-21" }
+          # --- Windows ---
+          - { id: windows-x64,        runner: windows-latest, dest: windows/x64,          lib: oniguruma_ffi.dll,      args: "-A x64" }
+          - { id: windows-arm64,      runner: windows-latest, dest: windows/arm64,        lib: oniguruma_ffi.dll,      args: "-A ARM64" }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CMake + Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Install aarch64 cross toolchain
+        if: matrix.setup == 'linux-cross'
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Fetch + verify Oniguruma source
+        shell: bash
+        run: cmake -DDEST="$RUNNER_TEMP/onig" -P "$PKG_DIR/tool/prebuilt/fetch_onig.cmake"
+
+      - name: Configure
+        shell: bash
+        run: >-
+          cmake -S "$PKG_DIR/tool/prebuilt" -B "$RUNNER_TEMP/build"
+          -DCMAKE_BUILD_TYPE=Release
+          -DONIG_SRC_DIR="$RUNNER_TEMP/onig/onig-6.9.10"
+          ${{ matrix.args }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build "$RUNNER_TEMP/build" --config Release -j
+
+      - name: Stage artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="staging/prebuilt/${{ matrix.dest }}"
+          mkdir -p "$out"
+          found=$(find "$RUNNER_TEMP/build" -name "${{ matrix.lib }}" -type f | head -1)
+          if [ -z "$found" ]; then
+            echo "::error::built library ${{ matrix.lib }} not found under $RUNNER_TEMP/build"
+            find "$RUNNER_TEMP/build" -maxdepth 3 -type f -name '*oniguruma_ffi*' || true
+            exit 1
+          fi
+          cp "$found" "$out/${{ matrix.lib }}"
+          ls -l "$out"
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: part-${{ matrix.id }}
+          path: staging
+          if-no-files-found: error
+
+  bundle:
+    name: bundle
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all parts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: part-*
+          path: merged
+          merge-multiple: true
+
+      - name: Show tree
+        shell: bash
+        run: |
+          echo "Assembled prebuilt/ tree:"
+          find merged/prebuilt -type f | sort
+
+      - name: Upload combined prebuilt bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: oniguruma-prebuilt
+          path: merged/prebuilt
+          if-no-files-found: error

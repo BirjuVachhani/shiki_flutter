@@ -1,6 +1,6 @@
 /// Every bundled language id (the value you pass as `lang:`).
 ///
-/// Generated from the package's `lib/langs/`. Plain strings — no grammar
+/// Generated from the package's `lib/langs/`. Plain strings - no grammar
 /// libraries are imported here, so this list adds no weight to the build.
 library;
 

@@ -23,16 +23,24 @@ migrate_working_dir/
 
 # Flutter/Dart/Pub related
 # Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
-/pubspec.lock
+# One shared lockfile lives at the workspace root; members have none.
+pubspec.lock
 **/doc/api/
 .dart_tool/
 .flutter-plugins-dependencies
-/build/
-/coverage/
+build/
+coverage/
 
 # Reference copy of the upstream Shiki source (used only for porting).
 shiki-main/
 
-# NOTE: lib/langs/ and lib/themes/ are generated (tool/generate_bundled.dart)
-# but ARE committed on purpose — they are the bundled grammar/theme catalog that
-# ships with the package. Do not add them to this file.
+# Generated benchmark run artifacts. The directory is kept via .gitkeep; the
+# committed device baseline is kept, everything else is a per-run artifact.
+packages/shiki_flutter/benchmark/results/*.json
+!packages/shiki_flutter/benchmark/results/frames_macos_baseline.json
+
+# NOTE: packages/shiki_flutter/lib/langs/ and lib/themes/ are generated
+# (tool/generate_bundled.dart) but ARE committed on purpose — they are the
+# bundled grammar/theme catalog that ships with the package. Don't add them here.
+
+storyboard/

@@ -4,6 +4,9 @@ publish_to: 'none'
 
 version: 1.0.0+1
 
+# Resolved as part of the pub workspace rooted at the repository root.
+resolution: workspace
+
 environment:
   sdk: ^3.12.2
 
@@ -18,7 +21,7 @@ dependencies:
   # The package this site showcases. Every code sample on the page is rendered
   # live by shiki_flutter itself.
   shiki_flutter:
-    path: ../
+    path: ../packages/shiki_flutter
 
   # Clean-URL routing for the Home (/) and Docs (/docs) pages.
   go_router: ^14.6.2
@@ -33,6 +36,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+  # Drives the device-level frame benchmark (build/raster times, jank counts)
+  # in integration_test/frame_benchmark_test.dart. Dev-only; not shipped.
+  integration_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true

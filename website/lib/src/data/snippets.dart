@@ -3,7 +3,7 @@
 ///
 /// Raw strings (`r'''...'''`) keep `$`, `\`, and quotes literal.
 abstract final class Snippets {
-  /// The hero snippet — the package's own three-line usage.
+  /// The hero snippet - the package's own three-line usage.
   static const String hero = r'''
 import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter/langs/dart.dart';
@@ -223,6 +223,37 @@ for (final line in lines) {
 }
 ''';
 
+  static const String renderLineSpans = r'''
+// codeToLineSpans groups the highlighting by line: a List<List<TextSpan>>,
+// one inner list per line. Feed it to a ListView.builder so only the lines
+// on screen are ever laid out.
+final lines = codeToLineSpans(
+  highlighter,
+  sourceCode,
+  lang: 'dart',
+  theme: 'github-dark',
+  baseStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+);
+
+ListView.builder(
+  itemCount: lines.length,
+  itemBuilder: (context, i) => Text.rich(TextSpan(children: lines[i])),
+);
+''';
+
+  static const String largeFileView = r'''
+// A drop-in virtualized view: renders one line per row and only lays out
+// the lines on screen. Give it a bounded height, like any ListView.
+ShikiCodeListView(
+  highlighter: highlighter,
+  code: sourceCode,
+  lang: 'dart',
+  theme: 'github-dark',
+  showLineNumbers: true,
+  textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+)
+''';
+
   static const String themesUsage = r'''
 import 'package:shiki_flutter/themes/one_dark_pro.dart';
 import 'package:shiki_flutter/themes/vitesse_light.dart';
@@ -259,6 +290,26 @@ final span = codeToTextSpan(
   code,
   lang: 'dart',
   theme: themeId,
+);
+''';
+
+  static const String extraThemes = r'''
+// Pierre themes live under pierre_themes/. Import individual themes…
+import 'package:shiki_flutter/pierre_themes/pierre_dark.dart';
+import 'package:shiki_flutter/pierre_themes/pierre_light.dart';
+// …or the whole set via the barrel, which exports a `pierreThemes` list.
+
+final highlighter = createHighlighter(
+  langs: [dart],
+  themes: [pierreDark, pierreLight],
+);
+
+// Reference a theme by its id when you render.
+final span = codeToTextSpan(
+  highlighter,
+  code,
+  lang: 'dart',
+  theme: pierreDark.id, // 'pierre-dark'
 );
 ''';
 

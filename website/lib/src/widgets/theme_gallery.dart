@@ -8,7 +8,7 @@ import 'copy_button.dart';
 
 /// An interactive explorer for every bundled theme: a searchable, dark/light
 /// grouped list on the left, and a live preview of the selected theme on the
-/// right — the same Dart sample, tokenized by the gallery highlighter (see
+/// right - the same Dart sample, tokenized by the gallery highlighter (see
 /// [HighlighterService.gallerySpan]).
 class ThemeGallery extends StatefulWidget {
   const ThemeGallery({super.key});
@@ -396,7 +396,7 @@ class _ThemePreview extends StatelessWidget {
   }
 }
 
-/// `theme: '<id>'` under the preview, with a copy button — the exact string a
+/// `theme: '<id>'` under the preview, with a copy button - the exact string a
 /// consumer passes when rendering.
 class _Caption extends StatelessWidget {
   const _Caption({required this.themeId});

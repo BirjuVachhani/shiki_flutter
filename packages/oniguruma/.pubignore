@@ -1,0 +1,43 @@
+# Files excluded from the published pub.dev package.
+#
+# This file is authoritative for publishing and does not rely on git state, so
+# it also lists the build/editor artifacts (normally handled by .gitignore) to
+# keep the archive correct even when publishing from a fresh checkout.
+#
+# What DOES ship: lib/, hook/build.dart, src/oniguruma_shim.c, src/config/,
+# prebuilt/**, pubspec.yaml, README.md. The prebuilt libraries are the whole
+# point of the package; make sure nothing below matches them.
+
+# Build artifacts and caches.
+build/
+.dart_tool/
+coverage/
+doc/api/
+**/doc/api/
+
+# Editor / tooling metadata.
+*.iml
+.idea/
+.vscode/
+.DS_Store
+.flutter-plugins-dependencies
+
+# Lockfile is not published for libraries.
+pubspec.lock
+
+# Tests: consumers don't run the package's tests.
+test/
+
+# Dev-only: replay/benchmark harness and the web smoke script.
+benchmark/
+tool/
+
+# CI infrastructure that produces prebuilt/ (kept in git, built by GitHub
+# Actions) — not needed by consumers. Note: tool/ above already covers
+# tool/prebuilt/; listed explicitly for clarity.
+tool/prebuilt/
+
+# The Oniguruma C sources are never vendored; the build hook downloads them
+# on demand. This scratch path won't exist in a clean checkout, but exclude it
+# defensively so a local extraction can never leak into the archive.
+src/oniguruma/

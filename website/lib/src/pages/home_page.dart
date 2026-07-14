@@ -175,7 +175,7 @@ class _HeroMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // No background box — just the mark, in the foreground ink.
+    // No background box - just the mark, in the foreground ink.
     return Icon(Icons.palette_rounded, size: 44, color: context.colors.foreground);
   }
 }
@@ -329,15 +329,18 @@ class _TreeShakeFeature extends StatelessWidget {
           'the Dart compiler tree-shakes away everything you never import.',
       child: compact
           ? Column(children: [code, const SizedBox(height: 28), bars])
-          : IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: code),
-                  const SizedBox(width: 28),
-                  Expanded(child: bars),
-                ],
-              ),
+          // No IntrinsicHeight: the code card renders through a shrink-wrapping
+          // ListView (ShikiCodeListView), which cannot answer intrinsic-height
+          // queries, and this page is an unbounded vertical scroll, so a
+          // stretched Row would over-constrain it too. Both cards take their
+          // natural height, top-aligned.
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: code),
+                const SizedBox(width: 28),
+                Expanded(child: bars),
+              ],
             ),
     );
   }
@@ -470,15 +473,15 @@ class _WidgetFeature extends StatelessWidget {
           'theme background and renders selectable, highlighted text.',
       child: compact
           ? Column(children: [code, const SizedBox(height: 24), preview])
-          : IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: code),
-                  const SizedBox(width: 28),
-                  Expanded(child: preview),
-                ],
-              ),
+          // See _TreeShakeFeature: no IntrinsicHeight around the code card's
+          // shrink-wrapping ListView. Natural height, top-aligned.
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: code),
+                const SizedBox(width: 28),
+                Expanded(child: preview),
+              ],
             ),
     );
   }
@@ -493,7 +496,7 @@ class _WidgetPreview extends StatelessWidget {
     final themeId =
         HighlighterService.themeForBrightness(Theme.of(context).brightness);
     // Fill the whole card with the theme background and let ShikiCodeView paint
-    // only the text — otherwise its background spans just the text width and
+    // only the text - otherwise its background spans just the text width and
     // leaves a mismatched strip on the right.
     final bg = HighlighterService.instance.displayBackground(
       themeId,
@@ -598,7 +601,7 @@ class _EngineFeature extends StatelessWidget {
 /// `<section class="space-y-6 border-y py-16">` block 1:1: a 24px medium
 /// heading (`text-2xl font-medium`) over a muted 16px blurb capped at 672px
 /// (`max-w-2xl`), then two small brand buttons (`h-9 text-sm`). The top
-/// hairline pairs with the footer's own top border to frame the block — the
+/// hairline pairs with the footer's own top border to frame the block - the
 /// same effect as diffs' `border-y`.
 class _CtaBand extends StatelessWidget {
   const _CtaBand();
@@ -619,7 +622,7 @@ class _CtaBand extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // text-2xl font-medium — identical to every SectionHeading title.
+              // text-2xl font-medium - identical to every SectionHeading title.
               Text(
                 'Free, open source, and built for Flutter.',
                 style: TextStyle(
@@ -637,8 +640,8 @@ class _CtaBand extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 672),
                 child: Text(
                   'shiki_flutter is crafted in the open and free for everyone to '
-                  'use. Star the repo, open an issue, or pull it in from pub.dev '
-                  '— every contribution and bug report makes the highlighter '
+                  'use. Star the repo, open an issue, or pull it in from pub.dev. '
+                  'Every contribution and bug report makes the highlighter '
                   'better.',
                   style: TextStyle(
                     color: colors.mutedForeground,

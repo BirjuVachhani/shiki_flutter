@@ -6,8 +6,8 @@ import '../theme/tokens.dart';
 /// The diffs.com ("Pierre") icon set, shipped as SVG assets under
 /// `assets/icons/`.
 ///
-/// The glyphs were extracted directly from diffs.com — the page icon sprite
-/// (`<symbol id="diffs-icon-…">`) and the site's React `IconXxx` components — so
+/// The glyphs were extracted directly from diffs.com - the page icon sprite
+/// (`<symbol id="diffs-icon-…">`) and the site's React `IconXxx` components - so
 /// the site matches diffs.com 1:1 rather than falling back to Material glyphs.
 enum DiffIcon {
   /// Two overlapping rounded squares; the front square is drawn at 40% opacity
@@ -17,19 +17,19 @@ enum DiffIcon {
   /// A single checkmark shown after a successful copy.
   check,
 
-  /// A document with `</>` — the file-type glyph in the code-block header.
+  /// A document with `</>` - the file-type glyph in the code-block header.
   fileCode,
 
   /// A downward chevron for dropdown triggers.
   chevronDown,
 
-  /// A disc that is half-lit — the "follow system" (auto) theme.
+  /// A disc that is half-lit - the "follow system" (auto) theme.
   colorAuto,
 
-  /// A filled crescent — the dark theme.
+  /// A filled crescent - the dark theme.
   colorDark,
 
-  /// A filled sun disc — the light theme.
+  /// A filled sun disc - the light theme.
   colorLight,
 
   /// An outlined sun with rays.
@@ -76,7 +76,7 @@ enum DiffIcon {
 /// Renders a [DiffIcon] as a crisp, single-color vector.
 ///
 /// The glyph is tinted with [ColorFilter.mode] + [BlendMode.srcIn], which
-/// replaces its color while preserving each path's alpha — so multi-opacity
+/// replaces its color while preserving each path's alpha - so multi-opacity
 /// icons (e.g. [DiffIcon.copy]'s layered squares) keep their depth. Defaults to
 /// the theme `foreground` color when [color] is omitted.
 class AppIcon extends StatelessWidget {

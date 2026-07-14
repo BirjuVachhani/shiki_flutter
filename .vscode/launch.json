@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Storyboard",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "storyboard",
+      "program": "lib/main.dart"
+    }
+  ]
+}

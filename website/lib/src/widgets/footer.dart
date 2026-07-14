@@ -71,7 +71,7 @@ class Footer extends StatelessWidget {
     );
 
     // The credit divider is kept OUTSIDE the ContentContainer so it spans the
-    // full viewport width, edge to edge — matching the footer's own top border
+    // full viewport width, edge to edge - matching the footer's own top border
     // and the CTA band above it. The brand/columns and credit line stay inside
     // their own containers so their content still aligns to the content column.
     return DecoratedBox(
