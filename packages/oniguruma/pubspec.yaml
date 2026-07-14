@@ -6,9 +6,11 @@ description: >-
   target, otherwise downloads and compiles the pinned source (SHA-256 verified).
   IO platforms only for now; a WebAssembly backend for the web is planned.
 
-version: 0.1.0
+version: 1.0.0
 
-# Resolved as part of the pub workspace rooted at the repository root.
+homepage: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/oniguruma
+repository: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/oniguruma
+
 resolution: workspace
 
 environment:
@@ -16,15 +18,11 @@ environment:
 
 dependencies:
   ffi: ^2.2.0
-
-  # Build-hook toolchain. The hook bundles a prebuilt library when one ships
-  # for the target (prebuilt/), otherwise downloads the pinned Oniguruma source
-  # release, verifies its SHA-256, and compiles it with native_toolchain_c.
   hooks: ^2.1.0
   code_assets: ^1.2.1
   native_toolchain_c: ^0.19.3
-  archive: ^4.0.0 # extract the downloaded source tarball (source fallback)
-  crypto: ^3.0.0 # SHA-256 verify the downloaded tarball (source fallback)
+  archive: ^4.0.9
+  crypto: ^3.0.7
 
 dependency_overrides:
   meta: ^1.18.0

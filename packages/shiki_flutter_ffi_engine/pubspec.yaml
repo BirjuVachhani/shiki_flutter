@@ -1,23 +1,26 @@
 name: shiki_flutter_ffi_engine
+
 description: >-
   Native (FFI Oniguruma) engine backend for shiki_flutter. Set
   `ShikiHighlighter.engine = ShikiHighlighterFFIEngine()` in main() to tokenize
   with the real Oniguruma C library instead of the pure-Dart engine. IO
   platforms only; on web, guard with kIsWeb and keep the pure-Dart default.
-version: 0.1.0
-publish_to: none
 
-# Resolved as part of the pub workspace rooted at the repository root.
+version: 1.0.0
+
+homepage: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter_ffi_engine
+repository: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter_ffi_engine
+
 resolution: workspace
 
 environment:
   sdk: ^3.12.0
 
 dependencies:
-  # The engine seam this bridge implements (Flutter-free entrypoint).
-  shiki_flutter: ^0.1.0
-  # The standalone Oniguruma FFI bindings this bridge wraps.
-  oniguruma:  ^0.1.0
+  flutter:
+    sdk: flutter
+  shiki_flutter: ^1.0.0
+  oniguruma:  ^1.0.0
 
 dev_dependencies:
   lints: ^6.0.0

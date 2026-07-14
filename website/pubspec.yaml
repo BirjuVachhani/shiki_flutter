@@ -1,35 +1,30 @@
 name: shiki_flutter_website
+
 description: "Showcase website for the shiki_flutter package."
-publish_to: 'none'
+
+publish_to: none
 
 version: 1.0.0+1
 
-# Resolved as part of the pub workspace rooted at the repository root.
 resolution: workspace
 
 environment:
-  sdk: ^3.12.2
+  sdk: ^3.12.0
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # Provides usePathUrlStrategy() for clean web URLs (has a non-web stub).
   flutter_web_plugins:
     sdk: flutter
 
-  # The package this site showcases. Every code sample on the page is rendered
-  # live by shiki_flutter itself.
   shiki_flutter:
     path: ../packages/shiki_flutter
 
-  # Clean-URL routing for the Home (/) and Docs (/docs) pages.
-  go_router: ^14.6.2
+  go_router: ^17.3.0
   url_launcher: ^6.3.2
   simple_icons: ^16.23.0
 
-  # Renders the diffs.com ("Pierre") icon set shipped under assets/icons/ as
-  # crisp, tintable vectors (see lib/src/widgets/app_icon.dart).
   flutter_svg: ^2.3.0
 
 dev_dependencies:
@@ -37,8 +32,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
 
-  # Drives the device-level frame benchmark (build/raster times, jank counts)
-  # in integration_test/frame_benchmark_test.dart. Dev-only; not shipped.
   integration_test:
     sdk: flutter
 
@@ -50,7 +43,6 @@ flutter:
     - assets/icons/
 
   fonts:
-    # UI / body font (matches diffs.com, which uses Geist).
     - family: Geist
       fonts:
         - asset: assets/fonts/Geist-400.ttf
@@ -61,7 +53,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/Geist-700.ttf
           weight: 700
-    # Code font.
     - family: Geist Mono
       fonts:
         - asset: assets/fonts/GeistMono-400.ttf

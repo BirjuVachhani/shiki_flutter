@@ -3,10 +3,10 @@ description: >-
   A TextMate-grammar based syntax highlighter for Flutter, ported from Shiki.
   Tokenizes source code with VS Code themes and renders it as styled TextSpans.
 
-version: 0.1.0
+version: 1.0.0
 
-homepage: https://github.com/BirjuVachhani/shiki_flutter
-repository: https://github.com/BirjuVachhani/shiki_flutter
+homepage: https://shiki.birju.dev
+repository: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter
 
 resolution: workspace
 

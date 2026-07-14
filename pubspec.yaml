@@ -1,7 +1,5 @@
-# Pub workspace root. This file defines no package of its own; it groups the
-# member packages below so `flutter pub get` resolves them into one shared
-# lockfile. See https://dart.dev/tools/pub/workspaces.
 name: shiki_flutter_workspace
+
 publish_to: none
 
 environment:
