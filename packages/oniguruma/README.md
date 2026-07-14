@@ -38,9 +38,10 @@ backend uses Oniguruma's UTF-16LE encoding so no offset remapping is needed.
 one of two ways:
 
 1. **Prebuilt (default).** If a library ships for the target under `prebuilt/`,
-   it is bundled directly — no compiler and no network. Each blob is one dynamic
-   library containing Oniguruma plus our shim (`src/oniguruma_shim.c`). Since
-   Oniguruma is archived, they never change.
+   it is bundled directly — no compiler and no network — after a SHA-256 check
+   against `prebuilt/checksums.sha256` (a mismatch fails the build). Each blob is
+   one dynamic library containing Oniguruma plus our shim
+   (`src/oniguruma_shim.c`). Since Oniguruma is archived, they never change.
 2. **Build from source (fallback).** For any target without a prebuilt — or
    when a consumer sets the `oniguruma.from_source` user-define — the hook
    downloads the pinned Oniguruma source release, verifies its SHA-256,

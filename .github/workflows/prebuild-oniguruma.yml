@@ -7,7 +7,7 @@ name: prebuild-oniguruma
 # Artifacts produced per run:
 #   * one per platform/arch  -> `oniguruma-<platform>-<arch>` (e.g. oniguruma-macos-arm64)
 #   * one combined for all    -> `oniguruma-prebuilt` (contains oniguruma-prebuilt.zip
-#                                with the whole prebuilt/ tree)
+#                                with the whole prebuilt/ tree + checksums.sha256)
 #
 # Oniguruma is archived at v6.9.10, so this is essentially a one-time step; only
 # re-run it when the shim, the source pin, or the platform matrix changes.
@@ -19,7 +19,10 @@ name: prebuild-oniguruma
 #        unzip oniguruma-prebuilt.zip                   # -> oniguruma-prebuilt.zip
 #        unzip oniguruma-prebuilt.zip -d packages/oniguruma/
 #   3. git add packages/oniguruma/prebuilt && commit.
-#   (Or grab a single `oniguruma-<platform>-<arch>` artifact the same way.)
+#   The combined bundle already includes a matching checksums.sha256 (verified
+#   by the build hook). If you instead refresh only one `oniguruma-<platform>-
+#   <arch>` artifact, regenerate the manifest with
+#   packages/oniguruma/tool/prebuilt/gen_checksums.sh before committing.
 #
 # Nothing is committed or released by this workflow — artifacts only.
 
@@ -120,14 +123,27 @@ jobs:
           path: merged
           merge-multiple: true
 
+      - name: Generate SHA-256 manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd merged/prebuilt
+          # Paths relative to prebuilt/ — must match the build hook's lookup keys.
+          find . -type f \( -name '*.dylib' -o -name '*.so' -o -name '*.dll' \) \
+            | sed 's|^\./||' \
+            | LC_ALL=C sort \
+            | xargs sha256sum > checksums.sha256
+          echo "--- checksums.sha256 ---"
+          cat checksums.sha256
+
       - name: Zip the full prebuilt tree into one file
         shell: bash
         run: |
           set -euo pipefail
           echo "Assembled prebuilt/ tree:"
           find merged/prebuilt -type f | sort
-          # Zip with the prebuilt/ dir at the archive root so it can be
-          # unzipped straight into packages/oniguruma/.
+          # Zip with the prebuilt/ dir at the archive root (checksums.sha256
+          # included) so it can be unzipped straight into packages/oniguruma/.
           ( cd merged && zip -r -X ../oniguruma-prebuilt.zip prebuilt )
           echo "--- oniguruma-prebuilt.zip contents ---"
           unzip -l oniguruma-prebuilt.zip

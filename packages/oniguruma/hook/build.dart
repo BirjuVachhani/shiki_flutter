@@ -76,20 +76,24 @@ void main(List<String> args) async {
 
     // --- A. Prebuilt ---------------------------------------------------------
     if (!fromSource) {
-      final prebuilt = _prebuiltLibraryUri(input, os, arch);
-      if (prebuilt != null && File.fromUri(prebuilt).existsSync()) {
-        stderr.writeln('oniguruma: using prebuilt ${prebuilt.pathSegments.last} '
-            'for $os/${arch.name}');
-        output.assets.code.add(
-          CodeAsset(
-            package: input.packageName,
-            name: 'oniguruma_ffi',
-            linkMode: DynamicLoadingBundled(),
-            file: prebuilt,
-          ),
-        );
-        output.dependencies.add(prebuilt);
-        return;
+      final rel = _prebuiltRelPath(input, os, arch);
+      if (rel != null) {
+        final libUri = input.packageRoot.resolve('prebuilt/$rel');
+        if (File.fromUri(libUri).existsSync()) {
+          // Refuse to bundle a blob that doesn't match its recorded SHA-256.
+          _verifyPrebuilt(input, output, libUri, rel);
+          stderr.writeln('oniguruma: using verified prebuilt $rel');
+          output.assets.code.add(
+            CodeAsset(
+              package: input.packageName,
+              name: 'oniguruma_ffi',
+              linkMode: DynamicLoadingBundled(),
+              file: libUri,
+            ),
+          );
+          output.dependencies.add(libUri);
+          return;
+        }
       }
     }
 
@@ -117,8 +121,9 @@ void main(List<String> args) async {
   });
 }
 
-/// Resolves the bundled prebuilt library for [os]/[arch], or null if this
-/// target isn't covered by a prebuilt (then the source fallback runs).
+/// The path of the prebuilt library for [os]/[arch] relative to `prebuilt/`,
+/// or null if this target isn't covered by a prebuilt (then the source
+/// fallback runs). This is also the key used in `prebuilt/checksums.sha256`.
 ///
 /// Layout (produced by the prebuild-oniguruma workflow):
 ///   prebuilt/macos/<arch>/liboniguruma_ffi.dylib
@@ -126,7 +131,7 @@ void main(List<String> args) async {
 ///   prebuilt/windows/<arch>/oniguruma_ffi.dll
 ///   prebuilt/android/<arch>/liboniguruma_ffi.so
 ///   prebuilt/ios/{device,simulator}/<arch>/liboniguruma_ffi.dylib
-Uri? _prebuiltLibraryUri(BuildInput input, OS os, Architecture arch) {
+String? _prebuiltRelPath(BuildInput input, OS os, Architecture arch) {
   final archDir = _archDir(arch);
   if (archDir == null) return null;
 
@@ -148,8 +153,62 @@ Uri? _prebuiltLibraryUri(BuildInput input, OS os, Architecture arch) {
     return null;
   }
 
-  final fileName = os.dylibFileName('oniguruma_ffi');
-  return input.packageRoot.resolve('prebuilt/$platformDir/$fileName');
+  return '$platformDir/${os.dylibFileName('oniguruma_ffi')}';
+}
+
+/// Verifies the prebuilt library at [libUri] against its recorded SHA-256 in
+/// `prebuilt/checksums.sha256`, throwing on any mismatch, missing entry, or
+/// missing manifest. This makes tampering with (or corruption of) a bundled
+/// binary a hard build failure rather than a silent bundle.
+void _verifyPrebuilt(
+    BuildInput input, BuildOutputBuilder output, Uri libUri, String rel) {
+  final manifestUri = input.packageRoot.resolve('prebuilt/checksums.sha256');
+  // Re-run the hook if the manifest changes.
+  output.dependencies.add(manifestUri);
+
+  final manifest = File.fromUri(manifestUri);
+  if (!manifest.existsSync()) {
+    throw StateError(
+      'Prebuilt "$rel" is present but prebuilt/checksums.sha256 is missing, so '
+      'its integrity cannot be verified. Regenerate it with '
+      'tool/prebuilt/gen_checksums.sh, or force a source build with the '
+      '`oniguruma.from_source` user-define.',
+    );
+  }
+
+  final expected = _parseChecksums(manifest.readAsStringSync())[rel];
+  if (expected == null) {
+    throw StateError(
+      'No checksum entry for prebuilt "$rel" in prebuilt/checksums.sha256. '
+      'Regenerate it with tool/prebuilt/gen_checksums.sh.',
+    );
+  }
+
+  final actual =
+      sha256.convert(File.fromUri(libUri).readAsBytesSync()).toString();
+  if (actual != expected) {
+    throw StateError(
+      'Prebuilt integrity check failed for "$rel":\n'
+      '  expected sha256: $expected\n'
+      '  actual   sha256: $actual\n'
+      'The bundled binary does not match prebuilt/checksums.sha256 (possible '
+      'corruption or tampering).',
+    );
+  }
+}
+
+/// Parses a `shasum`/`sha256sum` manifest into `{ relative-path: sha256 }`.
+/// Accepts both text (`hash  path`) and binary (`hash *path`) formats.
+Map<String, String> _parseChecksums(String content) {
+  final result = <String, String>{};
+  final line = RegExp(r'^([0-9a-fA-F]{64})\s+\*?(.+)$');
+  for (final raw in content.split(RegExp(r'\r?\n'))) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
+    final match = line.firstMatch(trimmed);
+    if (match != null) result[match.group(2)!.trim()] = match.group(1)!.toLowerCase();
+  }
+  return result;
 }
 
 String? _archDir(Architecture arch) {
