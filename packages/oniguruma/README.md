@@ -37,13 +37,10 @@ backend uses Oniguruma's UTF-16LE encoding so no offset remapping is needed.
 `hook/build.dart` produces the `package:oniguruma/oniguruma_ffi` code asset in
 one of two ways:
 
-1. **Prebuilt (default).** If a library ships for the target under
-   [`prebuilt/`](prebuilt/README.md), it is bundled directly — no compiler and
-   no network. Each blob is one dynamic library containing Oniguruma plus our
-   shim (`src/oniguruma_shim.c`). These are produced by the
-   [`prebuild-oniguruma`](../../.github/workflows/prebuild-oniguruma.yml)
-   workflow and committed to the package. Since Oniguruma is archived, they
-   never change.
+1. **Prebuilt (default).** If a library ships for the target under `prebuilt/`,
+   it is bundled directly — no compiler and no network. Each blob is one dynamic
+   library containing Oniguruma plus our shim (`src/oniguruma_shim.c`). Since
+   Oniguruma is archived, they never change.
 2. **Build from source (fallback).** For any target without a prebuilt — or
    when a consumer sets the `oniguruma.from_source` user-define — the hook
    downloads the pinned Oniguruma source release, verifies its SHA-256,

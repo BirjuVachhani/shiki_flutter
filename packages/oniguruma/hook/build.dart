@@ -5,9 +5,10 @@
 //
 //   A. Prebuilt (default). If `prebuilt/<platform>/<arch>/<lib>` exists for the
 //      target, it is bundled directly as the code asset — no compiler, no
-//      network. These blobs ship inside the published package (see
-//      prebuilt/README.md for the layout and how CI produces them). Integrity
-//      is inherent: they live in pub's immutable, hash-recorded archive.
+//      network. These blobs ship inside the published package; the
+//      `prebuild-oniguruma` GitHub Actions workflow produces them (see
+//      _prebuiltLibraryUri below for the layout). Integrity is inherent: they
+//      live in pub's immutable, hash-recorded archive.
 //
 //   C. Build from source (fallback). When no prebuilt exists for the target —
 //      or the consumer opts out via a user-define (see below) — the upstream
@@ -119,7 +120,7 @@ void main(List<String> args) async {
 /// Resolves the bundled prebuilt library for [os]/[arch], or null if this
 /// target isn't covered by a prebuilt (then the source fallback runs).
 ///
-/// Layout (see prebuilt/README.md):
+/// Layout (produced by the prebuild-oniguruma workflow):
 ///   prebuilt/macos/<arch>/liboniguruma_ffi.dylib
 ///   prebuilt/linux/<arch>/liboniguruma_ffi.so
 ///   prebuilt/windows/<arch>/oniguruma_ffi.dll

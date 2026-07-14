@@ -2,12 +2,24 @@ name: prebuild-oniguruma
 
 # Builds the prebuilt `oniguruma_ffi` shared library (Oniguruma + our shim folded
 # into one self-contained dylib/so/dll) for every supported platform and
-# architecture, and uploads them as artifacts. Manually triggered.
+# architecture. Manually triggered.
 #
-# Oniguruma is archived at v6.9.10, so this only needs to run when the shim,
-# the source pin, or the platform matrix changes. After a run, download the
-# combined `oniguruma-prebuilt` artifact and unzip it into
-# packages/oniguruma/ so it lands at packages/oniguruma/prebuilt/... then commit.
+# Artifacts produced per run:
+#   * one per platform/arch  -> `oniguruma-<platform>-<arch>` (e.g. oniguruma-macos-arm64)
+#   * one combined for all    -> `oniguruma-prebuilt` (contains oniguruma-prebuilt.zip
+#                                with the whole prebuilt/ tree)
+#
+# Oniguruma is archived at v6.9.10, so this is essentially a one-time step; only
+# re-run it when the shim, the source pin, or the platform matrix changes.
+#
+# To refresh the committed binaries after a run:
+#   1. Download the `oniguruma-prebuilt` artifact from the run.
+#   2. Extract it — GitHub wraps artifacts, so you get oniguruma-prebuilt.zip
+#      containing the inner oniguruma-prebuilt.zip (its root is prebuilt/):
+#        unzip oniguruma-prebuilt.zip                   # -> oniguruma-prebuilt.zip
+#        unzip oniguruma-prebuilt.zip -d packages/oniguruma/
+#   3. git add packages/oniguruma/prebuilt && commit.
+#   (Or grab a single `oniguruma-<platform>-<arch>` artifact the same way.)
 #
 # Nothing is committed or released by this workflow — artifacts only.
 
@@ -89,10 +101,10 @@ jobs:
           cp "$found" "$out/${{ matrix.lib }}"
           ls -l "$out"
 
-      - name: Upload
+      - name: Upload individual artifact
         uses: actions/upload-artifact@v4
         with:
-          name: part-${{ matrix.id }}
+          name: oniguruma-${{ matrix.id }}
           path: staging
           if-no-files-found: error
 
@@ -101,22 +113,28 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download all parts
+      - name: Download every individual artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: part-*
+          pattern: oniguruma-*
           path: merged
           merge-multiple: true
 
-      - name: Show tree
+      - name: Zip the full prebuilt tree into one file
         shell: bash
         run: |
+          set -euo pipefail
           echo "Assembled prebuilt/ tree:"
           find merged/prebuilt -type f | sort
+          # Zip with the prebuilt/ dir at the archive root so it can be
+          # unzipped straight into packages/oniguruma/.
+          ( cd merged && zip -r -X ../oniguruma-prebuilt.zip prebuilt )
+          echo "--- oniguruma-prebuilt.zip contents ---"
+          unzip -l oniguruma-prebuilt.zip
 
-      - name: Upload combined prebuilt bundle
+      - name: Upload combined bundle (one zip of all platforms)
         uses: actions/upload-artifact@v4
         with:
           name: oniguruma-prebuilt
-          path: merged/prebuilt
+          path: oniguruma-prebuilt.zip
           if-no-files-found: error
