@@ -19,6 +19,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # The shared regex-engine seam (ShikiHighlighterEngine / OnigScanner / …).
+  # shiki_flutter provides the bundled implementation on top of this contract.
+  shiki_flutter_engine_interface: ^1.0.0
+  shiki_flutter_dart_engine: ^1.0.0
+  # Browser bindings (Worker, MessageEvent, …) for the optional web worker that
+  # runs async highlighting off the main thread on web. Only imported by the
+  # web-only `tokenize_worker_web.dart`, gated behind a conditional import, so it
+  # never enters IO/VM builds.
+  web: ^1.1.0
 
 dev_dependencies:
   flutter_test:

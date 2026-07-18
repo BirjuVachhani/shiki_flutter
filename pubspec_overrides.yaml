@@ -1,0 +1,25 @@
+# TEMPORARY git-source overrides for the Oniguruma engine packages.
+#
+# oniguruma_native (native dart:ffi on IO, WebAssembly on web) and oniguruma_dart
+# (pure-Dart port) live in a separate repo and are not published to pub.dev yet.
+# Until they are, the workspace members below depend on them by version
+# (`^1.0.0`) but resolve them from git here. Remove this file once both are on
+# pub.dev.
+#
+# In a pub workspace, dependency_overrides are only honored at the workspace
+# root, so both overrides live here rather than in the member packages.
+dependency_overrides:
+  # native_toolchain_c (pulled in by oniguruma_native's build hook) wants
+  # meta ^1.19.0, while flutter_test from the SDK pins meta 1.18.0. Force the
+  # newer meta so both resolve; meta is API-stable across this bump.
+  meta: ^1.19.0
+  oniguruma_native:
+    git:
+      url: https://github.com/BirjuVachhani/oniguruma-dart.git
+      path: packages/oniguruma_native
+      ref: main
+  oniguruma_dart:
+    git:
+      url: https://github.com/BirjuVachhani/oniguruma-dart.git
+      path: packages/oniguruma_dart
+      ref: main

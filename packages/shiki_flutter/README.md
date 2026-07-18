@@ -25,6 +25,34 @@ against real Shiki output token-for-token.
 - **Flutter rendering** — turn code straight into a `TextSpan`, or drop in the
   `ShikiCodeView` widget.
 
+## Supported platforms
+
+shiki_flutter runs on **every platform Flutter supports**. The default engines
+are pure Dart, so there is no native build, no WebAssembly, and nothing to
+install:
+
+| Platform | Highlighting | Off-main-thread async         | Default engine |
+| -------- | ------------ | ----------------------------- | -------------- |
+| Android  | ✅           | ✅ background isolate          | Dart port      |
+| iOS      | ✅           | ✅ background isolate          | Dart port      |
+| macOS    | ✅           | ✅ background isolate          | Dart port      |
+| Windows  | ✅           | ✅ background isolate          | Dart port      |
+| Linux    | ✅           | ✅ background isolate          | Dart port      |
+| Web      | ✅           | ⚙️ Web Worker (opt-in)        | Embedded       |
+
+- On native / mobile / desktop, async highlighting runs on a **background
+  isolate** and is **on by default** (`asyncIO: true`), so the UI never freezes
+  on the one-time grammar compile.
+- Web has no isolates. Off-main-thread async there runs in a **browser Web
+  Worker** you install once (`dart run shiki_flutter:install_web_worker`) and opt
+  into (`asyncWeb: true`); see [Web async setup](#web-async-setup-off-the-main-thread).
+  Without it, web highlights inline on the main thread (still fast for typical
+  files).
+- Optional faster IO engine: `ShikiHighlighterNativeEngine` (Oniguruma via
+  `dart:ffi`) after `flutter config --enable-native-assets`. On web it can run as
+  WebAssembly, but the embedded engine is faster there. See
+  [Configuration](#configuration).
+
 ## Getting started
 
 Add the dependency:
@@ -89,6 +117,121 @@ for (final line in lines) {
 
 Pass `includeExplanation: true` in `TokenizeOptions` to get each token's
 TextMate `scopes`.
+
+## Engines
+
+Tokenization runs through a pluggable regex engine (`ShikiHighlighterEngine`),
+configured per platform. **By default, shiki_flutter uses the embedded engine on
+web and the Dart-port engine on IO** — both pure Dart, so there is nothing to
+install. Change the engine globally through `ShikiHighlighter.config` (its
+`ioEngine` / `webEngine` fields, see [Configuration](#configuration)) or per
+highlighter with `createHighlighter(engine: ...)`. All engines produce identical
+tokens (verified against golden Shiki output); they differ only in speed and
+setup.
+
+| Engine | Package | Platforms | When to use |
+| ------ | ------- | --------- | ----------- |
+| `ShikiHighlighterEmbeddedEngine` | `shiki_flutter` (built in) | Web + IO | **Default on web.** Pure-Dart Oniguruma-subset engine with a native-`RegExp` fast path. Fastest engine on web, zero setup, no native build. |
+| `ShikiHighlighterDartEngine` | `shiki_flutter_dart_engine` (uses `oniguruma_dart`) | Web + IO | **Default on IO.** A faithful pure-Dart Oniguruma port with full parity and no native build, so it runs everywhere. Best when you can't enable native assets. Slow on web, so prefer the embedded engine there. |
+| `ShikiHighlighterNativeEngine` | `shiki_flutter_native_engine` (uses `oniguruma_native`) | IO (`dart:ffi`) + Web (WebAssembly) | **Fastest on IO** (~2.4x the Dart port), full parity. Requires `flutter config --enable-native-assets`. Best for large files or heavy re-highlighting on IO. On web it runs as WebAssembly but is ~2x slower than the embedded engine, so prefer embedded on web. |
+
+The numbers behind these comparisons live in `benchmark/results/`.
+
+## Configuration
+
+Engine and async defaults live in a single `ShikiHighlighterConfig`, split by
+platform so IO and web are configured independently. Set it once (e.g. in
+`main`), overriding only the fields you need with `copyWith`:
+
+```dart
+ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+  ioEngine: const ShikiHighlighterNativeEngine(), // faster on IO (see below)
+  asyncWeb: true,                                 // after installing the worker
+);
+```
+
+| Field       | Type                    | Default                          | What it does |
+| ----------- | ----------------------- | -------------------------------- | ------------ |
+| `ioEngine`  | `ShikiHighlighterEngine`| `ShikiHighlighterDartEngine()`   | Engine used on native / VM (IO). |
+| `webEngine` | `ShikiHighlighterEngine`| `ShikiHighlighterEmbeddedEngine()` | Engine used on web. |
+| `asyncIO`   | `bool`                  | `true`                           | Highlight off the UI thread on IO (background isolate). |
+| `asyncWeb`  | `bool`                  | `false`                          | Highlight off the UI thread on web (Web Worker; opt-in — see [Web async setup](#web-async-setup-off-the-main-thread)). |
+
+`createHighlighter(engine: ...)` overrides the engine for a single highlighter; a
+widget's `async:` argument overrides async for a single widget.
+
+## Recommended settings
+
+The defaults work everywhere with zero setup: the pure-Dart engine on every
+platform, plus **async highlighting on IO** (`asyncIO: true`). Async tokenizes on
+a background isolate and shows the code in the theme's base color until the
+highlighted result arrives, so the UI thread never blocks on the one-time grammar
+compile; results are cached (LRU) so rebuilds are instant.
+
+For the best performance beyond the defaults:
+
+**IO (mobile / desktop): the native engine.** The native Oniguruma engine
+tokenizes ~2.4x faster than the pure-Dart port, and async (already on for IO)
+keeps it off the UI thread, so there is no freeze. Add `shiki_flutter_native_engine`
+to your `pubspec.yaml`, run `flutter config --enable-native-assets` once, then set
+`ioEngine` in `main`:
+
+```dart
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
+
+void main() {
+  if (!kIsWeb) {
+    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+      ioEngine: const ShikiHighlighterNativeEngine(),
+    );
+  }
+  runApp(const MyApp());
+}
+```
+
+**Web: keep the embedded engine (the default) — nothing to do.** It is the
+fastest engine on web and needs no setup. For large files on either platform, use
+the virtualized `ShikiCodeListView`, which only tokenizes and lays out the lines
+on screen.
+
+### Web async setup (off the main thread)
+
+Web has no isolates, so `asyncWeb` is **off by default** and tokenization runs on
+the main thread (the embedded engine is fast, so this is fine for most apps). To
+move the one-time cold grammar compile *off* the UI thread on web — worth it for
+large documents — install the prebuilt **Web Worker** once, then turn `asyncWeb`
+on.
+
+**1. Install the worker** (copies it into your app's `web/` folder):
+
+```sh
+dart run shiki_flutter:install_web_worker
+```
+
+**2. Enable web async** in `main`:
+
+```dart
+import 'package:shiki_flutter/shiki_flutter.dart';
+
+void main() {
+  ShikiHighlighter.config =
+      ShikiHighlighter.config.copyWith(asyncWeb: true);
+  runApp(const MyApp());
+}
+```
+
+Re-run the install command after upgrading shiki_flutter to refresh the worker.
+
+**How it works.** The command copies a small (~159 KB), grammar-free worker
+script into `web/`. It tokenizes with the embedded engine (identical output) and
+receives your grammars/themes at runtime, so the *same* prebuilt worker serves any
+app regardless of which languages you import — there is nothing to compile. If the
+worker isn't installed (or a strict CSP blocks it), web async transparently falls
+back to inline tokenization, so nothing breaks. In a 2,000-line benchmark this
+turns a ~961 ms first-frame freeze into a ~111 ms one-time layout with
+byte-identical tokens (see `benchmark/results/web_worker.md`).
 
 ## Bundle size & tree-shaking
 

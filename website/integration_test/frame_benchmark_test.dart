@@ -21,7 +21,6 @@
 // and - on desktop - copied to ../benchmark/results/frames_*.json.
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui' show FrameTiming, TimingsCallback;
 
 import 'package:flutter/material.dart';
@@ -32,6 +31,7 @@ import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/themes/github_dark.dart';
 
 import 'support/corpus.dart';
+import 'support/local_writer.dart';
 
 const double _budget60 = 1000 / 60; // 16.67 ms - one 60Hz frame
 const double _budget120 = 1000 / 120; // 8.33 ms - one 120Hz frame
@@ -40,6 +40,16 @@ const _baseStyle = TextStyle(fontFamily: 'monospace', fontSize: 14, height: 1.4)
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  // macOS `flutter drive` can launch the profile app without foregrounding its
+  // window ("Failed to foreground app; open returned 1"). An occluded window
+  // gets no vsync, so the very first `pumpWidget` blocks until something brings
+  // the window forward, poisoning the first case's first_frame_ms. This idle
+  // gap gives an external activation (or the user clicking the window) time to
+  // foreground it before the first frame is pumped. Harmless on other targets.
+  setUpAll(() async {
+    await Future<void>.delayed(const Duration(seconds: 4));
+  });
 
   final highlighter = createHighlighter(langs: [dart], themes: [githubDark]);
   const langId = 'dart';
@@ -107,6 +117,40 @@ void main() {
         ),
       );
     });
+
+    // Isolate-enabled path: the real virtualized production widget with async
+    // highlighting on. Tokenization runs on the background worker, so the first
+    // frame is a cheap plain-text placeholder and the highlighted result swaps
+    // in a frame later - no synchronous tokenize freezing the UI thread. Uses a
+    // fresh highlighter per size so the FIRST view pays the worker spawn + the
+    // one-time grammar/regex compile (off-thread), which is the case the isolate
+    // is meant to fix; scroll jank is then measured after the swap settles.
+    testWidgets('frames · isolate · ${size.label}', (tester) async {
+      final asyncHighlighter =
+          createHighlighter(langs: [dart], themes: [githubDark]);
+      addTearDown(asyncHighlighter.dispose);
+      await _runCase(
+        tester,
+        binding,
+        label: 'isolate_${size.label}',
+        // Cover the first-view worker spawn + one-time grammar compile +
+        // tokenize so the highlight swap settles before the scroll is measured;
+        // scroll jank then reflects steady state, not the one-time swap.
+        asyncGrace: const Duration(seconds: 3),
+        widget: _scaffold(
+          bg,
+          ShikiCodeListView(
+            key: const Key('scroller'),
+            highlighter: asyncHighlighter,
+            code: source,
+            lang: langId,
+            theme: themeName,
+            textStyle: base,
+            async: true,
+          ),
+        ),
+      );
+    });
   }
 }
 
@@ -124,13 +168,25 @@ Future<void> _runCase(
   IntegrationTestWidgetsFlutterBinding binding, {
   required String label,
   required Widget widget,
+  Duration asyncGrace = Duration.zero,
 }) async {
   // First-frame cost: building + laying out the initial tree. For monolithic
   // this is where the whole span tree is realized - the dominant jank source.
+  // For the isolate case this is the cheap plain-text placeholder.
   final firstFrame = Stopwatch()..start();
   await tester.pumpWidget(widget);
   firstFrame.stop();
   await tester.pumpAndSettle();
+
+  // The background worker replies after the placeholder frame, so
+  // `pumpAndSettle` above can return before the highlight lands (no frame is
+  // scheduled until the isolate responds). Wait out the worker's spawn +
+  // one-time compile with real time, then settle the swap frame, so it is
+  // counted as an initial-load cost and not mixed into the scroll jank below.
+  if (asyncGrace > Duration.zero) {
+    await Future<void>.delayed(asyncGrace);
+    await tester.pumpAndSettle();
+  }
 
   final collector = _FrameCollector()..start(binding);
   final scroller = find.byKey(const Key('scroller'));
@@ -204,19 +260,15 @@ class _FrameCollector {
 double _r(double v) => double.parse(v.toStringAsFixed(3));
 
 /// Best-effort local file copy (works on desktop; silently skipped on mobile
-/// where the app sandbox has no access to the repo tree).
+/// where the app sandbox has no access to the repo tree, and on web which has
+/// no filesystem - see support/local_writer.dart). reportData carries the
+/// numbers regardless.
 void _tryWriteLocal(String label, Map<String, dynamic> metrics) {
   final json = const JsonEncoder.withIndent('  ').convert(metrics);
   for (final path in [
     'build/frames_$label.json',
     '../benchmark/results/frames_$label.json',
   ]) {
-    try {
-      final file = File(path);
-      file.parent.createSync(recursive: true);
-      file.writeAsStringSync(json);
-    } catch (_) {
-      // Sandbox / read-only FS - reportData still carries the numbers.
-    }
+    writeLocalJson(path, json);
   }
 }

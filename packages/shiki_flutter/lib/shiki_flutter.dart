@@ -13,21 +13,28 @@
 /// ```
 library;
 
+export 'src/async/token_cache.dart' show TokenCache;
 export 'src/bundled/bundled_language.dart' show BundledLanguage;
 export 'src/bundled/bundled_theme.dart' show BundledTheme;
 export 'src/core/colors.dart' show applyColorReplacements, splitLines;
 export 'src/core/highlighter.dart'
-    show ShikiHighlighter, TokenizeOptions, ShikiError, createHighlighter;
+    show
+        ShikiHighlighter,
+        ShikiHighlighterConfig,
+        TokenizeOptions,
+        ShikiError,
+        createHighlighter;
 export 'src/core/theme_registration.dart'
     show ThemeRegistration, normalizeTheme;
 export 'src/core/themed_token.dart' show ThemedToken;
-// The pluggable regex-engine seam. Set `ShikiHighlighter.engine` (or pass
-// `createHighlighter(engine: …)`) to swap the pure-Dart default for a native
-// backend such as `ShikiHighlighterFFIEngine` from `shiki_flutter_ffi_engine`.
+// The pluggable regex-engine seam. Set `ShikiHighlighter.config` (ioEngine /
+// webEngine) or pass `createHighlighter(engine: …)` to swap the pure-Dart
+// default for a native backend such as `ShikiHighlighterNativeEngine` from
+// `shiki_flutter_native_engine`.
 export 'src/onig/onig.dart'
     show
         ShikiHighlighterEngine,
-        ShikiHighlighterDartEngine,
+        ShikiHighlighterEmbeddedEngine,
         OnigScanner,
         OnigString,
         OnigMatch,

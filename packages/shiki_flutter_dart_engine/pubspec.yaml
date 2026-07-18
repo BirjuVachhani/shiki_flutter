@@ -1,0 +1,33 @@
+name: shiki_flutter_dart_engine
+
+description: >-
+  Pure-Dart Oniguruma engine backend for shiki_flutter (via the oniguruma_dart
+  port): no FFI, no native build, runs everywhere including web. shiki_flutter
+  uses it (ShikiHighlighterDartEngine) as its default engine on native/VM.
+
+version: 1.0.0
+
+homepage: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter_dart_engine
+repository: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter_dart_engine
+
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # The shared regex-engine seam (ShikiHighlighterEngine / OnigScanner / …).
+  shiki_flutter_engine_interface: ^1.0.0
+  # Pure-Dart Oniguruma port. Resolved from git via the workspace-root
+  # pubspec_overrides.yaml until oniguruma_dart is published to pub.dev.
+  oniguruma_dart: ^1.0.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0
+  # Used only by test/parity_test.dart, benchmark/, and example/ — they compare
+  # this engine against shiki_flutter's built-in engine. A dev-only cycle
+  # (shiki_flutter depends on this package), which pub permits for dev deps.
+  shiki_flutter: ^1.0.0

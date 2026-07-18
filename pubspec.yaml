@@ -6,7 +6,8 @@ environment:
   sdk: ^3.12.0
 
 workspace:
+  - packages/shiki_flutter_engine_interface
   - packages/shiki_flutter
-  - packages/oniguruma
-  - packages/shiki_flutter_ffi_engine
+  - packages/shiki_flutter_native_engine
+  - packages/shiki_flutter_dart_engine
   - website

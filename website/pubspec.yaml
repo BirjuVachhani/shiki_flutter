@@ -35,6 +35,12 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
+  # Used only by integration_test/engine_web_benchmark_test.dart to benchmark the
+  # Oniguruma engine (native FFI on IO, WebAssembly on web) against the built-in
+  # pure-Dart engine. Not shipped in the site build.
+  shiki_flutter_native_engine:
+    path: ../packages/shiki_flutter_native_engine
+
 flutter:
   uses-material-design: true
 

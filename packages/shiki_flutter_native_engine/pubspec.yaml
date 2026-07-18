@@ -1,0 +1,35 @@
+name: shiki_flutter_native_engine
+
+description: >-
+  Native (FFI Oniguruma) engine backend for shiki_flutter. Set
+  `ShikiHighlighter.engine = ShikiHighlighterNativeEngine()` in main() to tokenize
+  with the real Oniguruma C library instead of the pure-Dart engine. IO
+  platforms only; on web, guard with kIsWeb and keep the pure-Dart default.
+
+version: 1.0.0
+
+homepage: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter_native_engine
+repository: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter_native_engine
+
+resolution: workspace
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # The shared regex-engine seam (ShikiHighlighterEngine / OnigScanner / …).
+  shiki_flutter_engine_interface: ^1.0.0
+  # Native Oniguruma FFI bindings. Resolved from git via the workspace-root
+  # pubspec_overrides.yaml until oniguruma_native is published to pub.dev.
+  oniguruma_native: ^1.0.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0
+  # benchmark/engine_compare.dart pits all three engines against each other, and
+  # test/parity_test.dart / example/ compare against shiki_flutter's built-in
+  # engine. shiki_flutter is a dev-only dependency here.
+  shiki_flutter: ^1.0.0
+  shiki_flutter_dart_engine: ^1.0.0

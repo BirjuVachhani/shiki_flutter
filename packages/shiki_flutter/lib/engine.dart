@@ -7,15 +7,21 @@
 /// tokenizer plus the rendering widgets.
 library;
 
+export 'src/async/token_cache.dart' show TokenCache;
 export 'src/bundled/bundled_language.dart' show BundledLanguage;
 export 'src/bundled/bundled_theme.dart' show BundledTheme;
 export 'src/core/highlighter.dart'
-    show ShikiHighlighter, TokenizeOptions, ShikiError, createHighlighter;
+    show
+        ShikiHighlighter,
+        ShikiHighlighterConfig,
+        TokenizeOptions,
+        ShikiError,
+        createHighlighter;
 export 'src/core/themed_token.dart' show ThemedToken;
 export 'src/onig/onig.dart'
     show
         ShikiHighlighterEngine,
-        ShikiHighlighterDartEngine,
+        ShikiHighlighterEmbeddedEngine,
         OnigScanner,
         OnigString,
         OnigMatch,

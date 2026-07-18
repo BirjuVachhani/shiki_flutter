@@ -5,6 +5,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
+import '../async/async_token_resolver.dart';
+import '../core/colors.dart';
 import '../core/highlighter.dart';
 import 'render.dart';
 
@@ -54,6 +56,7 @@ class ShikiCodeListView extends StatefulWidget {
     this.shrinkWrap = false,
     this.physics,
     this.controller,
+    this.async,
   }) : assert(
           !(showLineNumbers && softWrap),
           'showLineNumbers requires softWrap: false — wrapped lines cannot '
@@ -103,6 +106,11 @@ class ShikiCodeListView extends StatefulWidget {
   /// when omitted.
   final ScrollController? controller;
 
+  /// Overrides the global [ShikiHighlighter.asyncDefault] default for this widget. When
+  /// null the global default applies. Ignored when [lines] is supplied (the
+  /// caller has already produced the spans).
+  final bool? async;
+
   @override
   State<ShikiCodeListView> createState() => _ShikiCodeListViewState();
 }
@@ -110,8 +118,27 @@ class ShikiCodeListView extends StatefulWidget {
 class _ShikiCodeListViewState extends State<ShikiCodeListView> {
   ScrollController? _internalController;
 
+  late final AsyncTokenResolver _resolver =
+      AsyncTokenResolver(() => setState(() {}));
+
   ScrollController get _controller =>
       widget.controller ?? (_internalController ??= ScrollController());
+
+  /// Async is active only when enabled and the caller hasn't already supplied
+  /// pre-highlighted [lines].
+  bool get _asyncEffective =>
+      widget.lines == null && (widget.async ?? ShikiHighlighter.asyncDefault);
+
+  TokenizeOptions get _options =>
+      TokenizeOptions(lang: widget.lang, theme: widget.theme);
+
+  @override
+  void initState() {
+    super.initState();
+    if (_asyncEffective) {
+      _resolver.resolve(widget.highlighter, widget.code, _options);
+    }
+  }
 
   @override
   void didUpdateWidget(ShikiCodeListView oldWidget) {
@@ -122,10 +149,14 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       _internalController!.dispose();
       _internalController = null;
     }
+    if (_asyncEffective) {
+      _resolver.resolve(widget.highlighter, widget.code, _options);
+    }
   }
 
   @override
   void dispose() {
+    _resolver.dispose();
     _internalController?.dispose();
     super.dispose();
   }
@@ -144,14 +175,27 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     // codeToLineSpans re-resolve the theme foreground — this both avoids the
     // duplicate lookup and guarantees the gutter/strut and the code share one
     // base style.
-    final lines = widget.lines ??
-        tokensToLineSpans(
-          widget.highlighter.codeToTokens(
-            widget.code,
-            TokenizeOptions(lang: widget.lang, theme: widget.theme),
-          ),
-          baseStyle: effectiveBase,
-        );
+    final List<List<TextSpan>> lines;
+    if (widget.lines != null) {
+      lines = widget.lines!;
+    } else if (!_asyncEffective) {
+      // Synchronous path — unchanged behavior.
+      lines = tokensToLineSpans(
+        widget.highlighter.codeToTokens(widget.code, _options),
+        baseStyle: effectiveBase,
+      );
+    } else {
+      final tokens = _resolver.tokens;
+      lines = tokens != null
+          ? tokensToLineSpans(tokens, baseStyle: effectiveBase)
+          // Placeholder: one plain span per line in the theme's base color,
+          // preserving the line count (and thus height) so nothing jumps when
+          // the highlighted result swaps in.
+          : [
+              for (final line in splitLines(widget.code))
+                [TextSpan(text: line.content, style: effectiveBase)],
+            ];
+    }
 
     final strut = StrutStyle.fromTextStyle(effectiveBase, forceStrutHeight: true);
     final metrics = _measure(effectiveBase, strut, textScaler);

@@ -1,57 +1,19 @@
 // The pluggable regex-engine seam the TextMate tokenizer runs on, mirroring
 // `vscode-textmate`'s `onigLib.ts` / `IOnigLib` and Shiki's JavaScript
-// `scanner.ts`. The bundled engine is pure Dart ([ShikiHighlighterDartEngine],
-// backed by [OnigRegex]); a native backend (e.g. FFI Oniguruma) plugs in by
-// implementing [ShikiHighlighterEngine] + [OnigScanner].
+// `scanner.ts`.
+//
+// The contract types — [ShikiHighlighterEngine], [OnigScanner], [OnigString],
+// [OnigMatch], [OnigCaptureIndex] and [kUnmatchedOffset] — live in
+// `package:shiki_flutter_engine_interface` so every engine backend shares them.
+// This file re-exports them and adds shiki_flutter's bundled implementation:
+// [ShikiHighlighterEmbeddedEngine], the pure-Dart engine backed by [OnigRegex].
 library;
+
+import 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.dart';
 
 import 'regex_engine.dart';
 
-/// A captured range within a match. Mirrors `IOnigCaptureIndex`.
-class OnigCaptureIndex {
-  const OnigCaptureIndex(this.start, this.end, this.length);
-
-  final int start;
-  final int end;
-  final int length;
-}
-
-/// The result of [OnigScanner.findNextMatch]. Mirrors `IOnigMatch`.
-class OnigMatch {
-  const OnigMatch(this.index, this.captureIndices);
-
-  /// Index of the pattern (within the scanner) that matched.
-  final int index;
-  final List<OnigCaptureIndex> captureIndices;
-}
-
-/// Wraps a string being scanned. Mirrors `OnigString`.
-///
-/// Because both this engine and Dart strings work in UTF-16 code units, no
-/// offset conversion is required. A native engine may subclass this to cache an
-/// encoded copy of [content] (see `shiki_flutter_ffi_engine`).
-class OnigString {
-  OnigString(this.content);
-
-  final String content;
-}
-
-/// Sentinel used for capture groups that did not participate in a match.
-const int kUnmatchedOffset = 0xFFFFFFFF;
-
-/// Scans a line for the earliest match among a set of patterns.
-///
-/// This is the contract the TextMate tokenizer depends on. The bundled
-/// implementation is [DartOnigScanner]; a native engine provides its own
-/// implementation through a [ShikiHighlighterEngine].
-abstract interface class OnigScanner {
-  /// Finds the earliest match at or after [startPosition]; a match exactly at
-  /// [startPosition] wins immediately. Returns null when nothing matches.
-  ///
-  /// [string] is an [OnigString] (or a plain [String]); offsets are UTF-16
-  /// code units.
-  OnigMatch? findNextMatch(Object string, int startPosition);
-}
+export 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.dart';
 
 /// The pure-Dart [OnigScanner], backed by [OnigRegex]. Works on every platform.
 ///
@@ -128,23 +90,12 @@ class DartOnigScanner implements OnigScanner {
   }
 }
 
-/// Factory for scanners and strings — the pluggable engine seam. Mirrors
-/// `vscode-textmate`'s `IOnigLib`.
-///
-/// The default is [ShikiHighlighterDartEngine] (pure Dart, every platform). To
-/// use a native backend on IO, set the global `ShikiHighlighter.engine` once
-/// (e.g. in `main`), or pass one per call via `createHighlighter(engine: …)`.
-abstract interface class ShikiHighlighterEngine {
-  OnigScanner createScanner(List<String> sources);
-  OnigString createString(String str);
-}
-
 /// The default engine: the pure-Dart [DartOnigScanner] backed by [OnigRegex].
 ///
 /// Ships with the package and runs on every Flutter platform. It is the fastest
 /// option on web (its RegExp fast path routes to V8's native regex).
-class ShikiHighlighterDartEngine implements ShikiHighlighterEngine {
-  const ShikiHighlighterDartEngine();
+class ShikiHighlighterEmbeddedEngine implements ShikiHighlighterEngine {
+  const ShikiHighlighterEmbeddedEngine();
 
   @override
   OnigScanner createScanner(List<String> sources) => DartOnigScanner(sources);

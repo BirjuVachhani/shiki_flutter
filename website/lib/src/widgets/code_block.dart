@@ -57,24 +57,18 @@ class CodeBlock extends StatelessWidget {
     final onBg = bg.computeLuminance() > 0.5 ? Colors.black : Colors.white;
     final border = onBg.withValues(alpha: 0.10);
 
-    // Cached per-line spans feed a virtualized line view: a real (non-faked)
-    // line-number gutter that stays row-aligned with the code, plus horizontal
-    // scrolling for long lines. Shrink-wrapped so the block grows to fit and
-    // never traps the page's vertical scroll.
-    final lines = service.lineSpans(
-      trimmed,
-      lang: lang,
-      theme: themeId,
-      fontSize: fontSize,
-    );
-
+    // Async highlighting: the block shows the plain code first and swaps to the
+    // highlighted result when tokenization finishes, with the shared
+    // highlighter's token cache making later rebuilds instant. A virtualized
+    // line view gives a real (non-faked) line-number gutter that stays
+    // row-aligned, plus horizontal scrolling for long lines. Shrink-wrapped so
+    // the block grows to fit and never traps the page's vertical scroll.
     final body = SelectionArea(
       child: ShikiCodeListView(
         highlighter: service.highlighter,
         code: trimmed,
         lang: lang,
         theme: themeId,
-        lines: lines,
         textStyle: TextStyle(
           fontFamily: AppFonts.mono,
           fontSize: fontSize,

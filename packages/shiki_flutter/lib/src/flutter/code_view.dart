@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/widgets.dart';
 
+import '../async/async_token_resolver.dart';
 import '../core/highlighter.dart';
 import 'render.dart';
 
@@ -11,7 +12,12 @@ import 'render.dart';
 /// The [highlighter] must already have the language and theme loaded. The
 /// widget paints the theme's background color behind the code and applies the
 /// theme's foreground as the default text color.
-class ShikiCodeView extends StatelessWidget {
+///
+/// When [async] highlighting is active (see [ShikiHighlighter.asyncDefault]), the code
+/// first appears as plain text in the theme's base color while it is tokenized
+/// on a background isolate, then swaps to the highlighted result — which is
+/// cached, so later rebuilds are instant.
+class ShikiCodeView extends StatefulWidget {
   const ShikiCodeView({
     super.key,
     required this.highlighter,
@@ -22,6 +28,7 @@ class ShikiCodeView extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.paintBackground = true,
     this.textScaler,
+    this.async,
   });
 
   final ShikiHighlighter highlighter;
@@ -39,25 +46,75 @@ class ShikiCodeView extends StatelessWidget {
 
   final TextScaler? textScaler;
 
+  /// Overrides the global [ShikiHighlighter.asyncDefault] default for this widget.
+  /// When null, the global default applies.
+  final bool? async;
+
+  @override
+  State<ShikiCodeView> createState() => _ShikiCodeViewState();
+}
+
+class _ShikiCodeViewState extends State<ShikiCodeView> {
+  late final AsyncTokenResolver _resolver =
+      AsyncTokenResolver(() => setState(() {}));
+
+  bool get _asyncEffective => widget.async ?? ShikiHighlighter.asyncDefault;
+
+  TokenizeOptions get _options =>
+      TokenizeOptions(lang: widget.lang, theme: widget.theme);
+
+  @override
+  void initState() {
+    super.initState();
+    if (_asyncEffective) {
+      _resolver.resolve(widget.highlighter, widget.code, _options);
+    }
+  }
+
+  @override
+  void didUpdateWidget(ShikiCodeView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_asyncEffective) {
+      _resolver.resolve(widget.highlighter, widget.code, _options);
+    }
+  }
+
+  @override
+  void dispose() {
+    _resolver.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final base = (textStyle ?? const TextStyle(fontFamily: 'monospace'));
-    final span = codeToTextSpan(
-      highlighter,
-      code,
-      lang: lang,
-      theme: theme,
-      baseStyle: base,
-    );
+    final base = widget.textStyle ?? const TextStyle(fontFamily: 'monospace');
+    final registration = widget.highlighter.getThemeRegistration(widget.theme);
+    final bg = widget.paintBackground ? parseColor(registration.bg) : null;
 
-    final registration = highlighter.getThemeRegistration(theme);
-    final bg = paintBackground ? parseColor(registration.bg) : null;
+    final TextSpan span;
+    if (!_asyncEffective) {
+      // Synchronous path — unchanged behavior.
+      span = codeToTextSpan(
+        widget.highlighter,
+        widget.code,
+        lang: widget.lang,
+        theme: widget.theme,
+        baseStyle: base,
+      );
+    } else {
+      final effectiveBase = base.copyWith(color: parseColor(registration.fg));
+      final tokens = _resolver.tokens;
+      span = tokens != null
+          ? tokensToTextSpan(tokens, baseStyle: effectiveBase)
+          // Placeholder: the same code in the theme's base color.
+          : TextSpan(text: widget.code, style: effectiveBase);
+    }
 
     Widget child = Padding(
-      padding: padding,
+      padding: widget.padding,
       child: Text.rich(
         span,
-        textScaler: textScaler,
+        textScaler: widget.textScaler,
         softWrap: false,
       ),
     );

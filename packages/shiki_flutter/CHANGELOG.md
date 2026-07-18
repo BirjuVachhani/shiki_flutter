@@ -1,3 +1,42 @@
+## 1.0.0
+
+* Async, non-blocking highlighting. `ShikiCodeView` / `ShikiCodeListView` can now
+  tokenize off the UI thread: the code appears immediately in the theme's base
+  color and swaps to the highlighted result when it is ready, so the UI thread no
+  longer freezes on the one-time grammar/regex compile. On native/VM this runs on
+  a background isolate; on web, in a browser Web Worker (see below). Toggle it via
+  `ShikiHighlighter.config` (`asyncIO`, default on; `asyncWeb`, default off) or per
+  widget with the `async:` argument.
+* Off-main-thread highlighting on **web** via a browser Web Worker (web has no
+  isolates). Install the prebuilt worker once with
+  `dart run shiki_flutter:install_web_worker`, then set `asyncWeb: true`; the
+  one-time grammar compile runs in the worker, producing tokens byte-identical to
+  the synchronous engine. Without it, web async falls back to inline tokenization,
+  so nothing breaks.
+* Results are cached in a bounded LRU (`TokenCache`, keyed by code + lang + theme),
+  so rebuilds and repeat views are instant with no isolate round trip. Size it via
+  `createHighlighter(cache: TokenCache(maxEntries: …, maxChars: …))`.
+* New highlighter API for custom async UIs: `codeToTokensAsync`, the synchronous
+  cache probe `peekTokens`, and `dispose` (tears down the worker). On web (no
+  isolates) the same API runs inline, reusing the loaded grammars.
+* The regex-engine seam is now a standalone package,
+  `shiki_flutter_engine_interface` (`ShikiHighlighterEngine`, `OnigScanner`,
+  `OnigString`, `OnigMatch`, `OnigCaptureIndex`, `kUnmatchedOffset`), so any
+  backend can implement it without depending on all of `shiki_flutter`.
+* Engines and async behavior are consolidated into one `ShikiHighlighterConfig`
+  (`ShikiHighlighter.config`), split by platform: `ioEngine` / `webEngine` and
+  `asyncIO` / `asyncWeb`. The default engines are the faithful Oniguruma port
+  (`ShikiHighlighterDartEngine`, from `shiki_flutter_dart_engine`) on native/VM and
+  the built-in pure-Dart `ShikiHighlighterEmbeddedEngine` on web. Override per
+  platform in the config, or per highlighter with `createHighlighter(engine: ...)`.
+  (Replaces the former `ShikiHighlighter.engine` / `ShikiHighlighter.async`
+  statics.)
+* Renamed the built-in engine class `ShikiHighlighterDartEngine` →
+  `ShikiHighlighterEmbeddedEngine`. Note that `ShikiHighlighterDartEngine` now
+  names a different engine (the `oniguruma_dart` port); update any code that set
+  the engine by name.
+* An experimental native FFI backend is available as `shiki_flutter_native_engine`.
+
 ## 0.3.0
 
 * Added `ShikiCodeListView`, a virtualized widget that renders one line per

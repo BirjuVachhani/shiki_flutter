@@ -68,7 +68,7 @@ Grammar buildToyGrammar() {
             ThemeSettingStyle(foreground: '#888888', fontStyle: 'italic')),
   ]));
 
-  final registry = SyncRegistry(theme, const ShikiHighlighterDartEngine());
+  final registry = SyncRegistry(theme, const ShikiHighlighterEmbeddedEngine());
   registry.addGrammar(
       RawGrammar.fromJson(jsonDecode(_toyGrammarJson) as Map<String, dynamic>));
   return registry.grammarForScopeName('source.toy', 0, null, null, null)!;

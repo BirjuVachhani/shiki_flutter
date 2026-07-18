@@ -1,6 +1,6 @@
 name: prebuild-oniguruma
 
-# Builds the prebuilt `oniguruma_ffi` shared library (Oniguruma + our shim folded
+# Builds the prebuilt `oniguruma_native` shared library (Oniguruma + our shim folded
 # into one self-contained dylib/so/dll) for every supported platform and
 # architecture. Manually triggered.
 #
@@ -45,23 +45,23 @@ jobs:
       matrix:
         include:
           # --- macOS ---
-          - { id: macos-arm64,        runner: macos-14,       dest: macos/arm64,          lib: liboniguruma_ffi.dylib, args: "-DCMAKE_OSX_ARCHITECTURES=arm64" }
-          - { id: macos-x64,          runner: macos-14,       dest: macos/x64,            lib: liboniguruma_ffi.dylib, args: "-DCMAKE_OSX_ARCHITECTURES=x86_64" }
+          - { id: macos-arm64,        runner: macos-14,       dest: macos/arm64,          lib: liboniguruma_native.dylib, args: "-DCMAKE_OSX_ARCHITECTURES=arm64" }
+          - { id: macos-x64,          runner: macos-14,       dest: macos/x64,            lib: liboniguruma_native.dylib, args: "-DCMAKE_OSX_ARCHITECTURES=x86_64" }
           # --- iOS (device + simulator) ---
-          - { id: ios-device-arm64,   runner: macos-14,       dest: ios/device/arm64,     lib: liboniguruma_ffi.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
-          - { id: ios-sim-arm64,      runner: macos-14,       dest: ios/simulator/arm64,  lib: liboniguruma_ffi.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
-          - { id: ios-sim-x64,        runner: macos-14,       dest: ios/simulator/x64,    lib: liboniguruma_ffi.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
+          - { id: ios-device-arm64,   runner: macos-14,       dest: ios/device/arm64,     lib: liboniguruma_native.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
+          - { id: ios-sim-arm64,      runner: macos-14,       dest: ios/simulator/arm64,  lib: liboniguruma_native.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
+          - { id: ios-sim-x64,        runner: macos-14,       dest: ios/simulator/x64,    lib: liboniguruma_native.dylib, args: "-DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_SYSROOT=iphonesimulator -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0" }
           # --- Linux ---
-          - { id: linux-x64,          runner: ubuntu-latest,  dest: linux/x64,            lib: liboniguruma_ffi.so,    args: "" }
-          - { id: linux-arm64,        runner: ubuntu-latest,  dest: linux/arm64,          lib: liboniguruma_ffi.so,    args: "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc", setup: linux-cross }
+          - { id: linux-x64,          runner: ubuntu-latest,  dest: linux/x64,            lib: liboniguruma_native.so,    args: "" }
+          - { id: linux-arm64,        runner: ubuntu-latest,  dest: linux/arm64,          lib: liboniguruma_native.so,    args: "-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc", setup: linux-cross }
           # --- Android (NDK) ---
-          - { id: android-arm64,      runner: ubuntu-latest,  dest: android/arm64,        lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21" }
-          - { id: android-arm,        runner: ubuntu-latest,  dest: android/arm,          lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=armeabi-v7a -DANDROID_PLATFORM=android-21" }
-          - { id: android-x64,        runner: ubuntu-latest,  dest: android/x64,          lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=x86_64 -DANDROID_PLATFORM=android-21" }
-          - { id: android-ia32,       runner: ubuntu-latest,  dest: android/ia32,         lib: liboniguruma_ffi.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=x86 -DANDROID_PLATFORM=android-21" }
+          - { id: android-arm64,      runner: ubuntu-latest,  dest: android/arm64,        lib: liboniguruma_native.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-21" }
+          - { id: android-arm,        runner: ubuntu-latest,  dest: android/arm,          lib: liboniguruma_native.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=armeabi-v7a -DANDROID_PLATFORM=android-21" }
+          - { id: android-x64,        runner: ubuntu-latest,  dest: android/x64,          lib: liboniguruma_native.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=x86_64 -DANDROID_PLATFORM=android-21" }
+          - { id: android-ia32,       runner: ubuntu-latest,  dest: android/ia32,         lib: liboniguruma_native.so,    args: "-DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake -DANDROID_ABI=x86 -DANDROID_PLATFORM=android-21" }
           # --- Windows ---
-          - { id: windows-x64,        runner: windows-latest, dest: windows/x64,          lib: oniguruma_ffi.dll,      args: "-A x64" }
-          - { id: windows-arm64,      runner: windows-latest, dest: windows/arm64,        lib: oniguruma_ffi.dll,      args: "-A ARM64" }
+          - { id: windows-x64,        runner: windows-latest, dest: windows/x64,          lib: oniguruma_native.dll,      args: "-A x64" }
+          - { id: windows-arm64,      runner: windows-latest, dest: windows/arm64,        lib: oniguruma_native.dll,      args: "-A ARM64" }
 
     steps:
       - uses: actions/checkout@v4
@@ -98,7 +98,7 @@ jobs:
           found=$(find "$RUNNER_TEMP/build" -name "${{ matrix.lib }}" -type f | head -1)
           if [ -z "$found" ]; then
             echo "::error::built library ${{ matrix.lib }} not found under $RUNNER_TEMP/build"
-            find "$RUNNER_TEMP/build" -maxdepth 3 -type f -name '*oniguruma_ffi*' || true
+            find "$RUNNER_TEMP/build" -maxdepth 3 -type f -name '*oniguruma_native*' || true
             exit 1
           fi
           cp "$found" "$out/${{ matrix.lib }}"
