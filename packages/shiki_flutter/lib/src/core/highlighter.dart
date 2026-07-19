@@ -553,16 +553,13 @@ class ShikiHighlighter {
 
         final metadata = tokenized.tokens[2 * j + 1];
         final color = applyColorReplacements(colorMap[EncodedTokenMetadata.getForeground(metadata)], colorReplacements);
-        final bgId = EncodedTokenMetadata.getBackground(metadata);
-        var bgColor = bgId == 0 ? null : applyColorReplacements(colorMap[bgId], colorReplacements);
-        // Drop the background when it is just the theme's default editor
-        // background. Shiki paints that once on the container; keeping it on
-        // every token would render each token as a filled box. Only genuine
-        // per-scope background overrides survive.
-        final defaultBg = resolved.registration.bg;
-        if (bgColor != null && defaultBg != null && bgColor.toLowerCase() == defaultBg.toLowerCase()) {
-          bgColor = null;
-        }
+        // Deliberately no per-token background. Shiki's base tokenizer only
+        // emits a foreground/fontStyle per token; the theme's background is
+        // painted once on the container, never behind each token. Deriving a
+        // background from the encoded metadata just re-surfaces the theme's
+        // default editor background (or the textmate `#ffffff` fallback for
+        // themes whose global setting omits a background, e.g. gruvbox), which
+        // would render every token as a filled box.
         final fontStyle = EncodedTokenMetadata.getFontStyle(metadata);
 
         List<String>? scopes;
@@ -582,7 +579,6 @@ class ShikiHighlighter {
             content: line.substring(startIndex, nextStartIndex),
             offset: lineOffset + startIndex,
             color: color,
-            bgColor: bgColor,
             fontStyle: fontStyle == FontStyle.notSet ? 0 : fontStyle,
             scopes: scopes,
           ),

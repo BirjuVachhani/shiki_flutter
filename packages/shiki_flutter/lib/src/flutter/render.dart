@@ -131,13 +131,15 @@ TextDecoration? _decorationFor(int fontStyle) {
 }
 
 /// Builds a [TextStyle] for a single [ThemedToken], layered over [baseStyle].
+///
+/// A token never contributes a background: the theme's background is painted
+/// once by the widget tree (e.g. the [ColoredBox] in [ShikiCodeView]), so a
+/// per-token `backgroundColor` here would draw a filled box behind every run.
 TextStyle themedTokenStyle(ThemedToken token, {TextStyle? baseStyle}) {
   final base = baseStyle ?? const TextStyle();
   final color = parseColor(token.color);
-  final bg = parseColor(token.bgColor);
   return base.copyWith(
     color: color ?? base.color,
-    backgroundColor: bg ?? base.backgroundColor,
     fontWeight: token.fontStyle & tm.FontStyle.bold != 0
         ? FontWeight.bold
         : base.fontWeight,
