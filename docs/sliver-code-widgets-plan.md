@@ -1,6 +1,6 @@
 # Sliver-native code widgets (phased): `ShikiCodeSliverView` → `ShikiCodeSliverListView`
 
-> **Status: Deferred — post-1.0.0.** Explicitly out of scope for the 1.0.0
+> **Status: Deferred (post-1.0.0).** Explicitly out of scope for the 1.0.0
 > release. Recorded here as future work; not started.
 
 ## Context
@@ -23,10 +23,10 @@ exists to provide. Both widgets therefore virtualize **per line** using Flutter'
 real lazy-sliver building blocks (`SliverFixedExtentList.builder` /
 `SliverList.builder`), building only on-screen lines.
 
-- **Phase 1 — `ShikiCodeSliverView`**: the plain code block as a true virtualized
+- **Phase 1** (`ShikiCodeSliverView`): the plain code block as a true virtualized
   sliver (no line-number gutter). This phase carries the hard part: synced
   horizontal scroll across virtualized rows.
-- **Phase 2 — `ShikiCodeSliverListView`**: the same virtualized core plus a
+- **Phase 2** (`ShikiCodeSliverListView`): the same virtualized core plus a
   per-row line-number gutter and line-oriented options.
 
 ### Why the box widgets' horizontal trick doesn't port
@@ -37,12 +37,12 @@ real lazy-sliver building blocks (`SliverFixedExtentList.builder` /
 a horizontal box scroller, and its cross-axis width is fixed by the viewport, so
 that trick is unavailable. Synced horizontal scroll across lazily-built rows must
 instead be achieved with one horizontal `ScrollController` **per row**, linked by
-listeners (a single shared controller is asserted against —
+listeners (a single shared controller is asserted against; see
 `scroll_controller.dart:172`).
 
 ---
 
-## Phase 1 — `ShikiCodeSliverView`
+## Phase 1: `ShikiCodeSliverView`
 
 **New file** `packages/shiki_flutter/lib/src/flutter/code_sliver_view.dart`;
 export `ShikiCodeSliverView` from `lib/shiki_flutter.dart`.
@@ -60,7 +60,7 @@ Mirror `ShikiCodeView`, plus `softWrap` and optional pre-highlighted `lines`
 textScaler, softWrap = false, async`.
 
 **Dropped vs the box widget:** `controller` / `physics` / `shrinkWrap` (the outer
-viewport owns them) and `selectable` — a bare sliver can't wrap itself in a box
+viewport owns them) and `selectable`: a bare sliver can't wrap itself in a box
 `SelectionArea`; document that callers wrap their `CustomScrollView` in a
 `SelectionArea`.
 
@@ -84,7 +84,7 @@ DecoratedSliver(                         // only when paintBackground && bg != n
 
 `SliverFixedExtentList.builder` / `SliverList.builder` are true lazy slivers:
 only on-screen lines are built, and vertical scroll is the outer viewport's. This
-is the "not cheating" part — real per-line virtualization, no `SliverToBoxAdapter`.
+is the "not cheating" part: real per-line virtualization, no `SliverToBoxAdapter`.
 
 ### Per-row build (`rowFor(i)`)
 
@@ -95,16 +95,16 @@ is the "not cheating" part — real per-line virtualization, no `SliverToBoxAdap
 
 `contentWidth = (_maxLineLength(code) + 1) * metrics.charWidth`; `metrics`
 (monospace advance + row height) measured with a `TextPainter` exactly as in
-`code_list_view.dart` (`_measure`, `_maxLineLength` — small file-private helpers
+`code_list_view.dart` (`_measure`, `_maxLineLength`, small file-private helpers
 duplicated here, consistent with the existing duplication between the two box
 widgets).
 
-### Synced horizontal scroll — `_HLinkedGroup` + `_LinkedHRow`
+### Synced horizontal scroll: `_HLinkedGroup` + `_LinkedHRow`
 
 Non-wrapped rows each own a horizontal `SingleChildScrollView`/`ScrollController`
 over a `SizedBox(width: contentWidth)`, linked so a drag / trackpad-pan /
 shift-wheel on any row moves them all in unison (the `linked_scroll_controller`
-pattern, implemented inline — no new dependency):
+pattern, implemented inline, no new dependency):
 
 - `_HLinkedGroup`: holds the shared `offset` and the set of registered
   controllers; on any controller's change, records the offset and `jumpTo`s every
@@ -115,7 +115,7 @@ pattern, implemented inline — no new dependency):
   `initialScrollOffset: group.offset` (rows entering mid-scroll start synced),
   registers/unregisters with the group, forwards its scroll events to it, and
   disables scrollbars via `ScrollConfiguration` (Material already suppresses
-  horizontal scrollbars — `app.dart:859` — but this keeps it clean under a bare
+  horizontal scrollbars (`app.dart:859`), but this keeps it clean under a bare
   `WidgetsApp` too). Real `Scrollable`s (not a `GestureDetector`) so
   `PointerScrollEvent` sources work on desktop/web.
 
@@ -141,7 +141,7 @@ Following existing `buildHighlighter()` / `_flatten` conventions:
 
 ---
 
-## Phase 2 — `ShikiCodeSliverListView` (sketch, built after Phase 1 lands)
+## Phase 2: `ShikiCodeSliverListView` (sketch, built after Phase 1 lands)
 
 **New file** `code_sliver_list_view.dart`; export `ShikiCodeSliverListView`.
 Reuses Phase 1's virtualized core + linked-scroll helpers (promote
@@ -154,7 +154,7 @@ Adds on top of the Phase 1 core:
 - Line numbers as a **per-row leading cell**:
   `Row(crossAxisAlignment: start, children: [SelectionContainer.disabled(gutterCell(i)), gap, Expanded(codeCell)])`.
   The gutter cell sits outside the row's horizontal scroller (fixed horizontally)
-  and rides the sliver's vertical virtualization for free — so the box widget's
+  and rides the sliver's vertical virtualization for free, so the box widget's
   windowed `_LineNumberGutter` offset math is not needed.
 
 Phase 2 tests: line-number gutter shows `1`/`2`/`3` inside a `CustomScrollView`;
@@ -164,8 +164,8 @@ Phase 2 tests: line-number gutter shows `1`/`2`/`3` inside a `CustomScrollView`;
 
 ## Verification (each phase)
 
-1. `cd packages/shiki_flutter && flutter analyze` — clean.
-2. `flutter test test/render_test.dart` — the phase's new group passes.
+1. `cd packages/shiki_flutter && flutter analyze`: clean.
+2. `flutter test test/render_test.dart`: the phase's new group passes.
 3. Optional dogfood: drop the widget into a `CustomScrollView` in `website/`
    between prose slivers; confirm it scrolls vertically with the page and
    horizontally within itself, and that `flutter build web` still succeeds
