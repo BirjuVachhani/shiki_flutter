@@ -7,8 +7,9 @@ name: Deploy website
 # "GitHub Actions". This deploys the built artifact directly, so no gh-pages
 # branch is created or needed.
 #
-# The site is served from https://birjuvachhani.github.io/shiki_flutter/, so the
-# build uses a base href of "/<repo>/" (derived from GITHUB_REPOSITORY below).
+# The site is served from the custom domain https://shiki.birju.dev/ at the
+# root path, so the build uses a base href of "/". The web/CNAME file is copied
+# into the build output to keep the custom domain configured on each deploy.
 
 on:
   push:
@@ -64,7 +65,7 @@ jobs:
         run: dart run shiki_flutter:install
 
       - name: Build web (WASM)
-        run: flutter build web --wasm --base-href "/${GITHUB_REPOSITORY#*/}/"
+        run: flutter build web --wasm --base-href "/"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
