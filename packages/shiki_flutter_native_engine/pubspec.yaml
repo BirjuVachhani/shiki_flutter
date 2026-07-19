@@ -19,18 +19,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # The shared regex-engine seam (ShikiHighlighterEngine / OnigScanner / …).
   shiki_flutter_engine_interface: ^1.0.0
-  # Native Oniguruma bindings (dart:ffi on IO, WebAssembly on web).
-  oniguruma_native: ^1.0.0
-  # The Flutter-free tokenizer core. A runtime dependency because the web-worker
-  # entry (lib/src/worker/) compiles against `package:shiki_flutter/engine.dart`
-  # and `package:shiki_flutter/worker_protocol.dart`. No import cycle:
-  # shiki_flutter does not depend on this package.
-  shiki_flutter: ^1.0.0
+  oniguruma_native: ^1.0.1
 
 dev_dependencies:
   lints: ^6.0.0
   test: ^1.25.0
-  # benchmark/engine_compare.dart pits all three engines against each other.
   shiki_flutter_dart_engine: ^1.0.0
