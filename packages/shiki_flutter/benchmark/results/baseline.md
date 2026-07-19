@@ -1,4 +1,4 @@
-# Benchmark baseline — BEFORE engine optimizations
+# Benchmark baseline: BEFORE engine optimizations
 
 Captured on the pure-Dart backtracking regex engine as-is (no changes).
 Base workload: **Dart / GitHub Dark**. Machine: darwin-arm64, Flutter 3.44.6.
@@ -17,7 +17,7 @@ Base workload: **Dart / GitHub Dark**. Machine: darwin-arm64, Flutter 3.44.6.
 | l | 2,000 | 59,082 | 11,002 | 13,001 | 5.5 | 19 |
 | xl | 5,000 | 148,164 | 27,493 | 32,492 | 5.5 | 19 |
 
-## Highlighting — `codeToTokens` (warm)  ← the optimization target
+## Highlighting: `codeToTokens` (warm)  ← the optimization target
 
 | size | median ms | p90 ms | lines/s | tokens/s | KB/s |
 |------|----------:|-------:|--------:|---------:|-----:|
@@ -27,7 +27,7 @@ Base workload: **Dart / GitHub Dark**. Machine: darwin-arm64, Flutter 3.44.6.
 | l | 1,499 | 1,540 | 1,334 | 7,338 | 39 |
 | xl | 4,136 | 4,357 | 1,209 | 6,648 | 35 |
 
-## Rendering — build / layout / paint (median ms)
+## Rendering: build / layout / paint (median ms)
 
 | size | build spans | layout mono | layout lazy(50) | layout lazy(all) | paint mono (CPU) |
 |------|------------:|------------:|----------------:|-----------------:|-----------------:|
@@ -47,7 +47,7 @@ Base workload: **Dart / GitHub Dark**. Machine: darwin-arm64, Flutter 3.44.6.
 | l | 1,742 | 15.5 | 112.6× | 1,639 |
 | xl | 4,995 | 16.2 | 309.2× | 4,577 |
 
-## Device frames — macOS desktop (debug), reference
+## Device frames: macOS desktop (debug), reference
 
 | case | first frame | missed @60fps | scroll build p99 |
 |------|------------:|--------------:|-----------------:|

@@ -1,4 +1,4 @@
-/// A [ShikiHighlighterEngine] backed by `oniguruma_dart` — a faithful pure-Dart
+/// A [ShikiHighlighterEngine] backed by `oniguruma_dart`: a faithful pure-Dart
 /// port of the Oniguruma regex engine.
 ///
 /// No FFI and no native build, so it runs on every platform (web included)
@@ -97,7 +97,7 @@ class _OnigDartScanner implements OnigScanner {
   }
 
   /// Maps a port match to shiki's contract. Unmatched groups (port `-1`) become
-  /// the [kUnmatchedOffset] sentinel — identical to `DartOnigScanner`'s
+  /// the [kUnmatchedOffset] sentinel, identical to `DartOnigScanner`'s
   /// conversion, so downstream tokenization is byte-for-byte comparable.
   static OnigMatch _convert(int index, onig.OnigMatch m) {
     final caps = List<OnigCaptureIndex>.generate(m.numRegs, (g) {

@@ -12,7 +12,7 @@ import '../bundled/bundled_language.dart';
 /// A plain, isolate-sendable description of a [BundledLanguage] and the
 /// grammars it embeds.
 ///
-/// Every field is a `String`, `List<String>`, or `List<LangDescriptor>` — no
+/// Every field is a `String`, `List<String>`, or `List<LangDescriptor>`: no
 /// closures, so an instance copies cleanly across an isolate boundary.
 class LangDescriptor {
   const LangDescriptor({

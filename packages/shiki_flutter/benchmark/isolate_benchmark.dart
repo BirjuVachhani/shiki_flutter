@@ -5,9 +5,9 @@
 // does offloading actually keep the UI thread responsive?
 //
 // Three strategies tokenize the same corpus (Dart / GitHub Dark):
-//   sync            — ShikiHighlighter.codeToTokens on the main isolate.
-//   isolate-run     — a fresh isolate + fresh highlighter per call.
-//   warm-worker     — one spawned worker holding a warm highlighter.
+//   sync            : ShikiHighlighter.codeToTokens on the main isolate.
+//   isolate-run     : a fresh isolate + fresh highlighter per call.
+//   warm-worker     : one spawned worker holding a warm highlighter.
 //
 // It also measures a 16ms heartbeat's worst stall while an xl document is
 // tokenized, to show the main thread freezes under sync but stays live when the
@@ -59,7 +59,7 @@ Future<double> _maxHeartbeatGapMs(Future<void> Function() action) async {
   await Future<void>.delayed(const Duration(milliseconds: 32));
   since.reset();
   await action();
-  // Let the overdue tick fire and record the stall before cancelling — a
+  // Let the overdue tick fire and record the stall before cancelling. A
   // synchronous block starves the timer, so the big gap only lands now.
   await Future<void>.delayed(const Duration(milliseconds: 24));
   timer.cancel();

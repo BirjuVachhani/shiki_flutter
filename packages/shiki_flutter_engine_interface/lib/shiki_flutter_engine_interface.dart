@@ -2,7 +2,7 @@
 /// backends, mirroring `vscode-textmate`'s `onigLib.ts` / `IOnigLib` and Shiki's
 /// JavaScript `scanner.ts`.
 ///
-/// An engine is anything that can build an [OnigScanner] and an [OnigString] —
+/// An engine is anything that can build an [OnigScanner] and an [OnigString]:
 /// that pair is the entire contract the TextMate tokenizer runs on.
 /// `shiki_flutter` ships a pure-Dart implementation; other packages plug in a
 /// native (FFI Oniguruma) or ported (`oniguruma_dart`) backend by implementing
@@ -55,7 +55,7 @@ abstract interface class OnigScanner {
   OnigMatch? findNextMatch(Object string, int startPosition);
 }
 
-/// Factory for scanners and strings — the pluggable engine seam. Mirrors
+/// Factory for scanners and strings: the pluggable engine seam. Mirrors
 /// `vscode-textmate`'s `IOnigLib`.
 ///
 /// Set the global `ShikiHighlighter.config` once (e.g. in `main`, via its
@@ -63,7 +63,7 @@ abstract interface class OnigScanner {
 /// `createHighlighter(engine: …)`, to choose which implementation the tokenizer
 /// uses.
 abstract interface class ShikiHighlighterEngine {
-  /// A short, stable identifier for this engine — e.g. `'embedded'`, `'dart'`,
+  /// A short, stable identifier for this engine: e.g. `'embedded'`, `'dart'`,
   /// `'native'`. On web it selects the matching prebuilt Web Worker for async
   /// highlighting, so it **must be a literal constant**: never derive it from
   /// `runtimeType`, whose name is minified in release (`dart2js`/`dart2wasm`)

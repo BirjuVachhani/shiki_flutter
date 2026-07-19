@@ -16,7 +16,7 @@ import 'render.dart';
 ///
 /// When [async] highlighting is active (see [ShikiHighlighter.asyncDefault]), the code
 /// first appears as plain text in the theme's base color while it is tokenized
-/// on a background isolate, then swaps to the highlighted result — which is
+/// on a background isolate, then swaps to the highlighted result, which is
 /// cached, so later rebuilds are instant.
 ///
 /// Set [selectable] to `true` to let users select and copy the code; it wraps
@@ -53,7 +53,7 @@ class ShikiCodeView extends StatefulWidget {
   /// [SelectionArea]. Defaults to `false`.
   ///
   /// When an ancestor already provides a selection registrar (e.g. the widget
-  /// is inside another [SelectionArea]), this flag is ignored — the code is
+  /// is inside another [SelectionArea]), this flag is ignored: the code is
   /// already selectable through that ancestor, and wrapping again would nest
   /// two selection contexts.
   final bool selectable;
@@ -107,7 +107,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
 
     final TextSpan span;
     if (!_asyncEffective) {
-      // Synchronous path — unchanged behavior.
+      // Synchronous path: unchanged behavior.
       span = codeToTextSpan(
         widget.highlighter,
         widget.code,

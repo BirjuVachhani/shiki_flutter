@@ -32,7 +32,7 @@ highlighter reused. `isolate-run` = fresh isolate + highlighter per call. `worke
 For one large document, tokenize time dominates, so `isolate-run` and the warm
 worker look close: the per-call compile is amortized over a lot of tokenizing.
 
-## Many small snippets (30 x ~20 lines) — the docs-site pattern
+## Many small snippets (30 x ~20 lines): the docs-site pattern
 
 | strategy | total ms |
 |----------|---------:|
@@ -50,7 +50,7 @@ blocks, and it is where the dedicated worker wins decisively.
 | sync on the main isolate | 489 ms (UI frozen) |
 | warm worker isolate | 18.7 ms (UI responsive) |
 
-Synchronous tokenization starves a 16ms heartbeat for ~489ms — a visible freeze,
+Synchronous tokenization starves a 16ms heartbeat for ~489ms: a visible freeze,
 even warm. Offloaded to the worker, the heartbeat keeps ticking near 16ms.
 
 ## Device frame benchmark (macOS profile, real build/raster/jank)
@@ -61,11 +61,11 @@ even warm. Offloaded to the worker, the heartbeat keeps ticking near 16ms.
 scroll 6x up/down while the engine's `FrameTiming`s are collected. Three
 strategies at 500 (`m`) and 2,000 (`l`) lines of token-dense Dart, GitHub Dark:
 
-- **monolithic** — synchronous `ShikiCodeView` (one `Text.rich`, tokenizes on
+- **monolithic**: synchronous `ShikiCodeView` (one `Text.rich`, tokenizes on
   build, on the UI thread).
-- **lazy** — hand-rolled virtualized `ListView` over spans tokenized *before* the
+- **lazy**: hand-rolled virtualized `ListView` over spans tokenized *before* the
   test (an idealized "tokens already in hand" reference).
-- **isolate** — the production `ShikiCodeListView` with `async: true`: tokenizes on
+- **isolate**: the production `ShikiCodeListView` with `async: true`: tokenizes on
   the background worker, shows a base-color placeholder, swaps to the highlighted
   result when the worker replies. A 3s grace lets the first-view worker spawn +
   one-time compile + tokenize settle before the scroll is measured.
@@ -80,7 +80,7 @@ strategies at 500 (`m`) and 2,000 (`l`) lines of token-dense Dart, GitHub Dark:
 | isolate l    |     10.2 ms |      7.3 ms | 6.7ms |          0 |           0 |
 
 At 2,000 lines the synchronous monolithic path stalls the UI thread for a single
-**686 ms** frame — a ~41-frame freeze at 60fps, the exact complaint. The isolate
+**686 ms** frame: a ~41-frame freeze at 60fps, the exact complaint. The isolate
 path has **zero janky frames** (worst 7.3 ms, nothing over even the 8.33 ms 120fps
 budget): the compile+tokenize ran on the worker behind the placeholder, so the
 main thread never blocked. It matches the idealized pre-tokenized `lazy` case for
@@ -88,7 +88,7 @@ scroll smoothness while doing the highlighting live.
 
 Read the columns together: `missed_frames` counts *how often* a frame missed
 budget, not *how bad*. monolithic l reports only "2 missed @60fps", but one of
-those two is the 686 ms freeze — severity lives in `worst`/`p99`, frequency in
+those two is the 686 ms freeze: severity lives in `worst`/`p99`, frequency in
 `missed_frames`.
 
 ## Web frame benchmark (Chrome profile, no isolates)
@@ -96,13 +96,13 @@ those two is the 686 ms freeze — severity lives in `worst`/`p99`, frequency in
 `benchmark/results/frames_web_profile.json`, same harness and corpus, run with
 `flutter drive --profile -d chrome` (dart2js, CanvasKit) plus Chrome anti-throttle
 flags so a background tab keeps rendering at full rate. Web is single-threaded: it
-has **no isolates**, so `async: true` runs *inline* — it still paints the
+has **no isolates**, so `async: true` runs *inline*: it still paints the
 base-color placeholder first, but tokenization runs on the main thread, only
 deferred off the first frame. The meaningful web comparison is therefore
 synchronous **monolithic** vs virtualized **lazy**.
 
 On web the dominant cost is the **first frame** (initial build + tokenize +
-layout), which `FrameTiming` does not include — it lives in `first frame` below,
+layout), which `FrameTiming` does not include: it lives in `first frame` below,
 not in the scroll `worst`/`missed` columns.
 
 | case         | first frame | worst (scroll) | missed @60 | missed @120 |
@@ -118,7 +118,7 @@ Takeaways:
 
 - The synchronous monolithic path freezes the (single) web thread for **961 ms** on
   the 2,000-line first paint. Because web has no isolates, this freeze **cannot be
-  offloaded** — the only mitigations are rendering less and tokenizing less.
+  offloaded**: the only mitigations are rendering less and tokenizing less.
 - Virtualized **lazy** rendering is the web win: first paint drops to 37 ms and
   scrolling holds 60fps. It is what `ShikiCodeListView` does.
 - The **inline async** path gives the cheapest first paint (content appears in

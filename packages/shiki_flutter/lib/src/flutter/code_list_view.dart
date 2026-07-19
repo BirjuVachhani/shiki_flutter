@@ -14,25 +14,25 @@ import 'render.dart';
 /// Displays [code] highlighted with [lang]/[theme], rendering **one line per
 /// row** via a lazily-built [ListView] so large files stay smooth.
 ///
-/// Unlike [ShikiCodeView] — which builds the entire document as a single
-/// `Text.rich` — this widget renders one line per row. In the default
+/// Unlike [ShikiCodeView], which builds the entire document as a single
+/// `Text.rich`, this widget renders one line per row. In the default
 /// scrollable mode it only lays out and paints the rows currently on screen, so
 /// large files stay smooth. The code is still tokenized eagerly in one pass (a
 /// line's highlighting can depend on earlier lines); only rendering is lazy.
 ///
 /// ## Layout modes
-/// * **Scrollable (default)** — the widget fills its parent and scrolls
+/// * **Scrollable (default)**: the widget fills its parent and scrolls
 ///   vertically. It therefore needs a *bounded height* (e.g. inside an
 ///   [Expanded], a [SizedBox], or a route body), exactly like any [ListView].
 ///   This is the virtualized mode.
-/// * **Shrink-wrap** — set [shrinkWrap] `true` (usually with
+/// * **Shrink-wrap**: set [shrinkWrap] `true` (usually with
 ///   [physics] = `NeverScrollableScrollPhysics()`) to grow to fit its content
 ///   and let an outer scroll view drive it. Note this lays out *all* rows up
 ///   front (Flutter builds every child to measure the total height), so it is
-///   not virtualized — reserve it for small inline blocks.
+///   not virtualized. Reserve it for small inline blocks.
 ///
 /// Long lines scroll horizontally (unless [softWrap] is `true`). The horizontal
-/// extent is derived from the widest line assuming a **monospace** font — the
+/// extent is derived from the widest line assuming a **monospace** font, the
 /// font [ShikiCodeView] already recommends; use [softWrap] for proportional
 /// fonts.
 ///
@@ -43,7 +43,7 @@ import 'render.dart';
 /// Set [selectable] to `true` to let users select and copy the code; it wraps
 /// the widget in a [SelectionArea], unless an ancestor already provides one.
 /// Selection spans all lines, but because the list is virtualized only the rows
-/// currently built participate — off-screen lines become selectable as they
+/// currently built participate. Off-screen lines become selectable as they
 /// scroll into view.
 class ShikiCodeListView extends StatefulWidget {
   const ShikiCodeListView({
@@ -67,7 +67,7 @@ class ShikiCodeListView extends StatefulWidget {
     this.async,
   }) : assert(
           !(showLineNumbers && softWrap),
-          'showLineNumbers requires softWrap: false — wrapped lines cannot '
+          'showLineNumbers requires softWrap: false. Wrapped lines cannot '
           'align with a fixed-height line-number gutter.',
         );
 
@@ -96,7 +96,7 @@ class ShikiCodeListView extends StatefulWidget {
   /// [SelectionArea]. Defaults to `false`.
   ///
   /// When an ancestor already provides a selection registrar (e.g. the widget
-  /// is inside another [SelectionArea]), this flag is ignored — the code is
+  /// is inside another [SelectionArea]), this flag is ignored: the code is
   /// already selectable through that ancestor, and wrapping again would nest
   /// two selection contexts.
   final bool selectable;
@@ -189,14 +189,14 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     final effectiveBase = base.copyWith(color: fg);
 
     // Reuse the already-resolved effectiveBase rather than letting
-    // codeToLineSpans re-resolve the theme foreground — this both avoids the
+    // codeToLineSpans re-resolve the theme foreground: this both avoids the
     // duplicate lookup and guarantees the gutter/strut and the code share one
     // base style.
     final List<List<TextSpan>> lines;
     if (widget.lines != null) {
       lines = widget.lines!;
     } else if (!_asyncEffective) {
-      // Synchronous path — unchanged behavior.
+      // Synchronous path: unchanged behavior.
       lines = tokensToLineSpans(
         widget.highlighter.codeToTokens(widget.code, _options),
         baseStyle: effectiveBase,
@@ -326,7 +326,7 @@ class _Metrics {
 
 /// The line-number gutter. Frozen against horizontal scroll (it lives outside
 /// the code's horizontal scroller) and synced to the code's vertical scroll by
-/// reading [controller]'s offset — while staying virtualized when [windowed].
+/// reading [controller]'s offset, while staying virtualized when [windowed].
 class _LineNumberGutter extends StatelessWidget {
   const _LineNumberGutter({
     required this.controller,
@@ -357,7 +357,7 @@ class _LineNumberGutter extends StatelessWidget {
         textAlign: TextAlign.right,
       );
 
-  /// Every line number stacked in a column — used in shrink-wrap mode (no
+  /// Every line number stacked in a column, used in shrink-wrap mode (no
   /// viewport to window against) and as the unbounded-height fallback.
   Widget _column() => SizedBox(
         width: width,

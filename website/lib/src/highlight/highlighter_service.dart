@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 
 // Import ONLY the bundled languages/themes the site actually demonstrates. This
-// is exactly how a consumer app dogfoods the package — everything not imported
+// is exactly how a consumer app dogfoods the package: everything not imported
 // here is tree-shaken out of the build.
 import 'package:shiki_flutter/langs/css.dart';
 import 'package:shiki_flutter/langs/dart.dart';
@@ -101,7 +101,7 @@ class HighlighterService {
       vitesseLight,
       vesper,
       // Site-wide defaults for code blocks. These are the custom Pierre themes
-      // (package:shiki_flutter/pierre_themes/ — an opt-in collection, not part
+      // (package:shiki_flutter/pierre_themes/, an opt-in collection, not part
       // of the package's `allThemes`). Only the two defaults are registered
       // here; the other variants are tree-shaken out of the build.
       pierreDark,
@@ -162,7 +162,7 @@ class HighlighterService {
   //
   // A SEPARATE highlighter that loads every bundled theme, so the docs gallery
   // can preview all of them. It's `late final`, so it isn't built until the
-  // gallery is first rendered — the shared [_highlighter] above stays lean.
+  // gallery is first rendered. The shared [_highlighter] above stays lean.
 
   late final ShikiHighlighter _galleryHighlighter = createHighlighter(
     // Only Dart is needed: the gallery always previews one Dart sample.
@@ -172,7 +172,7 @@ class HighlighterService {
 
   final Map<String, TextSpan> _gallerySpanCache = {};
 
-  /// Every bundled theme, in package order — the source of truth for the docs
+  /// Every bundled theme, in package order: the source of truth for the docs
   /// gallery's list (so it stays in sync when themes are regenerated).
   List<BundledTheme> get galleryThemes => allThemes;
 

@@ -3,7 +3,7 @@
 // Dependency-free (only `dart:io` + `dart:convert`) so it can be imported from a
 // `flutter test` file without pulling in Flutter. Timings are collected in
 // microseconds via [Stopwatch] and summarized as min / mean / median / p90 /
-// p99 / max — percentiles matter here because layout cost is spiky.
+// p99 / max. Percentiles matter here because layout cost is spiky.
 library;
 
 import 'dart:convert';

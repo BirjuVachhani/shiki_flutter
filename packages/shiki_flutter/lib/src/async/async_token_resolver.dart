@@ -12,7 +12,7 @@ import 'token_cache.dart';
 /// (code, lang, theme) inputs via a highlighter's async API.
 ///
 /// Call [resolve] from `initState`/`didUpdateWidget`; read [tokens] in `build`
-/// (null means "not ready — show a plain placeholder"); call [dispose] from the
+/// (null means "not ready: show a plain placeholder"); call [dispose] from the
 /// State's `dispose`. When an async result for the current inputs arrives, the
 /// `onChanged` callback fires so the State can `setState`.
 class AsyncTokenResolver {

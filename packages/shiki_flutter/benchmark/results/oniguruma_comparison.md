@@ -4,7 +4,7 @@ Apples-to-apples on the **identical regex workload**. We captured every
 `findNextMatch` query our tokenizer issues while highlighting the Dart corpus
 (GitHub Dark), then replayed that exact query stream through both engines,
 mirroring `OnigScanner.findNextMatch` (try patterns in order; exact-start match
-wins immediately; else left-most). Same inputs, same algorithm — only the
+wins immediately; else left-most). Same inputs, same algorithm: only the
 regex engine differs.
 
 - **Ours**: the final optimized Dart engine (alloc reuse + first-char prefilter
@@ -13,7 +13,7 @@ regex engine differs.
 - **Oniguruma**: v6.9.10, built from source (`libonig.a`), driven by a
   standalone C program (`/tmp/onig_bench/bench.c`), UTF-8 encoding
   (corpus is ASCII, so byte offsets == our UTF-16 offsets), single reused
-  `OnigRegion`, patterns compiled once. **No FFI** — pure native speed.
+  `OnigRegion`, patterns compiled once. **No FFI**: pure native speed.
 
 ## Results (darwin-arm64, warm, median of 5)
 
@@ -24,10 +24,10 @@ regex engine differs.
 
 Parity check: all 90 patterns compiled in Oniguruma; when both engines matched,
 they chose the **same** winning pattern in 100% of cases (idxMismatch=0);
-overall match-start agreement **97.7%**. The ~2.3% disagreement is expected —
+overall match-start agreement **97.7%**. The ~2.3% disagreement is expected:
 our engine uses approximations for a few Oniguruma constructs (unicode-property
 tables, possessive≈greedy) and my quick `\G` replication via `onig_search`
-isn't a bit-exact match of our `gAnchor` — but it's low enough that the timing
+isn't a bit-exact match of our `gAnchor`, but it's low enough that the timing
 is a fair comparison.
 
 ## Interpretation
@@ -40,7 +40,7 @@ is a fair comparison.
   does). Real-world FFI would narrow the 3× somewhat.
 - **End-to-end projection**: `findNextMatch` is ~87% of xl tokenize time
   (~343 of ~394 ms). Swapping in Oniguruma (114 ms) would cut xl tokenize to
-  **~165 ms — about 2.4× faster end-to-end** (native, best case).
+  **~165 ms, about 2.4× faster end-to-end** (native, best case).
 
 ## The decision context
 
@@ -61,5 +61,5 @@ dependencies. Native Oniguruma would still win ~2.4× end-to-end, but:
   discussed earlier.
 
 **Recommendation:** the 3× (≈2.4× end-to-end) native advantage no longer
-justifies that complexity for most use — bank the pure-Dart 10.5× and revisit
+justifies that complexity for most use: bank the pure-Dart 10.5× and revisit
 native FFI only if a specific IO-platform workload needs the last 2.4×.

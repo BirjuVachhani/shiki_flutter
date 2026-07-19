@@ -33,10 +33,10 @@ astral-plane ranges, back-ref + atomic combos.
 
 - Fast-path coverage: **88.5%** (28,615 / 32,321).
 - **2,388 patterns now fast-path via a widened construct** (atomic / `(?i)` /
-  `\A` / `\z`) — these previously fell back to the interpreter. On web that's
+  `\A` / `\z`): these previously fell back to the interpreter. On web that's
   ~10× faster each.
 
-## Benchmark impact — honest
+## Benchmark impact: honest
 
 **Dart (the benchmarked language) is unaffected: its grammar is already 100%
 fast-path covered (65/65 patterns), using none of the widened constructs.** So
@@ -47,7 +47,7 @@ the Dart numbers don't move:
 | before widening | ~394 ms | 134 ms · 37.3k lines/s |
 | after widening | ~329 ms¹ | 115 ms · 43.5k lines/s¹ |
 
-¹ Within run-to-run variance — the emitter change doesn't touch any Dart
+¹ Within run-to-run variance: the emitter change doesn't touch any Dart
 pattern; these deltas are JIT/timer noise, not the widening.
 
 **The widening's value is for the other ~30% of grammars** that use these

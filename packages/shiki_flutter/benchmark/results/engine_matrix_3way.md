@@ -2,19 +2,19 @@
 
 Three real `ShikiHighlighterEngine` implementations tokenizing the **same**
 corpus (generated Dart source), grammar (Dart), and theme (GitHub Dark) through
-the **same** TextMate tokenizer — only the engine behind `OnigScanner` differs.
+the **same** TextMate tokenizer: only the engine behind `OnigScanner` differs.
 Metric is full `ShikiHighlighter.codeToTokens` (the real end-user tokenization
 cost, dominated by `findNextMatch`). darwin-arm64, medians.
 
 The three engines:
 
-- **bundled** — shiki_flutter's built-in pure-Dart engine
+- **bundled**: shiki_flutter's built-in pure-Dart engine
   (`ShikiHighlighterEmbeddedEngine`): a tuned interpreter with a native-`RegExp`
   fast path. The web default; ships with the package.
-- **oniguruma_dart (port)** — `ShikiHighlighterDartEngine` from
+- **oniguruma_dart (port)**: `ShikiHighlighterDartEngine` from
   `shiki_flutter_dart_engine`, backed by the `oniguruma_dart` pure-Dart
   Oniguruma port (backtracking bytecode VM). Pure Dart, runs everywhere.
-- **FFI Oniguruma (native C)** — `ShikiHighlighterNativeEngine` from
+- **FFI Oniguruma (native C)**: `ShikiHighlighterNativeEngine` from
   `shiki_flutter_native_engine`, the real Oniguruma C library over `dart:ffi`.
   IO/VM only (no web).
 
@@ -31,7 +31,7 @@ engine matches too except CSS/HTML, where its UTF-16LE mode can't compile
 | l    | 2,000 | 59,082 | 11,002 |
 | xl   | 5,000 | 148,164 | 27,493 |
 
-## VM (`dart run`) — all three engines
+## VM (`dart run`): all three engines
 
 median ms (lower is better); "vs bundled" > 1.00× means faster than the bundled
 engine.
@@ -42,7 +42,7 @@ engine.
 | oniguruma_dart (port) | 28.5 | 108 | 295 | 93.3k | 1.07× |
 | bundled (built-in Dart) | 29.8 | 118 | 316 | 87.0k | 1.00× |
 
-## Web (`dart compile js` + node) — no FFI backend
+## Web (`dart compile js` + node): no FFI backend
 
 median ms; "× bundled" is median relative to bundled (lower is faster).
 
@@ -54,14 +54,14 @@ median ms; "× bundled" is median relative to bundled (lower is faster).
 ## Findings
 
 1. **VM: FFI is fastest by ~1.9×.** Native Oniguruma tokenizes the xl corpus in
-   163 ms (169k tokens/s) versus 316 ms for the bundled engine — consistent
+   163 ms (169k tokens/s) versus 316 ms for the bundled engine: consistent
    across sizes (1.89×–1.94×). The FFI scan loop runs in C with one crossing per
    query, so the per-call overhead stays low.
 
 2. **VM: the port now edges out the bundled engine (~1.05–1.10×).** This
    reverses the earlier measurement, where an early in-repo port was the slowest
    option. The matured `oniguruma_dart` v1.0.0 (a bytecode VM) is now marginally
-   faster than the bundled interpreter on the VM — and it does so at **full
+   faster than the bundled interpreter on the VM, and it does so at **full
    parity**, including the CSS/HTML cases the FFI engine skips.
 
 3. **Web: the bundled engine wins decisively (~5×).** Its `RegExp` fast path
@@ -74,10 +74,10 @@ median ms; "× bundled" is median relative to bundled (lower is faster).
 
 The platform-split recommendation stands, with the pure-Dart ranking updated:
 
-- **Web:** the **bundled** engine (RegExp fast path) — ~5× faster than the port.
+- **Web:** the **bundled** engine (RegExp fast path): ~5× faster than the port.
 - **VM / IO:** **FFI** is fastest (~1.9× over bundled). Where native isn't an
   option (or you want maximum Oniguruma fidelity in pure Dart), the
-  **oniguruma_dart port** is the best pick — full parity and now marginally
+  **oniguruma_dart port** is the best pick: full parity and now marginally
   faster than the bundled engine on the VM.
 
 So the default stays the **bundled** engine (fast everywhere, no native build,

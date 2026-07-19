@@ -1,7 +1,7 @@
 ## 1.0.0
 
 Initial release: a native Oniguruma engine backend for `shiki_flutter`, via the
-`oniguruma_native` package — `dart:ffi` on IO and WebAssembly on web.
+`oniguruma_native` package: `dart:ffi` on IO and WebAssembly on web.
 
 * Ships `ShikiHighlighterNativeEngine`, which tokenizes with the real Oniguruma C
   library. Works on every platform `oniguruma_native` supports; on web, call

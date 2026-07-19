@@ -3,15 +3,15 @@
 // Measures the two costs that dominate "showing a lot of highlighted spans",
 // separated so each can be reasoned about independently:
 //
-//   1. Highlighting  — ShikiHighlighter.codeToTokens (pure-Dart tokenization).
-//   2. Rendering     — span-tree build (tokensToTextSpan), Text.rich layout
+//   1. Highlighting  : ShikiHighlighter.codeToTokens (pure-Dart tokenization).
+//   2. Rendering     : span-tree build (tokensToTextSpan), Text.rich layout
 //                      (via TextPainter), CPU paint-record, and the full widget
 //                      pump pipeline, comparing the monolithic single-Text.rich
 //                      strategy against a lazy per-line ListView.
 //
 // It runs under `flutter test`, which gives us a real dart:ui text engine, so
 // layout numbers are meaningful for *relative* comparison across sizes and
-// strategies. They are not absolute device numbers — the test font is used and
+// strategies. They are not absolute device numbers: the test font is used and
 // paint is CPU-side recording, not GPU raster. For real frame build/raster and
 // jank, run the device layer in website/integration_test (see benchmark/README).
 //
@@ -393,7 +393,7 @@ void _printReport(Map<String, dynamic> r, int coldStartMicros, String path) {
   buf.write(t0.render());
 
   // Highlighting.
-  buf.writeln('\nHighlighting — codeToTokens (warm)');
+  buf.writeln('\nHighlighting: codeToTokens (warm)');
   final t1 = ConsoleTable(
       ['size', 'median ms', 'p90 ms', 'lines/s', 'tokens/s', 'KB/s']);
   for (final s in sizes.keys) {
@@ -410,7 +410,7 @@ void _printReport(Map<String, dynamic> r, int coldStartMicros, String path) {
   buf.write(t1.render());
 
   // Rendering stages.
-  buf.writeln('\nRendering — build / layout / paint (median ms)');
+  buf.writeln('\nRendering: build / layout / paint (median ms)');
   final t2 = ConsoleTable([
     'size',
     'build spans',
@@ -454,7 +454,7 @@ void _printReport(Map<String, dynamic> r, int coldStartMicros, String path) {
   buf.write(t3.render());
 
   buf.writeln('\nKey takeaway: "layout mono" and "pump monolithic" grow with '
-      'document size, while the lazy window/pump stay ~flat — that gap is the '
+      'document size, while the lazy window/pump stay ~flat: that gap is the '
       'cost of rendering all spans at once.');
   buf.writeln('\nJSON written to: $path');
   buf.writeln('=' * 78);

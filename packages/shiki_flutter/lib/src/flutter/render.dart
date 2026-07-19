@@ -12,8 +12,8 @@ import '../textmate/theme.dart' as tm;
 /// Parses a CSS color string into a Flutter [Color].
 ///
 /// Supports:
-/// * **hex** — `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`.
-/// * **CSS Color 4 `color()`** — `color(display-p3 r g b [/ a])` and
+/// * **hex**: `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`.
+/// * **CSS Color 4 `color()`**: `color(display-p3 r g b [/ a])` and
 ///   `color(srgb r g b [/ a])`. Components are numbers in `0..1` or
 ///   percentages; the result is wide-gamut via [Color.from] + [ColorSpace],
 ///   so P3 renders richly where the platform/display supports it and is
@@ -102,8 +102,8 @@ Color? _parseColorFunction(String s) {
   );
 }
 
-/// Parses a single `color()` component — a `0..1` number or a `0%..100%`
-/// percentage — clamped to `0..1`. Returns null if not numeric.
+/// Parses a single `color()` component, a `0..1` number or a `0%..100%`
+/// percentage, clamped to `0..1`. Returns null if not numeric.
 double? _parseComponent(String raw) {
   if (raw.isEmpty) return null;
   double? v;
@@ -154,7 +154,7 @@ TextSpan _tokenSpan(ThemedToken token, TextStyle? baseStyle) => TextSpan(
       style: themedTokenStyle(token, baseStyle: baseStyle),
     );
 
-/// Tokenizes [code] and bakes the theme's foreground into the base style — the
+/// Tokenizes [code] and bakes the theme's foreground into the base style, the
 /// shared front half of [codeToTextSpan] and [codeToLineSpans].
 ({List<List<ThemedToken>> tokens, TextStyle baseStyle}) _tokenizeWithBase(
   ShikiHighlighter highlighter,
@@ -236,14 +236,14 @@ List<List<TextSpan>> tokensToLineSpans(
 ///
 /// The outer list is lines; each inner list holds the [TextSpan]s for that
 /// line. Feed it to a `ListView.builder` (one row per line) to render large
-/// files without building the whole document up front — each inner span already
+/// files without building the whole document up front: each inner span already
 /// carries its fully resolved style, so a row is just
 /// `Text.rich(TextSpan(children: lines[i]))`, or `Text.rich(lineToTextSpan(...))`.
 ///
 /// The theme's foreground is baked into [baseStyle] (matching [codeToTextSpan]),
 /// and blank lines are height-preserving (see [tokensToLineSpans]).
 ///
-/// Note the code is tokenized eagerly in a single pass — correct, because a
+/// Note the code is tokenized eagerly in a single pass. That's correct, because a
 /// line's highlighting can depend on earlier lines (multi-line strings and
 /// comments). Only the *rendering* is lazy.
 List<List<TextSpan>> codeToLineSpans(

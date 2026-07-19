@@ -27,7 +27,7 @@ dependencies:
 dev_dependencies:
   lints: ^6.0.0
   test: ^1.25.0
-  # Used only by test/parity_test.dart, benchmark/, and example/ — they compare
+  # Used only by test/parity_test.dart, benchmark/, and example/. They compare
   # this engine against shiki_flutter's built-in engine. A dev-only cycle
   # (shiki_flutter depends on this package), which pub permits for dev deps.
   shiki_flutter: ^1.0.0

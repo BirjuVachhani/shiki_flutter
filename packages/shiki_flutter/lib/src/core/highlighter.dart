@@ -22,7 +22,7 @@ import 'colors.dart';
 import 'theme_registration.dart';
 import 'themed_token.dart';
 
-/// Web vs. native without importing `package:flutter/foundation.dart` — whose
+/// Web vs. native without importing `package:flutter/foundation.dart`, whose
 /// `kIsWeb` pulls in `dart:ui` and would break the Flutter-free `engine.dart`
 /// entrypoint under plain `dart` and `dart compile js`. This is the same
 /// compile-time predicate Dart's own conditional imports use.
@@ -106,7 +106,7 @@ class _ResolvedTheme {
 /// be configured independently.
 ///
 /// Set it once (e.g. in `main`) via [ShikiHighlighter.config]. Every field has a
-/// platform-appropriate default, so override only what you need — usually with
+/// platform-appropriate default, so override only what you need, usually with
 /// [copyWith]:
 ///
 /// ```dart
@@ -450,8 +450,8 @@ class ShikiHighlighter {
         // On web the worker is a browser Web Worker. When one isn't available
         // (the worker script isn't installed, or a CSP blocks it) the seam
         // falls back to an inline worker; in that case tokenize on THIS
-        // highlighter instead — reusing its already-loaded grammars rather than
-        // the fallback's second copy — deferred one event-loop turn so a
+        // highlighter instead (reusing its already-loaded grammars rather than
+        // the fallback's second copy) deferred one event-loop turn so a
         // placeholder frame can paint before the (blocking) tokenize.
         tokens = await Future(() => codeToTokens(code, options));
       } else {

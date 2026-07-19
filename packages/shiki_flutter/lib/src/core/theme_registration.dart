@@ -81,7 +81,7 @@ class ThemeRegistration {
     );
   }
 
-  /// Serializes back to a VS Code / TextMate theme JSON map — the inverse of
+  /// Serializes back to a VS Code / TextMate theme JSON map, the inverse of
   /// [fromJson]. Used to replicate an object-built theme to the async worker,
   /// which only accepts JSON strings. Round-trips through [fromJson] losslessly.
   Map<String, dynamic> toJson() => {

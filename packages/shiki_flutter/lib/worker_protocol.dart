@@ -3,8 +3,8 @@
 ///
 /// The built-in worker (installed by `dart run shiki_flutter:install`)
 /// tokenizes with the embedded or pure-Dart port engine. A backend that can't
-/// live in the core package — e.g. `shiki_flutter_native_engine`, which pulls in
-/// a native build hook — ships its own separately-compiled worker instead. Such
+/// live in the core package (e.g. `shiki_flutter_native_engine`, which pulls in
+/// a native build hook) ships its own separately-compiled worker instead. Such
 /// an entry compiles against this library (plus the Flutter-free `engine.dart`)
 /// so it never has to reach into `shiki_flutter`'s `src/`.
 ///

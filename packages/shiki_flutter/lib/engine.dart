@@ -1,7 +1,7 @@
 /// Flutter-free entrypoint: the TextMate tokenizer and the pluggable regex
 /// engine seam, with no `dart:ui`/widget dependencies.
 ///
-/// Import this (instead of `shiki_flutter.dart`) from non-Flutter contexts —
+/// Import this (instead of `shiki_flutter.dart`) from non-Flutter contexts:
 /// a native engine bridge, a CLI, or a `dart test` that must avoid `dart:ui`.
 /// Flutter apps keep using `shiki_flutter.dart`, which exposes the same
 /// tokenizer plus the rendering widgets.

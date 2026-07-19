@@ -1,7 +1,7 @@
 // Engine comparison: bundled (shiki_flutter's built-in pure-Dart engine) vs
 // FFI (native Oniguruma C) vs oniguruma_dart (pure-Dart Oniguruma port).
 //
-// Same corpus, same grammar + theme, same TextMate tokenizer — only the engine
+// Same corpus, same grammar + theme, same TextMate tokenizer; only the engine
 // (via `createHighlighter(engine: ...)`) differs. Measures full `codeToTokens`, the real
 // end-user tokenization cost (dominated by the scanner's findNextMatch calls).
 //
@@ -91,7 +91,7 @@ void _report(
 ) {
   final buf = StringBuffer();
   buf.writeln('\n${'=' * 78}');
-  buf.writeln('Engine comparison — codeToTokens (lang=dart, theme=github-dark)');
+  buf.writeln('Engine comparison: codeToTokens (lang=dart, theme=github-dark)');
   buf.writeln('darwin · median of iters · VM');
   buf.writeln('=' * 78);
 

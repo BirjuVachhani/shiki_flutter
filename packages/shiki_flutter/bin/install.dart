@@ -1,5 +1,5 @@
 // Installs the prebuilt Web Worker(s) for off-main-thread async highlighting on
-// web into your app's `web/` folder. There is one worker per engine — install
+// web into your app's `web/` folder. There is one worker per engine. Install
 // the one matching your `webEngine`:
 //
 //   dart run shiki_flutter:install             # embedded engine (default)
@@ -69,7 +69,7 @@ Future<void> _installCore(String engine) async {
   final dest = File('web/$destName');
   File.fromUri(resolved).copySync(dest.path);
   final kb = (dest.lengthSync() / 1024).toStringAsFixed(0);
-  stdout.writeln('✓ Installed ${dest.path} ($kb KB) — $engine engine.');
+  stdout.writeln('✓ Installed ${dest.path} ($kb KB), $engine engine.');
 }
 
 Future<void> _installNative() async {
@@ -82,7 +82,7 @@ Future<void> _installNative() async {
   final dest = File('web/$_nativeDest');
   File.fromUri(resolved).copySync(dest.path);
   final kb = (dest.lengthSync() / 1024).toStringAsFixed(0);
-  stdout.writeln('✓ Installed ${dest.path} ($kb KB) — native engine.');
+  stdout.writeln('✓ Installed ${dest.path} ($kb KB), native engine.');
 
   // Fetch the Oniguruma wasm module into web/ (verified download, with retries).
   stdout.writeln('Fetching the Oniguruma WebAssembly module '

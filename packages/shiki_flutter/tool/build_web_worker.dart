@@ -2,8 +2,8 @@
 // prebuilt bundles that `dart run shiki_flutter:install` copies into
 // an app's `web/`.
 //
-// There is one single-purpose worker per WASM-free engine — embedded (the
-// default) and the `oniguruma_dart` port — so each artifact tree-shakes to just
+// There is one single-purpose worker per WASM-free engine, embedded (the
+// default) and the `oniguruma_dart` port, so each artifact tree-shakes to just
 // the one engine it runs and the default worker stays small. (The native engine's
 // worker is built separately, from `shiki_flutter_native_engine`.)
 //

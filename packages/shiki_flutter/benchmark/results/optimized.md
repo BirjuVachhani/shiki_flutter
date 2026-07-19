@@ -1,20 +1,20 @@
-# Benchmark results — AFTER engine optimizations
+# Benchmark results: AFTER engine optimizations
 
 Same workload, machine, and harness as [baseline.md](baseline.md).
 Base workload: **Dart / GitHub Dark**. **Test suite: 100/100 passing** (golden
-output vs real Shiki unchanged — semantics preserved).
+output vs real Shiki unchanged: semantics preserved).
 
 ## What changed (pure-Dart regex engine, `lib/src/onig/regex_engine.dart`)
 
-1. **Matcher reuse** — one `_Matcher` (and its two capture arrays) per `search`,
+1. **Matcher reuse**: one `_Matcher` (and its two capture arrays) per `search`,
    reset per attempt, instead of allocating a fresh matcher + arrays at every
    candidate position. Removes the O(lineLength) allocation churn per pattern.
-2. **First-character prefilter** — each compiled pattern gets a conservative
+2. **First-character prefilter**: each compiled pattern gets a conservative
    set of code units its match can begin with; positions whose character is
    excluded skip the backtracking matcher entirely. Falls back to "try every
    position" whenever the first char can't be safely bounded, so it can never
    change results.
-3. **`\G`-anchored short-circuit** — a pattern beginning with a mandatory `\G`
+3. **`\G`-anchored short-circuit**: a pattern beginning with a mandatory `\G`
    is only attempted at the anchor position, not scanned across the line.
 
 No rendering code changed; layout/paint numbers are unchanged (confirming the
@@ -23,7 +23,7 @@ win is isolated to tokenization).
 - Cold start: 118 ms → **73.5 ms**
 - RSS delta over sweep: 296.1 MB → **275.4 MB**
 
-## Highlighting — `codeToTokens` (warm)
+## Highlighting: `codeToTokens` (warm)
 
 | size | before (ms) | after (ms) | speedup | before lines/s | after lines/s |
 |------|------------:|-----------:|--------:|---------------:|--------------:|
@@ -46,7 +46,7 @@ Throughput went from ~1,200–1,300 lines/s to **~8,700–10,600 lines/s**
 | l | 1,639 | 266 | 6.2× | 1,742 | 296 | 5.9× |
 | xl | 4,577 | 853 | 5.4× | 4,995 | 994 | 5.0× |
 
-## Rendering — unchanged (sanity check, median ms)
+## Rendering: unchanged (sanity check, median ms)
 
 | size | build spans (before→after) | layout mono | paint mono (CPU) |
 |------|:--------------------------:|:-----------:|:----------------:|
@@ -62,9 +62,9 @@ Throughput went from ~1,200–1,300 lines/s to **~8,700–10,600 lines/s**
 | `codeToTokens` xl (5,000 lines) | 4,136 ms | **577 ms** | **7.2× faster** |
 | Highlighting throughput | ~1,250 lines/s | **~9,500 lines/s** | ~7× |
 | Cold start | 118 ms | 73.5 ms | 1.6× |
-| Full benchmark wall-clock | ~2 min | ~24 s | — |
+| Full benchmark wall-clock | ~2 min | ~24 s | - |
 
 A single short, safe pass on the existing pure-Dart engine reclaimed **~7×** on
 the dominant cost with zero behavior change. This meaningfully raises the bar
-that native FFI/WASM Oniguruma would need to clear to be worth its complexity —
+that native FFI/WASM Oniguruma would need to clear to be worth its complexity:
 worth re-evaluating that decision against these new numbers.

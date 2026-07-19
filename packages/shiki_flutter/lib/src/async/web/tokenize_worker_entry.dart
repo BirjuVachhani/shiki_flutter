@@ -4,7 +4,7 @@
 // `tokenize_worker_web.dart`; `dart run shiki_flutter:install` copies
 // it into the app's `web/`.
 //
-// It tokenizes with the pure-Dart embedded engine — golden-identical tokens to
+// It tokenizes with the pure-Dart embedded engine: golden-identical tokens to
 // every other engine, the fastest engine on web, and no WebAssembly, keeping
 // this bundle small. Selecting the `oniguruma_dart` port instead loads the sibling
 // `shiki_tokenize_worker_dart.js`; the `native` engine loads the one shipped by

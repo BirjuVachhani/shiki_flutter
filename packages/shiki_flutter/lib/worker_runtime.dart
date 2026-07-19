@@ -1,7 +1,7 @@
 /// Web-only runtime for building a custom tokenize **Web Worker** entry point.
 ///
 /// A backend that ships its own prebuilt worker (because it can't live in the
-/// core package — e.g. `shiki_flutter_native_engine`, which pulls a native build
+/// core package, e.g. `shiki_flutter_native_engine`, which pulls a native build
 /// hook) writes a Flutter-free entry whose `main()` is a single call to
 /// [runTokenizeWorker], passing the engine to tokenize with. That reuses the one
 /// shared message loop, so per-engine workers can't drift.

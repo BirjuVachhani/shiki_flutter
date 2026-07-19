@@ -1,7 +1,7 @@
 // JSON codec for the worker protocol values.
 //
 // The `dart:isolate` worker sends the protocol classes (`WorkerConfig`,
-// `TokenizeRequest`, `ThemedToken`, …) as live Dart objects — an isolate copies
+// `TokenizeRequest`, `ThemedToken`, …) as live Dart objects: an isolate copies
 // them for free. A browser Web Worker cannot: `postMessage` only carries
 // structured-clone-safe values, so everything that crosses that boundary is
 // encoded to plain JSON-able maps/lists here (and back on the other side).
@@ -97,8 +97,8 @@ List<List<ThemedToken>> tokensFromJson(List<dynamic> j) => j
 /// The stable [ShikiHighlighterEngine.id] tag for [engine], or null when none is
 /// set. The web transport uses it to pick the matching prebuilt worker, and it
 /// travels in the config JSON for diagnostics. Reads the engine's own `id`
-/// literal — deliberately NOT `runtimeType`, whose name minifies in release web
-/// builds — so this file needn't depend on any engine backend package.
+/// literal (deliberately NOT `runtimeType`, whose name minifies in release web
+/// builds) so this file needn't depend on any engine backend package.
 String? engineTag(ShikiHighlighterEngine? engine) => engine?.id;
 
 Map<String, dynamic> workerConfigToJson(WorkerConfig c) => {

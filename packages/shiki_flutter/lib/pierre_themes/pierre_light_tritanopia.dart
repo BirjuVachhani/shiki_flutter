@@ -1,4 +1,4 @@
-// Pierre theme — MIT, © The Pierre Computer Company (https://pierre.co).
+// Pierre theme: MIT, © The Pierre Computer Company (https://pierre.co).
 // See lib/pierre_themes/LICENSE for the full notice.
 import '../src/bundled/bundled_theme.dart';
 

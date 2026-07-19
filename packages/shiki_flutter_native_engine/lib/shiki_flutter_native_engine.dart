@@ -23,7 +23,7 @@
 ///
 /// At parity with the pure-Dart engines: `oniguruma_native` drives Oniguruma in
 /// UTF-8 (mapping match offsets back to UTF-16 code units for Dart `String`
-/// indices), so 2-digit `\xHH` byte escapes — e.g. CSS's `[^\x00-\x7F]` — compile
+/// indices), so 2-digit `\xHH` byte escapes (e.g. CSS's `[^\x00-\x7F]`) compile
 /// correctly. `test/parity_test.dart` asserts byte-identical output against the
 /// golden-tested pure-Dart engine across the sampled languages (json, javascript,
 /// css, python, html) and themes.
@@ -91,7 +91,7 @@ class _FfiScanner implements OnigScanner {
       final m = _sc.findNextMatch(string.native, startPosition);
       return m == null ? null : _convert(m);
     }
-    // Fallback: a plain String or a non-FFI OnigString — encode a throwaway
+    // Fallback: a plain String or a non-FFI OnigString. Encode a throwaway
     // native buffer for this single call.
     final content = string is OnigString ? string.content : string as String;
     final tmp = ffi.OnigString(content);
@@ -104,7 +104,7 @@ class _FfiScanner implements OnigScanner {
   }
 
   /// Maps a native match to shiki's contract. Unmatched groups (native `-1`)
-  /// become the [kUnmatchedOffset] sentinel — byte-identical to
+  /// become the [kUnmatchedOffset] sentinel, byte-identical to
   /// `DartOnigScanner`'s conversion.
   static OnigMatch _convert(ffi.OnigScannerMatch m) {
     final caps = List<OnigCaptureIndex>.generate(m.captureIndices.length, (i) {

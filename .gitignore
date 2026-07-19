@@ -40,7 +40,7 @@ packages/shiki_flutter/benchmark/results/*.json
 !packages/shiki_flutter/benchmark/results/frames_macos_baseline.json
 
 # NOTE: packages/shiki_flutter/lib/langs/ and lib/themes/ are generated
-# (tool/generate_bundled.dart) but ARE committed on purpose — they are the
+# (tool/generate_bundled.dart) but ARE committed on purpose: they are the
 # bundled grammar/theme catalog that ships with the package. Don't add them here.
 
 storyboard/

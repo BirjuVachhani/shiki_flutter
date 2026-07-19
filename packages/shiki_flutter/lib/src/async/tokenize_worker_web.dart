@@ -10,7 +10,7 @@
 //
 // If the worker script is missing (not installed), 404s, or is blocked (e.g. a
 // strict `blob:`/`worker-src` CSP), spawning falls back to inline tokenization
-// on the current isolate — the same graceful degradation the isolate worker uses.
+// on the current isolate, the same graceful degradation the isolate worker uses.
 library;
 
 import 'dart:async';

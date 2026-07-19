@@ -13,7 +13,7 @@ ShikiHighlighter buildHighlighter() {
 }
 
 void main() {
-  group('parseColor — hex', () {
+  group('parseColor: hex', () {
     test('#rrggbb', () {
       expect(parseColor('#ff0000'), const Color(0xFFFF0000));
     });
@@ -34,7 +34,7 @@ void main() {
     });
   });
 
-  group('parseColor — CSS color()', () {
+  group('parseColor: CSS color()', () {
     test('display-p3 with numeric components', () {
       final c = parseColor('color(display-p3 0.451324 0.823458 0.446819)')!;
       expect(c.colorSpace, ui.ColorSpace.displayP3);
@@ -382,7 +382,7 @@ void main() {
         ),
       );
 
-      // Only the ancestor's — the widget must not add a second, nested one.
+      // Only the ancestor's. The widget must not add a second, nested one.
       expect(find.byType(SelectionArea), findsOneWidget);
     });
 

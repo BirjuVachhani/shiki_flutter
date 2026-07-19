@@ -1,8 +1,8 @@
 // Deterministic Dart source generator for the benchmark suite.
 //
 // The generator tiles a fixed, token-dense Dart snippet up to a target line
-// count. It contains no randomness so every run — and both benchmark layers
-// (headless `flutter test` and the device `integration_test`) — sees the exact
+// count. It contains no randomness so every run, and both benchmark layers
+// (headless `flutter test` and the device `integration_test`), sees the exact
 // same input for a given [CorpusSize]. Each tile is lightly renumbered so the
 // document isn't a byte-for-byte repeat (which would be unrealistically kind to
 // caches), while staying fully reproducible.
@@ -110,7 +110,7 @@ class Repository$I<T extends Comparable<T>> implements Disposable {
 }
 ''';
 
-/// Basic structural facts about a corpus string — reported alongside timings so
+/// Basic structural facts about a corpus string, reported alongside timings so
 /// numbers can be normalized (per-line, per-char) by whoever reads them.
 class WorkloadStats {
   WorkloadStats(String source)

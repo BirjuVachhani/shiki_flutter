@@ -40,7 +40,7 @@ void _post(Map<String, dynamic> message) =>
 /// [engine]. Call it from a Flutter-free worker entry's `main()`.
 ///
 /// [prepare], if given, is awaited **once** before the first `config` builds the
-/// warm highlighter — the seam the native engine uses to `await loadWasm()`
+/// warm highlighter, the seam the native engine uses to `await loadWasm()`
 /// before it can tokenize. On failure the `ready` handshake never fires and the
 /// main thread falls back to inline tokenization.
 ///

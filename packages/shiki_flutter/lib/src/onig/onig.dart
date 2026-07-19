@@ -2,8 +2,8 @@
 // `vscode-textmate`'s `onigLib.ts` / `IOnigLib` and Shiki's JavaScript
 // `scanner.ts`.
 //
-// The contract types — [ShikiHighlighterEngine], [OnigScanner], [OnigString],
-// [OnigMatch], [OnigCaptureIndex] and [kUnmatchedOffset] — live in
+// The contract types ([ShikiHighlighterEngine], [OnigScanner], [OnigString],
+// [OnigMatch], [OnigCaptureIndex] and [kUnmatchedOffset]) live in
 // `package:shiki_flutter_engine_interface` so every engine backend shares them.
 // This file re-exports them and adds shiki_flutter's bundled implementation:
 // [ShikiHighlighterEmbeddedEngine], the pure-Dart engine backed by [OnigRegex].

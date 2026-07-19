@@ -1,4 +1,4 @@
-// Web tokenization benchmark entry — pure-Dart core only (no Flutter, no
+// Web tokenization benchmark entry: pure-Dart core only (no Flutter, no
 // dart:io), compiled with dart2js and run on V8 (the same JS engine as Chrome),
 // so the numbers reflect real web execution incl. native JS RegExp for the
 // fast path.

@@ -1,6 +1,6 @@
 // Differential test: the native-RegExp fast path must produce byte-identical
 // tokens to the pure interpreter. This is the correctness gate for the fast
-// path — if the emitted RegExp ever diverges from the interpreter on real code,
+// path: if the emitted RegExp ever diverges from the interpreter on real code,
 // this fails. Coverage: every golden sample (json/js/css/python/html across
 // several themes) plus generated + hand-written Dart.
 

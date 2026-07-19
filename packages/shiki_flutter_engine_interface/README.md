@@ -4,9 +4,9 @@ The regex-engine seam shared by [`shiki_flutter`](../shiki_flutter) and its
 engine backends. It is a tiny, **dependency-free** package holding only the
 contract the TextMate tokenizer runs on:
 
-- `ShikiHighlighterEngine` — the factory that builds scanners and strings.
-- `OnigScanner` — finds the earliest match among a set of patterns on a line.
-- `OnigString`, `OnigMatch`, `OnigCaptureIndex`, `kUnmatchedOffset` — the value
+- `ShikiHighlighterEngine`: the factory that builds scanners and strings.
+- `OnigScanner`: finds the earliest match among a set of patterns on a line.
+- `OnigString`, `OnigMatch`, `OnigCaptureIndex`, `kUnmatchedOffset`: the value
   types passed across that seam.
 
 It mirrors `vscode-textmate`'s `IOnigLib` / `onigLib.ts` and Shiki's JavaScript

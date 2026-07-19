@@ -47,7 +47,7 @@ void main() {
     'oniguruma_dart (port)': const ShikiHighlighterDartEngine(),
   };
 
-  print('Web engine comparison — codeToTokens (dart2js + node)');
+  print('Web engine comparison: codeToTokens (dart2js + node)');
   print('lang=dart, theme=github-dark · median of iters');
   print('x bundled = median / bundled median (lower is faster)');
 

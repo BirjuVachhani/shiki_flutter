@@ -2,13 +2,13 @@
 
 Investigated whether we can reuse Microsoft's `vscode-oniguruma` WASM and/or
 Shiki's WASM for a web backend of the `oniguruma` package. Conclusion: **no
-WASM on web** — it's high-cost and, by the ecosystem's own data, slower than the
+WASM on web**: it's high-cost and, by the ecosystem's own data, slower than the
 native-`RegExp` approach we already have in pure Dart.
 
 ## vscode-oniguruma (source-level findings)
 
 - It's Oniguruma compiled to WASM **with Emscripten**. `loadWASM` does **not**
-  do a plain `WebAssembly.instantiate` with a small import object — it goes
+  do a plain `WebAssembly.instantiate` with a small import object: it goes
   through an Emscripten factory (`instantiateWasm` hook) that supplies `env` /
   `wasi_snapshot_preview1` imports and provides `HEAPU8`/`HEAPU32`/`UTF8ToString`
   from the Emscripten `binding`. So the `.wasm` is **not standalone**.
@@ -24,7 +24,7 @@ just link the `.wasm`.
 ## Shiki's WASM
 
 - `@shikijs/engine-oniguruma` **inlines vscode-oniguruma's wasm** (vscode-oniguruma
-  is only a devDependency). So "Shiki's wasm" *is* vscode-oniguruma's wasm —
+  is only a devDependency). So "Shiki's wasm" *is* vscode-oniguruma's wasm:
   nothing separate to reuse, and Shiki itself is a JS library we can't consume
   from Dart except by interop.
 - Shiki's real web innovation is the **JavaScript engine**
@@ -42,7 +42,7 @@ shikijs/shiki#870; github.com/microsoft/vscode-oniguruma.
 1. **No `dart:ffi` on web.** The FFI backend can't run there at all; web needs a
    separate path regardless.
 2. **Marshalling kills the win.** On IO, FFI shared memory dropped Oniguruma's
-   3.0× (pure C) to 2.1×. On web there's no shared memory — every one of the
+   3.0× (pure C) to 2.1×. On web there's no shared memory: every one of the
    ~25k `findNextMatch` calls would cross **Dart → JS → wasm heap** with a UTF-8
    encode + offset map. Far heavier than FFI.
 3. **Native RegExp already wins.** Shiki measured native `RegExp` beating their

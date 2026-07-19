@@ -104,7 +104,7 @@ class _ClassNode extends _Node {
 }
 
 /// Sorts by low bound and merges overlapping/adjacent ranges into a disjoint,
-/// ascending list — the input needn't be sorted or disjoint.
+/// ascending list. The input needn't be sorted or disjoint.
 List<_Range> _mergeSortedRanges(List<_Range> input) {
   if (input.length <= 1) return input;
   final sorted = [...input]..sort((a, b) => a.lo.compareTo(b.lo));
@@ -1251,7 +1251,7 @@ class _Matcher {
     // Fast-forward the leading run of deterministic (non-backtracking) nodes
     // iteratively, so a literal/anchor run costs no continuation closures. Each
     // node still consumes one step, exactly matching matchNode's budget. This
-    // is behaviour-identical to the CPS path for these node kinds — they either
+    // is behaviour-identical to the CPS path for these node kinds: they either
     // match one way or fail; there is nothing to backtrack.
     while (i < parts.length) {
       if (!_budgetOk()) return false;
@@ -1292,7 +1292,7 @@ class _Matcher {
         i++;
         continue;
       }
-      break; // first backtracking node — hand the tail off to CPS.
+      break; // first backtracking node: hand the tail off to CPS.
     }
     if (i >= parts.length) return k(p);
     return matchNode(parts[i], p, (p2) => _matchSeq(parts, i + 1, p2, k));
@@ -1582,7 +1582,7 @@ class OnigRegex {
   /// When non-null, any match must begin by consuming a character in this set,
   /// so positions whose character is excluded are skipped before running the
   /// (expensive) backtracking matcher. Null whenever the pattern can match
-  /// empty or its first character cannot be safely bounded — in which case
+  /// empty or its first character cannot be safely bounded, in which case
   /// every position is tried, exactly as before.
   final _FirstFilter? _firstFilter;
 
@@ -1810,7 +1810,7 @@ class _EmitCtx {
   /// inserting helper groups can't renumber anything the pattern refers to.
   final bool emulate;
 
-  /// Count of capturing groups emitted so far — used to number atomic helper
+  /// Count of capturing groups emitted so far, used to number atomic helper
   /// groups and their back-references. In [emulate] mode the real groups are
   /// emitted non-capturing, so the only capturing groups are the helpers.
   int groups = 0;
@@ -1966,5 +1966,5 @@ String _quantStr(int min, int max) {
   return '{$min,$max}';
 }
 
-/// A code unit as a `\uXXXX` escape — unambiguous inside and outside classes.
+/// A code unit as a `\uXXXX` escape, unambiguous inside and outside classes.
 String _uEsc(int c) => '\\u${c.toRadixString(16).padLeft(4, '0')}';

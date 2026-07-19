@@ -2,7 +2,7 @@
 
 A TextMate-grammar based syntax highlighter for Flutter, ported from
 [Shiki](https://shiki.style). It tokenizes source code with real VS Code
-TextMate grammars and themes and renders it as styled `TextSpan`s — the same
+TextMate grammars and themes and renders it as styled `TextSpan`s: the same
 tokenization pipeline Shiki uses, reimplemented in pure, idiomatic Dart.
 
 Because it uses the same grammars and themes as VS Code and Shiki, the output
@@ -11,18 +11,18 @@ against real Shiki output token-for-token.
 
 ## Features
 
-- **Faithful TextMate tokenizer** — a Dart port of `vscode-textmate`: rules,
+- **Faithful TextMate tokenizer**: a Dart port of `vscode-textmate`: rules,
   repositories, `begin`/`end`/`while` rules, captures, injections, embedded
   languages, and cross-line state.
-- **Built-in regex engine** — a from-scratch Oniguruma-subset backtracking
+- **Built-in regex engine**: a from-scratch Oniguruma-subset backtracking
   regex engine with capture-group offsets, `\A`/`\G`/`\z`/`\Z` anchors,
   possessive quantifiers, atomic groups, look-around, POSIX classes, nested
   character classes, `\p{...}` properties, and inline flags. No native code or
   WASM, so it runs everywhere Flutter runs (mobile, web, desktop).
-- **VS Code themes** — load any VS Code / TextMate theme JSON; foreground,
+- **VS Code themes**: load any VS Code / TextMate theme JSON; foreground,
   background, and font styles (bold / italic / underline / strikethrough) are
   resolved via scope-selector specificity, exactly like Shiki.
-- **Flutter rendering** — turn code straight into a `TextSpan`, or drop in the
+- **Flutter rendering**: turn code straight into a `TextSpan`, or drop in the
   `ShikiCodeView` widget.
 
 ## Supported platforms
@@ -63,7 +63,7 @@ dependencies:
 ```
 
 **Batteries included:** ~250 languages and ~65 VS Code themes ship inside the
-package. You don't bundle any JSON assets — you import the ones you use.
+package. You don't bundle any JSON assets: you import the ones you use.
 
 ## Usage
 
@@ -122,7 +122,7 @@ TextMate `scopes`.
 
 Tokenization runs through a pluggable regex engine (`ShikiHighlighterEngine`),
 configured per platform. **By default, shiki_flutter uses the embedded engine on
-web and the Dart-port engine on IO** — both pure Dart, so there is nothing to
+web and the Dart-port engine on IO**: both pure Dart, so there is nothing to
 install. Change the engine globally through `ShikiHighlighter.config` (its
 `ioEngine` / `webEngine` fields, see [Configuration](#configuration)) or per
 highlighter with `createHighlighter(engine: ...)`. All engines produce identical
@@ -155,7 +155,7 @@ ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
 | `ioEngine`  | `ShikiHighlighterEngine`| `ShikiHighlighterDartEngine()`   | Engine used on native / VM (IO). |
 | `webEngine` | `ShikiHighlighterEngine`| `ShikiHighlighterEmbeddedEngine()` | Engine used on web. |
 | `asyncIO`   | `bool`                  | `true`                           | Highlight off the UI thread on IO (background isolate). |
-| `asyncWeb`  | `bool`                  | `false`                          | Highlight off the UI thread on web (Web Worker; opt-in — see [Web async setup](#web-async-setup-off-the-main-thread)). |
+| `asyncWeb`  | `bool`                  | `false`                          | Highlight off the UI thread on web (Web Worker; opt-in, see [Web async setup](#web-async-setup-off-the-main-thread)). |
 
 `createHighlighter(engine: ...)` overrides the engine for a single highlighter; a
 widget's `async:` argument overrides async for a single widget.
@@ -191,7 +191,7 @@ void main() {
 }
 ```
 
-**Web: keep the embedded engine (the default) — nothing to do.** It is the
+**Web: keep the embedded engine (the default). Nothing to do.** It is the
 fastest engine on web and needs no setup. For large files on either platform, use
 the virtualized `ShikiCodeListView`, which only tokenizes and lays out the lines
 on screen.
@@ -200,8 +200,8 @@ on screen.
 
 Web has no isolates, so `asyncWeb` is **off by default** and tokenization runs on
 the main thread (the embedded engine is fast, so this is fine for most apps). To
-move the one-time cold grammar compile *off* the UI thread on web — worth it for
-large documents — install the prebuilt **Web Worker** once, then turn `asyncWeb`
+move the one-time cold grammar compile *off* the UI thread on web (worth it for
+large documents), install the prebuilt **Web Worker** once, then turn `asyncWeb`
 on.
 
 **1. Install the worker** (copies it into your app's `web/` folder):
@@ -226,7 +226,7 @@ Re-run the install command after upgrading shiki_flutter to refresh the worker.
 
 **Match the worker to your web engine.** The default command installs the worker
 for the embedded engine (`webEngine`'s default). If you set `webEngine` to another
-engine, install its matching single-purpose worker instead — each is a separate
+engine, install its matching single-purpose worker instead: each is a separate
 artifact so the default stays small. Flags can be combined (e.g.
 `dart run shiki_flutter:install --default --dart`).
 
@@ -239,7 +239,7 @@ artifact so the default stays small. Flags can be combined (e.g.
 **How it works.** The command copies a small (~53 KB gzipped), grammar-free worker
 script into `web/`. It tokenizes with your web engine (identical output) and
 receives your grammars/themes at runtime, so the *same* prebuilt worker serves any
-app regardless of which languages you import — there is nothing to compile. If the
+app regardless of which languages you import: there is nothing to compile. If the
 worker isn't installed (or a strict CSP blocks it), web async transparently falls
 back to inline tokenization, so nothing breaks. In a 2,000-line benchmark this
 turns a ~961 ms first-frame freeze into a ~111 ms one-time layout with
@@ -252,13 +252,13 @@ themes you actually import end up in your app.** Each grammar/theme is a
 separate Dart library referenced by symbol, so the Dart compiler tree-shakes
 away everything unreferenced. In a measured build, importing one language +
 one theme produced a ~6 MB binary, while importing *all* of them produced
-~15 MB — the difference (~9 MB of grammar data) is dropped when unused.
+~15 MB. The difference (~9 MB of grammar data) is dropped when unused.
 
 To keep this working:
 
 - **Do** import specific languages/themes: `import '.../langs/dart.dart';`.
 - **Don't** import `package:shiki_flutter/langs/all.dart` unless you truly want
-  every grammar — that barrel intentionally references all of them (no
+  every grammar: that barrel intentionally references all of them (no
   tree-shaking). It exists for tools/playgrounds that need everything:
 
   ```dart
@@ -293,7 +293,7 @@ call `codeToTokens` or `codeToTokensAsync` (or set `async: true` on the widgets)
 ### Pierre themes (opt-in)
 
 The package also bundles the 10 custom **Pierre** themes from
-[diffs.com](https://diffs.com) — including two wide-gamut `display-p3` variants
+[diffs.com](https://diffs.com), including two wide-gamut `display-p3` variants
 and colorblind-friendly (protanopia/deuteranopia, tritanopia) sets. They are a
 separate, opt-in collection (not part of `themes/all.dart` or the ~65 count):
 

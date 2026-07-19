@@ -14,7 +14,7 @@ name: prebuild-oniguruma
 #
 # To refresh the committed binaries after a run:
 #   1. Download the `oniguruma-prebuilt` artifact from the run.
-#   2. Extract it — GitHub wraps artifacts, so you get oniguruma-prebuilt.zip
+#   2. Extract it. GitHub wraps artifacts, so you get oniguruma-prebuilt.zip
 #      containing the inner oniguruma-prebuilt.zip (its root is prebuilt/):
 #        unzip oniguruma-prebuilt.zip                   # -> oniguruma-prebuilt.zip
 #        unzip oniguruma-prebuilt.zip -d packages/oniguruma/
@@ -24,7 +24,7 @@ name: prebuild-oniguruma
 #   <arch>` artifact, regenerate the manifest with
 #   packages/oniguruma/tool/prebuilt/gen_checksums.sh before committing.
 #
-# Nothing is committed or released by this workflow — artifacts only.
+# Nothing is committed or released by this workflow: artifacts only.
 
 on:
   workflow_dispatch:
@@ -128,7 +128,7 @@ jobs:
         run: |
           set -euo pipefail
           cd merged/prebuilt
-          # Paths relative to prebuilt/ — must match the build hook's lookup keys.
+          # Paths relative to prebuilt/ must match the build hook's lookup keys.
           find . -type f \( -name '*.dylib' -o -name '*.so' -o -name '*.dll' \) \
             | sed 's|^\./||' \
             | LC_ALL=C sort \

@@ -9,7 +9,7 @@
 //
 // The output (`lib/src/prebuilt/shiki_tokenize_worker_native.js`) is checked in,
 // so a plain `pub get` gives apps a ready-to-install worker with no compile step.
-// The Oniguruma WebAssembly module is NOT bundled here — it is fetched at runtime
+// The Oniguruma WebAssembly module is NOT bundled here: it is fetched at runtime
 // by `loadWasm()` (installed alongside by the install command). Compiling to JS
 // targets the web, so oniguruma_native's native (C) build hook does not run.
 //

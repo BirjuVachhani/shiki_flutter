@@ -2,7 +2,7 @@
 // Flutter web app, independent of any host app's baseline.
 //
 // How it works: it scaffolds a throwaway Flutter web app, adds this package as
-// a path dependency, then builds it several times as `--release` — each build
+// a path dependency, then builds it several times as `--release`, each build
 // identical except for how much of Shiki it uses. Because the bundled grammars
 // and themes are `const` strings compiled into `main.dart.js`, and dart2js
 // tree-shakes by symbol, the *delta* in `main.dart.js` between the no-Shiki
@@ -164,7 +164,7 @@ void _report(Map<String, int> raw, Map<String, int> gz) {
         '${_bytes(dRaw).padLeft(14)}${_bytes(dGz).padLeft(8)}');
   });
   stdout.writeln('\nBaseline (Flutter app with no Shiki): '
-      '${_bytes(base)} uncompressed / ${_bytes(baseGz)} gzip — not counted '
+      '${_bytes(base)} uncompressed / ${_bytes(baseGz)} gzip, not counted '
       'above.');
 }
 

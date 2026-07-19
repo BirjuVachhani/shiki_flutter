@@ -4,7 +4,7 @@
     "lang": "dart",
     "theme": "github-dark",
     "device": "macos (desktop)",
-    "mode": "debug (flutter test -d macos) — DEBUG numbers are inflated vs profile; use for tradeoff shape, not absolute perf",
+    "mode": "debug (flutter test -d macos): DEBUG numbers are inflated vs profile; use for tradeoff shape, not absolute perf",
     "note": "Includes xl for the record; the checked-in test caps at m/l because xl-monolithic layout is pathological (~16 min first frame). Re-run with `flutter drive --profile` for accurate numbers."
   },
   "monolithic_l": {

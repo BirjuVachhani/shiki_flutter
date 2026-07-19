@@ -25,7 +25,7 @@ Future<void> main() async {
   await loadWasm(); // no-op on IO; loads the Oniguruma wasm module on web
   ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
     ioEngine: const ShikiHighlighterNativeEngine(),
-    // Optionally on web too — but the embedded engine is faster on web:
+    // Optionally on web too, but the embedded engine is faster on web:
     // webEngine: const ShikiHighlighterNativeEngine(),
   );
   runApp(const MyApp());
@@ -35,15 +35,15 @@ Future<void> main() async {
 Or per highlighter: `createHighlighter(engine: ShikiHighlighterNativeEngine())`.
 
 On IO the native library builds automatically on first run (via
-`oniguruma_native`'s build hook) — no `flutter config` flag needed. On web, run
+`oniguruma_native`'s build hook), no `flutter config` flag needed. On web, run
 `dart run oniguruma_native:setup` once to self-host the WebAssembly module (else
 `loadWasm()` fetches it from the version-matched GitHub Release at runtime).
 
 ## Parity
 
 At parity with the pure-Dart engines. `oniguruma_native` drives Oniguruma in
-**UTF-8** — the encoding TextMate/VS Code grammars are authored against, so
-2-digit `\xHH` byte escapes (e.g. CSS's `[^\x00-\x7F]`) compile as intended — and
+**UTF-8**, the encoding TextMate/VS Code grammars are authored against, so
+2-digit `\xHH` byte escapes (e.g. CSS's `[^\x00-\x7F]`) compile as intended, and
 maps the reported byte offsets back to UTF-16 code units that line up with Dart
 `String` indices.
 
@@ -69,7 +69,7 @@ back to inline tokenization on the current isolate, so nothing breaks.
 
 ## When to use
 
-**Fastest on IO** (~2.4x the pure-Dart port) with full parity — best for large
+**Fastest on IO** (~2.4x the pure-Dart port) with full parity: best for large
 files or heavy re-highlighting on native/desktop. On web it runs as WebAssembly
 but is ~2x slower than the embedded engine, so prefer the embedded engine there
 unless you specifically want the real Oniguruma engine everywhere.

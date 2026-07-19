@@ -18,7 +18,7 @@ const _langs = ['json', 'javascript', 'css', 'python', 'html'];
 const _themes = ['github-dark', 'github-light', 'nord', 'min-light'];
 
 // Unlike the FFI engine (UTF-16LE, which can't compile 2-digit `\xHH` escapes),
-// oniguruma_dart drives the engine in UTF-8 — so `\xHH` behaves like the C
+// oniguruma_dart drives the engine in UTF-8, so `\xHH` behaves like the C
 // library and CSS/HTML are expected to reach full parity too. No skips.
 
 /// Serializes every field the tokenizer produces, so the comparison is exact.

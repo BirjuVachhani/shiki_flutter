@@ -4,7 +4,7 @@
 so on web it can back a `ShikiHighlighterEngine` (via `ShikiHighlighterNativeEngine`)
 as an alternative to shiki_flutter's built-in pure-Dart engine
 (`ShikiHighlighterEmbeddedEngine`, the web default). This benchmarks the two on
-web, through the same `codeToTokens` path — only the regex engine differs.
+web, through the same `codeToTokens` path: only the regex engine differs.
 
 Method: `website/integration_test/engine_web_benchmark_test.dart` via
 `flutter drive --profile -d chrome` (dart2js + CanvasKit), chromedriver 150,

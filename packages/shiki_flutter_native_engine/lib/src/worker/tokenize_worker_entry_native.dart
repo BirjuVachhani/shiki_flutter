@@ -1,7 +1,7 @@
 // The native (WebAssembly) Web Worker entry point: compiled on its own with
 // `dart compile js` (see `tool/build_web_worker_native.dart`) into
 // `shiki_tokenize_worker_native.js`. shiki_flutter's web transport
-// (`tokenize_worker_web.dart`) loads this script — instead of the default one —
+// (`tokenize_worker_web.dart`) loads this script (instead of the default one)
 // whenever the configured engine is the native engine.
 //
 // It reuses shiki_flutter's shared `runTokenizeWorker` loop, tokenizing with the

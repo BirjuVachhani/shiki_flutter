@@ -3,7 +3,7 @@
 //
 // This is a build-time tool, not part of the published package. It reads the
 // `.mjs` files (which embed the grammar/theme as `JSON.parse("...")`) and
-// extracts that JSON with pure Dart string handling — no JavaScript is executed.
+// extracts that JSON with pure Dart string handling: no JavaScript is executed.
 //
 // Usage:
 //   dart run tool/generate_bundled.dart <path-to-@shikijs-dir>

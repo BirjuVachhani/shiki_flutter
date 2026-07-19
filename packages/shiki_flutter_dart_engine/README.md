@@ -3,7 +3,7 @@
 A pure-Dart [Oniguruma](https://github.com/kkos/oniguruma) engine backend for
 [`shiki_flutter`](../shiki_flutter), wired through the
 [`oniguruma_dart`](https://github.com/BirjuVachhani/oniguruma-dart/tree/main/packages/oniguruma_dart)
-port — a 1:1 Dart implementation of the Oniguruma regex engine. No FFI, no
+port: a 1:1 Dart implementation of the Oniguruma regex engine. No FFI, no
 native build: it runs on **every platform, web included**.
 
 It exists because `shiki_flutter`'s engine is pluggable: `ShikiHighlighterEngine`
@@ -17,7 +17,7 @@ its default engine on native and the Dart VM (faithful semantics, and it edges
 out the bundled engine there). On web it falls back to the built-in
 `ShikiHighlighterEmbeddedEngine`, whose `RegExp` fast path is several times
 faster than the port under dart2js. So for that recommended per-platform setup
-you don't have to write anything — importing `shiki_flutter` is enough.
+you don't have to write anything: importing `shiki_flutter` is enough.
 
 To force the port on **every** platform (web included), set it explicitly:
 
@@ -46,7 +46,7 @@ Or per-highlighter:
 | `ShikiHighlighterNativeEngine` | `shiki_flutter_native_engine` | IO only | native Oniguruma C (FFI) |
 
 Reach for this engine when you want Oniguruma semantics without the native
-build/FFI constraints of `shiki_flutter_native_engine` — including on web, where
+build/FFI constraints of `shiki_flutter_native_engine`, including on web, where
 FFI isn't available. Unlike that engine, the port drives Oniguruma in **UTF-8**,
 so 2-digit `\xHH` escapes (e.g. CSS's `[^\x00-\x7F]`) compile correctly; offsets
 are still reported in UTF-16 code units, matching Dart `String` indices.
