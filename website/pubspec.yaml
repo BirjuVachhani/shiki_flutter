@@ -48,7 +48,9 @@ flutter:
   assets:
     - assets/fonts/
     - assets/icons/
-    - assets/logo.svg
+    - assets/shiki.svg
+    - assets/flutter.svg
+    - assets/shiki_logo.svg
 
   fonts:
     - family: Geist

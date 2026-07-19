@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Syntax highlighting">
+  <!-- Editor card: Pierre Dark `card` (#171717) -->
+  <rect width="512" height="512" rx="112" fill="#171717"/>
+
+  <!-- Window controls: Pierre Dark keyword / bold / string accents -->
+  <circle cx="80" cy="80" r="9" fill="#ff678d"/>
+  <circle cx="112" cy="80" r="9" fill="#ffd452"/>
+  <circle cx="144" cy="80" r="9" fill="#5ecc71"/>
+
+  <!-- Title separator: Pierre Dark `border` (white @ 10%) -->
+  <rect x="64" y="118" width="384" height="3" rx="1.5" fill="#ffffff" fill-opacity="0.10"/>
+
+  <!-- Highlighted code lines (indented like real source) -->
+  <g>
+    <!-- line 1 -->
+    <rect x="80"  y="196" width="60"  height="18" rx="9" fill="#9d6afb"/>
+    <rect x="152" y="196" width="104" height="18" rx="9" fill="#ffa359"/>
+    <rect x="268" y="196" width="52"  height="18" rx="9" fill="#ff678d"/>
+    <!-- line 2 -->
+    <rect x="116" y="240" width="52"  height="18" rx="9" fill="#ff678d"/>
+    <rect x="180" y="240" width="170" height="18" rx="9" fill="#5ecc71"/>
+    <!-- line 3 -->
+    <rect x="116" y="284" width="70"  height="18" rx="9" fill="#ffa359"/>
+    <rect x="198" y="284" width="44"  height="18" rx="9" fill="#68cdf2"/>
+    <rect x="254" y="284" width="96"  height="18" rx="9" fill="#d568ea"/>
+    <!-- line 4 -->
+    <rect x="152" y="328" width="84"  height="18" rx="9" fill="#9d6afb"/>
+    <rect x="248" y="328" width="72"  height="18" rx="9" fill="#009fff"/>
+    <!-- line 5 -->
+    <rect x="116" y="372" width="44"  height="18" rx="9" fill="#ff678d"/>
+    <rect x="172" y="372" width="118" height="18" rx="9" fill="#ffa359"/>
+    <rect x="302" y="372" width="60"  height="18" rx="9" fill="#5ecc71"/>
+    <!-- line 6: comment, de-emphasized -->
+    <rect x="80"  y="416" width="150" height="18" rx="9" fill="#737373"/>
+  </g>
+
+  <!-- Subtle inset edge for definition -->
+  <rect x="1" y="1" width="510" height="510" rx="111" stroke="#ffffff" stroke-opacity="0.06"/>
+</svg>
