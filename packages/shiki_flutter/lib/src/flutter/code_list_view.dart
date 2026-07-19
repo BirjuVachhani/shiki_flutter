@@ -3,6 +3,7 @@ library;
 
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/widgets.dart';
 
 import '../async/async_token_resolver.dart';
@@ -38,6 +39,12 @@ import 'render.dart';
 /// When [showLineNumbers] is `true`, a line-number gutter is painted to the
 /// left. The gutter stays fixed while the code scrolls horizontally, stays
 /// virtualized while scrolling vertically, and is excluded from text selection.
+///
+/// Set [selectable] to `true` to let users select and copy the code; it wraps
+/// the widget in a [SelectionArea], unless an ancestor already provides one.
+/// Selection spans all lines, but because the list is virtualized only the rows
+/// currently built participate — off-screen lines become selectable as they
+/// scroll into view.
 class ShikiCodeListView extends StatefulWidget {
   const ShikiCodeListView({
     super.key,
@@ -49,6 +56,7 @@ class ShikiCodeListView extends StatefulWidget {
     this.textStyle,
     this.padding = const EdgeInsets.all(16),
     this.paintBackground = true,
+    this.selectable = false,
     this.textScaler,
     this.softWrap = false,
     this.showLineNumbers = false,
@@ -83,6 +91,15 @@ class ShikiCodeListView extends StatefulWidget {
 
   /// Whether to paint the theme's background color behind the code.
   final bool paintBackground;
+
+  /// Whether to make the code selectable by wrapping the widget in a
+  /// [SelectionArea]. Defaults to `false`.
+  ///
+  /// When an ancestor already provides a selection registrar (e.g. the widget
+  /// is inside another [SelectionArea]), this flag is ignored — the code is
+  /// already selectable through that ancestor, and wrapping again would nest
+  /// two selection contexts.
+  final bool selectable;
 
   final TextScaler? textScaler;
 
@@ -272,6 +289,12 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     if (widget.paintBackground) {
       final bg = parseColor(registration.bg);
       if (bg != null) content = ColoredBox(color: bg, child: content);
+    }
+
+    // Only add our own SelectionArea when asked to and when there isn't one
+    // already above us, so an enclosing SelectionArea keeps driving selection.
+    if (widget.selectable && SelectionContainer.maybeOf(context) == null) {
+      content = SelectionArea(child: content);
     }
     return content;
   }

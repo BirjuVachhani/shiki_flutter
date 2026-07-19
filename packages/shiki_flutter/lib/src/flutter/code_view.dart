@@ -1,6 +1,7 @@
 // A ready-to-use widget for displaying highlighted code.
 library;
 
+import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/widgets.dart';
 
 import '../async/async_token_resolver.dart';
@@ -17,6 +18,9 @@ import 'render.dart';
 /// first appears as plain text in the theme's base color while it is tokenized
 /// on a background isolate, then swaps to the highlighted result — which is
 /// cached, so later rebuilds are instant.
+///
+/// Set [selectable] to `true` to let users select and copy the code; it wraps
+/// the subtree in a [SelectionArea], unless an ancestor already provides one.
 class ShikiCodeView extends StatefulWidget {
   const ShikiCodeView({
     super.key,
@@ -27,6 +31,7 @@ class ShikiCodeView extends StatefulWidget {
     this.textStyle,
     this.padding = const EdgeInsets.all(16),
     this.paintBackground = true,
+    this.selectable = false,
     this.textScaler,
     this.async,
   });
@@ -43,6 +48,15 @@ class ShikiCodeView extends StatefulWidget {
 
   /// Whether to paint the theme's background color behind the code.
   final bool paintBackground;
+
+  /// Whether to make the code selectable by wrapping the subtree in a
+  /// [SelectionArea]. Defaults to `false`.
+  ///
+  /// When an ancestor already provides a selection registrar (e.g. the widget
+  /// is inside another [SelectionArea]), this flag is ignored — the code is
+  /// already selectable through that ancestor, and wrapping again would nest
+  /// two selection contexts.
+  final bool selectable;
 
   final TextScaler? textScaler;
 
@@ -123,9 +137,16 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
       child = ColoredBox(color: bg, child: child);
     }
 
-    return SingleChildScrollView(
+    Widget result = SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: child,
     );
+
+    // Only add our own SelectionArea when asked to and when there isn't one
+    // already above us, so an enclosing SelectionArea keeps driving selection.
+    if (widget.selectable && SelectionContainer.maybeOf(context) == null) {
+      result = SelectionArea(child: result);
+    }
+    return result;
   }
 }

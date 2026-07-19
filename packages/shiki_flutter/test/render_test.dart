@@ -328,6 +328,111 @@ void main() {
       );
     });
   });
+
+  group('selectable flag', () {
+    testWidgets('ShikiCodeView wraps in a SelectionArea when selectable',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ShikiCodeView(
+            highlighter: hl,
+            code: 'const answer = x;',
+            lang: 'javascript',
+            theme: 'github-dark',
+            selectable: true,
+          ),
+        ),
+      );
+
+      expect(find.byType(SelectionArea), findsOneWidget);
+    });
+
+    testWidgets('ShikiCodeView adds no SelectionArea by default',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ShikiCodeView(
+            highlighter: hl,
+            code: 'const answer = x;',
+            lang: 'javascript',
+            theme: 'github-dark',
+          ),
+        ),
+      );
+
+      expect(find.byType(SelectionArea), findsNothing);
+    });
+
+    testWidgets('ShikiCodeView does not nest inside an ancestor SelectionArea',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SelectionArea(
+            child: ShikiCodeView(
+              highlighter: hl,
+              code: 'const answer = x;',
+              lang: 'javascript',
+              theme: 'github-dark',
+              selectable: true,
+            ),
+          ),
+        ),
+      );
+
+      // Only the ancestor's — the widget must not add a second, nested one.
+      expect(find.byType(SelectionArea), findsOneWidget);
+    });
+
+    testWidgets('ShikiCodeListView wraps in a SelectionArea when selectable',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 400,
+            height: 300,
+            child: ShikiCodeListView(
+              highlighter: hl,
+              code: 'const a = x;\nconst b = y;',
+              lang: 'javascript',
+              theme: 'github-dark',
+              selectable: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(SelectionArea), findsOneWidget);
+    });
+
+    testWidgets(
+        'ShikiCodeListView does not nest inside an ancestor SelectionArea',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SelectionArea(
+            child: SizedBox(
+              width: 400,
+              height: 300,
+              child: ShikiCodeListView(
+                highlighter: hl,
+                code: 'const a = x;\nconst b = y;',
+                lang: 'javascript',
+                theme: 'github-dark',
+                selectable: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(SelectionArea), findsOneWidget);
+    });
+  });
 }
 
 String _flatten(InlineSpan span) {
