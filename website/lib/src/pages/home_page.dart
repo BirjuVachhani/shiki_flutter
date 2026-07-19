@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:simple_icons/simple_icons.dart';
@@ -175,8 +176,9 @@ class _HeroMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // No background box - just the mark, in the foreground ink.
-    return Icon(Icons.palette_rounded, size: 44, color: context.colors.foreground);
+    // No background box - just the brand mark at its native colors (the swatch
+    // palette reads on both light and dark surfaces, so it isn't tinted).
+    return SvgPicture.asset('assets/logo.svg', height: 44);
   }
 }
 
