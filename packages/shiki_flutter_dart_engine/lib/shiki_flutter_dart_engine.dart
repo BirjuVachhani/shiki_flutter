@@ -34,6 +34,9 @@ class ShikiHighlighterDartEngine implements ShikiHighlighterEngine {
   const ShikiHighlighterDartEngine();
 
   @override
+  String get id => 'dart';
+
+  @override
   OnigScanner createScanner(List<String> sources) => _OnigDartScanner(sources);
 
   @override

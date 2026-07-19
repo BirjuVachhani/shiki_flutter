@@ -21,11 +21,12 @@
 /// A per-highlighter override is also possible:
 /// `createHighlighter(engine: ShikiHighlighterNativeEngine())`.
 ///
-/// Status: experimental. The pure-Dart `ShikiHighlighterEmbeddedEngine` is the
-/// golden-tested, trustworthy default. This backend is not yet at parity —
-/// because `oniguruma_native` runs Oniguruma in UTF-16LE, the 2-digit `\xHH`
-/// byte escape (e.g. CSS's `[^\x00-\x7F]`) fails to compile and is skipped. See
-/// this package's README (Known limitations) and `test/parity_test.dart`.
+/// At parity with the pure-Dart engines: `oniguruma_native` drives Oniguruma in
+/// UTF-8 (mapping match offsets back to UTF-16 code units for Dart `String`
+/// indices), so 2-digit `\xHH` byte escapes — e.g. CSS's `[^\x00-\x7F]` — compile
+/// correctly. `test/parity_test.dart` asserts byte-identical output against the
+/// golden-tested pure-Dart engine across the sampled languages (json, javascript,
+/// css, python, html) and themes.
 library;
 
 import 'package:oniguruma_native/oniguruma_native.dart' as ffi;
@@ -56,6 +57,9 @@ class ShikiHighlighterNativeEngine implements ShikiHighlighterEngine {
   const ShikiHighlighterNativeEngine();
 
   @override
+  String get id => 'native';
+
+  @override
   OnigScanner createScanner(List<String> sources) => _FfiScanner(sources);
 
   @override
@@ -63,8 +67,8 @@ class ShikiHighlighterNativeEngine implements ShikiHighlighterEngine {
 }
 
 /// A shiki [OnigString] that also holds the input encoded once in native memory
-/// (UTF-16LE by the `oniguruma_native` backend), reused across every
-/// `findNextMatch` for the line.
+/// (UTF-8 by the `oniguruma_native` backend, with a byte↔UTF-16 offset map),
+/// reused across every `findNextMatch` for the line.
 class _FfiOnigString extends OnigString {
   _FfiOnigString(super.content) : native = ffi.OnigString(content) {
     _stringFinalizer.attach(this, native, detach: this);

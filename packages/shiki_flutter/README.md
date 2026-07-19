@@ -44,13 +44,13 @@ install:
   isolate** and is **on by default** (`asyncIO: true`), so the UI never freezes
   on the one-time grammar compile.
 - Web has no isolates. Off-main-thread async there runs in a **browser Web
-  Worker** you install once (`dart run shiki_flutter:install_web_worker`) and opt
+  Worker** you install once (`dart run shiki_flutter:install`) and opt
   into (`asyncWeb: true`); see [Web async setup](#web-async-setup-off-the-main-thread).
   Without it, web highlights inline on the main thread (still fast for typical
   files).
 - Optional faster IO engine: `ShikiHighlighterNativeEngine` (Oniguruma via
-  `dart:ffi`) after `flutter config --enable-native-assets`. On web it can run as
-  WebAssembly, but the embedded engine is faster there. See
+  `dart:ffi`; the native library builds automatically on first run). On web it can
+  run as WebAssembly, but the embedded engine is faster there. See
   [Configuration](#configuration).
 
 ## Getting started
@@ -133,7 +133,7 @@ setup.
 | ------ | ------- | --------- | ----------- |
 | `ShikiHighlighterEmbeddedEngine` | `shiki_flutter` (built in) | Web + IO | **Default on web.** Pure-Dart Oniguruma-subset engine with a native-`RegExp` fast path. Fastest engine on web, zero setup, no native build. |
 | `ShikiHighlighterDartEngine` | `shiki_flutter_dart_engine` (uses `oniguruma_dart`) | Web + IO | **Default on IO.** A faithful pure-Dart Oniguruma port with full parity and no native build, so it runs everywhere. Best when you can't enable native assets. Slow on web, so prefer the embedded engine there. |
-| `ShikiHighlighterNativeEngine` | `shiki_flutter_native_engine` (uses `oniguruma_native`) | IO (`dart:ffi`) + Web (WebAssembly) | **Fastest on IO** (~2.4x the Dart port), full parity. Requires `flutter config --enable-native-assets`. Best for large files or heavy re-highlighting on IO. On web it runs as WebAssembly but is ~2x slower than the embedded engine, so prefer embedded on web. |
+| `ShikiHighlighterNativeEngine` | `shiki_flutter_native_engine` (uses `oniguruma_native`) | IO (`dart:ffi`) + Web (WebAssembly) | **Fastest on IO** (~2.4x the Dart port), full parity; the native library builds automatically on first run. Best for large files or heavy re-highlighting on IO. On web it runs as WebAssembly (one-time `dart run oniguruma_native:setup` to self-host the module) but is ~2x slower than the embedded engine, so prefer embedded on web. |
 
 The numbers behind these comparisons live in `benchmark/results/`.
 
@@ -173,8 +173,8 @@ For the best performance beyond the defaults:
 **IO (mobile / desktop): the native engine.** The native Oniguruma engine
 tokenizes ~2.4x faster than the pure-Dart port, and async (already on for IO)
 keeps it off the UI thread, so there is no freeze. Add `shiki_flutter_native_engine`
-to your `pubspec.yaml`, run `flutter config --enable-native-assets` once, then set
-`ioEngine` in `main`:
+to your `pubspec.yaml` (the native library builds automatically on first run), then
+set `ioEngine` in `main`:
 
 ```dart
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -207,7 +207,7 @@ on.
 **1. Install the worker** (copies it into your app's `web/` folder):
 
 ```sh
-dart run shiki_flutter:install_web_worker
+dart run shiki_flutter:install
 ```
 
 **2. Enable web async** in `main`:
@@ -224,8 +224,20 @@ void main() {
 
 Re-run the install command after upgrading shiki_flutter to refresh the worker.
 
-**How it works.** The command copies a small (~159 KB), grammar-free worker
-script into `web/`. It tokenizes with the embedded engine (identical output) and
+**Match the worker to your web engine.** The default command installs the worker
+for the embedded engine (`webEngine`'s default). If you set `webEngine` to another
+engine, install its matching single-purpose worker instead — each is a separate
+artifact so the default stays small. Flags can be combined (e.g.
+`dart run shiki_flutter:install --default --dart`).
+
+| Web engine (`webEngine`)          | Install command                             | Notes |
+| --------------------------------- | ------------------------------------------- | ----- |
+| `ShikiHighlighterEmbeddedEngine` (default) | `dart run shiki_flutter:install` (or `--default`) | Zero setup; the default worker. |
+| `ShikiHighlighterDartEngine`      | `dart run shiki_flutter:install --dart`     | Worker for the `oniguruma_dart` port. |
+| `ShikiHighlighterNativeEngine`    | `dart run shiki_flutter:install --native`   | Needs the `shiki_flutter_native_engine` dependency. Also fetches the Oniguruma WebAssembly module; call `await loadWasm()` at startup. |
+
+**How it works.** The command copies a small (~53 KB gzipped), grammar-free worker
+script into `web/`. It tokenizes with your web engine (identical output) and
 receives your grammars/themes at runtime, so the *same* prebuilt worker serves any
 app regardless of which languages you import — there is nothing to compile. If the
 worker isn't installed (or a strict CSP blocks it), web async transparently falls
@@ -266,6 +278,17 @@ You can also load any TextMate grammar or VS Code theme JSON at runtime:
 highlighter.loadLanguageFromJson(myGrammarJsonString);
 highlighter.loadThemeFromJson(myThemeJsonString);
 ```
+
+A theme can also be loaded from a decoded map or a hand-built Dart object:
+
+```dart
+highlighter.loadTheme(jsonDecode(myThemeJsonString));      // Map
+highlighter.loadThemeRegistration(myThemeRegistration);    // ThemeRegistration
+```
+
+All of these paths work with async highlighting: the theme is replicated to the
+background isolate / web worker, so a custom theme resolves the same whether you
+call `codeToTokens` or `codeToTokensAsync` (or set `async: true` on the widgets).
 
 ### Pierre themes (opt-in)
 

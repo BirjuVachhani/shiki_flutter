@@ -35,6 +35,10 @@ import 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.da
 class MyEngine implements ShikiHighlighterEngine {
   const MyEngine();
 
+  // A stable literal (not derived from runtimeType, which minifies on web).
+  @override
+  String get id => 'my-engine';
+
   @override
   OnigScanner createScanner(List<String> sources) => MyScanner(sources);
 

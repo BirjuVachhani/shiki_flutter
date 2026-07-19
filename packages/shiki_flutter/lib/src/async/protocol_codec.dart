@@ -94,18 +94,12 @@ List<List<ThemedToken>> tokensFromJson(List<dynamic> j) => j
 
 // --- WorkerConfig -----------------------------------------------------------
 
-/// A diagnostic string tag for [engine]; derived from its runtime type name so
-/// this file needn't depend on every engine backend package. The worker ignores
-/// it and tokenizes with its platform-default engine (embedded on web, the
-/// fastest and WASM-free choice), so the tag round-trips for debugging only.
-String? engineTag(ShikiHighlighterEngine? engine) {
-  if (engine == null) return null;
-  final name = engine.runtimeType.toString();
-  if (name.contains('Embedded')) return 'embedded';
-  if (name.contains('Native')) return 'native';
-  if (name.contains('Dart')) return 'dart';
-  return name;
-}
+/// The stable [ShikiHighlighterEngine.id] tag for [engine], or null when none is
+/// set. The web transport uses it to pick the matching prebuilt worker, and it
+/// travels in the config JSON for diagnostics. Reads the engine's own `id`
+/// literal — deliberately NOT `runtimeType`, whose name minifies in release web
+/// builds — so this file needn't depend on any engine backend package.
+String? engineTag(ShikiHighlighterEngine? engine) => engine?.id;
 
 Map<String, dynamic> workerConfigToJson(WorkerConfig c) => {
       'engine': engineTag(c.engine),
@@ -114,9 +108,10 @@ Map<String, dynamic> workerConfigToJson(WorkerConfig c) => {
       'themeJsons': c.themeJsons,
     };
 
-/// Rebuilds a [WorkerConfig] from JSON. [engine] is intentionally left null: the
-/// worker uses its own platform default (embedded on web), so no engine backend
-/// needs to be reconstructed (or depended on) here.
+/// Rebuilds a [WorkerConfig] from JSON. [engine] is intentionally left null: each
+/// prebuilt worker is compiled for one engine (the main isolate picks which
+/// worker script to load from [engineTag]), so no engine backend needs to be
+/// reconstructed (or depended on) here.
 WorkerConfig workerConfigFromJson(Map<String, dynamic> j) => WorkerConfig(
       langs: (j['langs'] as List)
           .map((e) => langDescriptorFromJson((e as Map).cast<String, dynamic>()))

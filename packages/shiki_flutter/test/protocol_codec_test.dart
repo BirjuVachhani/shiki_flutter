@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
 import 'package:shiki_flutter/src/async/lang_descriptor.dart';
 import 'package:shiki_flutter/src/async/protocol.dart';
 import 'package:shiki_flutter/src/async/protocol_codec.dart';
@@ -148,7 +149,20 @@ void main() {
 
     test('engineTag derives a stable tag from the engine type', () {
       expect(engineTag(const ShikiHighlighterEmbeddedEngine()), 'embedded');
+      expect(engineTag(const ShikiHighlighterDartEngine()), 'dart');
       expect(engineTag(null), isNull);
+    });
+
+    test('workerConfigToJson carries the engine tag (drives script selection)', () {
+      // The web transport reads this tag to pick which single-purpose worker
+      // script to load, so it must survive the encode.
+      final json = workerConfigToJson(const WorkerConfig(
+        engine: ShikiHighlighterDartEngine(),
+        langs: [],
+        rawLangJsons: [],
+        themeJsons: [],
+      ));
+      expect(_roundTripMap(json)['engine'], 'dart');
     });
   });
 }

@@ -80,6 +80,30 @@ class ThemeRegistration {
       ),
     );
   }
+
+  /// Serializes back to a VS Code / TextMate theme JSON map — the inverse of
+  /// [fromJson]. Used to replicate an object-built theme to the async worker,
+  /// which only accepts JSON strings. Round-trips through [fromJson] losslessly.
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'type': type,
+        if (fg != null) 'fg': fg,
+        if (bg != null) 'bg': bg,
+        if (colors.isNotEmpty) 'colors': colors,
+        if (colorReplacements.isNotEmpty) 'colorReplacements': colorReplacements,
+        'settings': [for (final s in settings) _settingToJson(s)],
+      };
+
+  static Map<String, dynamic> _settingToJson(RawThemeSetting s) => {
+        if (s.name != null) 'name': s.name,
+        // `scope` is a String or List<String>; both are JSON-encodable as-is.
+        if (s.scope != null) 'scope': s.scope,
+        'settings': {
+          if (s.settings.fontStyle != null) 'fontStyle': s.settings.fontStyle,
+          if (s.settings.foreground != null) 'foreground': s.settings.foreground,
+          if (s.settings.background != null) 'background': s.settings.background,
+        },
+      };
 }
 
 /// Normalizes a raw theme: fills in defaults, guesses fg/bg, and moves non-hex

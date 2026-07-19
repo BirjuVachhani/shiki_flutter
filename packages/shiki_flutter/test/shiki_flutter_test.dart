@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -134,6 +135,24 @@ void main() {
       );
       expect(tokens.length, 3);
       expect(tokens[1], isEmpty);
+    });
+  });
+
+  group('custom theme serialization', () {
+    test('ThemeRegistration.toJson round-trips through fromJson', () {
+      final original = normalizeTheme(ThemeRegistration.fromJson(jsonDecode(
+              File('test/fixtures/themes/github-dark.json').readAsStringSync())
+          as Map<String, dynamic>));
+
+      final roundTripped =
+          normalizeTheme(ThemeRegistration.fromJson(original.toJson()));
+
+      expect(roundTripped.name, original.name);
+      expect(roundTripped.type, original.type);
+      expect(roundTripped.fg, original.fg);
+      expect(roundTripped.bg, original.bg);
+      expect(roundTripped.colorReplacements, original.colorReplacements);
+      expect(roundTripped.settings.length, original.settings.length);
     });
   });
 }

@@ -113,7 +113,7 @@ class _ResolvedTheme {
 /// void main() {
 ///   ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
 ///     ioEngine: const ShikiHighlighterNativeEngine(), // faster on IO
-///     asyncWeb: true, // after `dart run shiki_flutter:install_web_worker`
+///     asyncWeb: true, // after `dart run shiki_flutter:install`
 ///   );
 ///   runApp(const MyApp());
 /// }
@@ -144,7 +144,7 @@ class ShikiHighlighterConfig {
 
   /// Whether the rendering widgets highlight asynchronously on web. Web has no
   /// isolates; when `true` and the Web Worker is installed
-  /// (`dart run shiki_flutter:install_web_worker`) tokenization runs in that
+  /// (`dart run shiki_flutter:install`) tokenization runs in that
   /// worker, otherwise it runs inline on the main thread. Defaults to `false`.
   final bool asyncWeb;
 
@@ -329,8 +329,15 @@ class ShikiHighlighter {
   }
 
   /// Registers an already-built [ThemeRegistration] (e.g. a built-in theme).
+  ///
+  /// The normalized theme is also serialized and forwarded to the async worker
+  /// (see [_captureTheme]), so a theme registered as a Dart object works with
+  /// [codeToTokensAsync] and `async` widgets just like [loadThemeFromJson].
   String loadThemeRegistration(ThemeRegistration registration) {
     final normalized = normalizeTheme(registration);
+    // Normalizing is idempotent (colors already hex, leading default present),
+    // so the worker re-parsing this JSON resolves to the same theme.
+    _captureTheme(jsonEncode(normalized.toJson()));
     _themes[normalized.name] = normalized;
     _lastLoadedTheme = normalized.name;
     return normalized.name;
@@ -417,7 +424,7 @@ class ShikiHighlighter {
   /// worker on first use and reuses it for every later call. Identical in-flight
   /// requests are coalesced. On native/VM the worker is a background isolate; on
   /// web it is a browser Web Worker when one is installed (see
-  /// `dart run shiki_flutter:install_web_worker`), otherwise it runs inline.
+  /// `dart run shiki_flutter:install`), otherwise it runs inline.
   Future<List<List<ThemedToken>>> codeToTokensAsync(
     String code,
     TokenizeOptions options,

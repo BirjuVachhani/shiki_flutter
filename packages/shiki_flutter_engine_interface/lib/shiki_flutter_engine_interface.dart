@@ -63,6 +63,14 @@ abstract interface class OnigScanner {
 /// `createHighlighter(engine: …)`, to choose which implementation the tokenizer
 /// uses.
 abstract interface class ShikiHighlighterEngine {
+  /// A short, stable identifier for this engine — e.g. `'embedded'`, `'dart'`,
+  /// `'native'`. On web it selects the matching prebuilt Web Worker for async
+  /// highlighting, so it **must be a literal constant**: never derive it from
+  /// `runtimeType`, whose name is minified in release (`dart2js`/`dart2wasm`)
+  /// builds. A custom engine returns its own id; the async-web transport falls
+  /// back to the default worker for an id it has no dedicated worker for.
+  String get id;
+
   OnigScanner createScanner(List<String> sources);
   OnigString createString(String str);
 }

@@ -1,7 +1,7 @@
 // Browser Web Worker transport: runs tokenization off the main thread on web,
 // where `dart:isolate` is unavailable. It drives a separately-compiled worker
 // script (`shiki_tokenize_worker.js`, installed into the app's `web/` by
-// `dart run shiki_flutter:install_web_worker`) over `postMessage`.
+// `dart run shiki_flutter:install`) over `postMessage`.
 //
 // Mirrors `tokenize_worker_io.dart`: a ready handshake, id/Completer request
 // correlation, crash handling that fails in-flight requests and respawns from
@@ -28,17 +28,33 @@ import 'protocol_codec.dart';
 import 'tokenize_worker.dart';
 import 'tokenize_worker_inline.dart' as inline;
 
-/// The compiled worker script name, resolved against the document base href.
-/// `dart run shiki_flutter:install_web_worker` copies it next to `index.html`.
+/// The compiled worker script for the embedded engine (the default), resolved
+/// against the document base href. `dart run shiki_flutter:install`
+/// copies it next to `index.html`.
 const String _kWorkerScript = 'shiki_tokenize_worker.js';
+
+/// The compiled worker script for the pure-Dart (`oniguruma_dart`) port engine,
+/// installed by `dart run shiki_flutter:install --dart`. A
+/// separate artifact so the default worker isn't bloated by the port's engine.
+const String _kDartWorkerScript = 'shiki_tokenize_worker_dart.js';
+
+/// The compiled worker script for the native (WebAssembly) engine, installed by
+/// `dart run shiki_flutter:install --native`. Selected when the
+/// configured engine is the native one.
+const String _kNativeWorkerScript = 'shiki_tokenize_worker_native.js';
 
 /// How long to wait for the worker's `ready` handshake before giving up and
 /// falling back to inline (covers a 404 script or a CSP that blocks the worker).
 const Duration _kHandshakeTimeout = Duration(seconds: 8);
 
+/// A more generous handshake budget for the native worker: it must fetch and
+/// instantiate the ~650 KB Oniguruma WebAssembly module before replying `ready`.
+const Duration _kNativeHandshakeTimeout = Duration(seconds: 20);
+
 class WebTokenizeWorker implements TokenizeWorker {
   WebTokenizeWorker._(
     this._url,
+    this._handshakeTimeout,
     this._engine,
     this._langs,
     this._rawLangJsons,
@@ -46,6 +62,7 @@ class WebTokenizeWorker implements TokenizeWorker {
   );
 
   final String _url;
+  final Duration _handshakeTimeout;
 
   // Retained so the worker can be transparently respawned after a crash.
   final ShikiHighlighterEngine? _engine;
@@ -73,9 +90,14 @@ class WebTokenizeWorker implements TokenizeWorker {
         themeJsons: _themeJsons,
       );
 
-  static Future<TokenizeWorker> spawn(String url, WorkerConfig config) async {
+  static Future<TokenizeWorker> spawn(
+    String url,
+    Duration handshakeTimeout,
+    WorkerConfig config,
+  ) async {
     final worker = WebTokenizeWorker._(
       url,
+      handshakeTimeout,
       config.engine,
       List.of(config.langs),
       List.of(config.rawLangJsons),
@@ -95,7 +117,7 @@ class WebTokenizeWorker implements TokenizeWorker {
             {'type': 'config', 'config': workerConfigToJson(_config)})
         .toJS);
     await _ready.future.timeout(
-      _kHandshakeTimeout,
+      _handshakeTimeout,
       onTimeout: () => throw ShikiError('web worker handshake timed out'),
     );
   }
@@ -192,17 +214,28 @@ class WebTokenizeWorker implements TokenizeWorker {
   }
 }
 
-/// Resolves the worker script URL against the document base href, so it works
-/// under `--base-href` and subpath deployments (not just the site root).
-String _resolveWorkerUrl() =>
-    Uri.parse(web.document.baseURI).resolve(_kWorkerScript).toString();
+/// Resolves [script] against the document base href, so it works under
+/// `--base-href` and subpath deployments (not just the site root).
+String _resolveWorkerUrl(String script) =>
+    Uri.parse(web.document.baseURI).resolve(script).toString();
 
 /// Spawns a Web-Worker-backed worker, falling back to inline tokenization on the
 /// current isolate if the worker script is missing/blocked or the handshake
 /// fails for any reason.
+///
+/// The script (and its handshake budget) is chosen from the configured engine's
+/// [engineTag]: each engine has its own single-purpose prebuilt worker. The
+/// native worker fetches a WebAssembly module, so it gets a longer handshake
+/// budget; the embedded/port workers are pure Dart.
 Future<TokenizeWorker> spawnTokenizeWorker(WorkerConfig config) async {
+  final (script, timeout) = switch (engineTag(config.engine)) {
+    'native' => (_kNativeWorkerScript, _kNativeHandshakeTimeout),
+    'dart' => (_kDartWorkerScript, _kHandshakeTimeout),
+    _ => (_kWorkerScript, _kHandshakeTimeout),
+  };
   try {
-    return await WebTokenizeWorker.spawn(_resolveWorkerUrl(), config);
+    return await WebTokenizeWorker.spawn(
+        _resolveWorkerUrl(script), timeout, config);
   } catch (_) {
     return inline.spawnTokenizeWorker(config);
   }

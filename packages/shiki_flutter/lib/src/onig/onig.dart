@@ -98,6 +98,9 @@ class ShikiHighlighterEmbeddedEngine implements ShikiHighlighterEngine {
   const ShikiHighlighterEmbeddedEngine();
 
   @override
+  String get id => 'embedded';
+
+  @override
   OnigScanner createScanner(List<String> sources) => DartOnigScanner(sources);
 
   @override

@@ -2,9 +2,9 @@
 
 A native [Oniguruma](https://github.com/kkos/oniguruma) engine backend for
 [`shiki_flutter`](../shiki_flutter), wired through the standalone
-[`oniguruma_native`](https://github.com/BirjuVachhani/oniguruma-dart/tree/main/packages/oniguruma_native)
-FFI package. On IO platforms it tokenizes with the real Oniguruma C library
-instead of shiki_flutter's pure-Dart engine.
+[`oniguruma_native`](https://pub.dev/packages/oniguruma_native) package. It
+tokenizes with the real Oniguruma C library instead of shiki_flutter's pure-Dart
+engine: `dart:ffi` on IO and WebAssembly on web.
 
 It exists because `shiki_flutter`'s engine is pluggable: `ShikiHighlighterEngine`
 is the seam; `shiki_flutter` picks a pure-Dart default per platform
@@ -13,56 +13,63 @@ web), and this package provides `ShikiHighlighterNativeEngine`.
 
 ## Usage
 
-Set it once at startup, guarded for web (where `dart:ffi` isn't available):
+Set it once at startup. On web the wasm module loads asynchronously, so
+`await loadWasm()` before the first highlight; it is a no-op on IO, so the same
+startup code is portable across every platform:
 
 ```dart
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
-void main() {
-  if (!kIsWeb) {
-    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
-      ioEngine: const ShikiHighlighterNativeEngine(),
-    );
-  }
+Future<void> main() async {
+  await loadWasm(); // no-op on IO; loads the Oniguruma wasm module on web
+  ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+    ioEngine: const ShikiHighlighterNativeEngine(),
+    // Optionally on web too — but the embedded engine is faster on web:
+    // webEngine: const ShikiHighlighterNativeEngine(),
+  );
   runApp(const MyApp());
 }
 ```
 
 Or per highlighter: `createHighlighter(engine: ShikiHighlighterNativeEngine())`.
 
-Flutter apps must enable native assets: `flutter config --enable-native-assets`.
+On IO the native library builds automatically on first run (via
+`oniguruma_native`'s build hook) — no `flutter config` flag needed. On web, run
+`dart run oniguruma_native:setup` once to self-host the WebAssembly module (else
+`loadWasm()` fetches it from the version-matched GitHub Release at runtime).
 
-## Status: experimental — not yet at parity
+## Parity
 
-The pure-Dart engines are the trustworthy defaults on every platform:
-`shiki_flutter`'s built-in `ShikiHighlighterEmbeddedEngine` is golden-tested
-byte-for-byte against real Shiki, and `ShikiHighlighterDartEngine` (the
-native/VM default) is checked byte-for-byte against it. This FFI backend is
-**not yet a drop-in equal** — prefer the default unless you have measured a need
-for the native speedup on IO and have verified the grammars you use aren't
-affected by the limitation below.
+At parity with the pure-Dart engines. `oniguruma_native` drives Oniguruma in
+**UTF-8** — the encoding TextMate/VS Code grammars are authored against, so
+2-digit `\xHH` byte escapes (e.g. CSS's `[^\x00-\x7F]`) compile as intended — and
+maps the reported byte offsets back to UTF-16 code units that line up with Dart
+`String` indices.
 
-The `test/parity_test.dart` differential gate tokenizes the core package's
-golden corpus with both engines and asserts byte-identical output. It passes for
-`json` / `javascript` / `python` and **skips** `css` / `html` for the reason
-below.
+`test/parity_test.dart` tokenizes the core package's golden fixtures (proven
+byte-identical to real Shiki) with both this engine and the built-in pure-Dart
+engine and asserts the token streams are identical, across all sampled languages
+(json, javascript, css, python, html) and themes.
 
-### Known limitation: `\xHH` escapes under UTF-16LE
+## Off-main-thread on web (optional)
 
-The `oniguruma_native` package drives Oniguruma in **UTF-16LE** so match offsets line
-up 1:1 with Dart `String` indices (no UTF-8↔UTF-16 conversion). A consequence:
-the 2-digit `\xHH` byte escape — common in TextMate grammars for ASCII ranges,
-e.g. `[^\x00-\x7F]` — is interpreted as a raw **byte**, not a codepoint. Such
-patterns fail to compile and are silently skipped, so tokens they'd produce are
-missed.
+With `asyncWeb: true`, web highlighting runs in a browser Web Worker. Because this
+engine needs its WebAssembly module inside the worker, it ships its own worker.
+Install it (and the wasm) into your app's `web/` once, via shiki_flutter's install
+command with the `--native` flag:
 
-Shiki drives Oniguruma in **UTF-8**, where `\xHH` for `0x00`–`0x7F` equals the
-ASCII codepoint, so it never hits this. Among the golden fixtures the gap shows
-up in CSS class selectors (`[-a-z[^\x00-\x7F]]`) and HTML's embedded CSS.
+```sh
+dart run shiki_flutter:install --native
+```
 
-The brace form `\x{HH}` works correctly under UTF-16LE. A full fix means either
-switching the shim to UTF-8 with an offset map (as vscode-oniguruma does) or
-rewriting `\xHH` → `\x{HH}` inside the shim before compiling. Until then, treat
-this backend as an opt-in accelerator, not a correctness-equal replacement.
+Then set `webEngine: const ShikiHighlighterNativeEngine()` and `asyncWeb: true`,
+and `await loadWasm()` at startup. Without the worker installed, web async falls
+back to inline tokenization on the current isolate, so nothing breaks.
+
+## When to use
+
+**Fastest on IO** (~2.4x the pure-Dart port) with full parity — best for large
+files or heavy re-highlighting on native/desktop. On web it runs as WebAssembly
+but is ~2x slower than the embedded engine, so prefer the embedded engine there
+unless you specifically want the real Oniguruma engine everywhere.

@@ -9,10 +9,19 @@
   widget with the `async:` argument.
 * Off-main-thread highlighting on **web** via a browser Web Worker (web has no
   isolates). Install the prebuilt worker once with
-  `dart run shiki_flutter:install_web_worker`, then set `asyncWeb: true`; the
+  `dart run shiki_flutter:install`, then set `asyncWeb: true`; the
   one-time grammar compile runs in the worker, producing tokens byte-identical to
   the synchronous engine. Without it, web async falls back to inline tokenization,
   so nothing breaks.
+* The web worker honors the selected engine: each engine ships its own
+  single-purpose worker (so the default stays small), and the web transport loads
+  the one matching `webEngine`. One install command with a flag per engine:
+  `dart run shiki_flutter:install` (embedded, or `--default`),
+  `dart run shiki_flutter:install --dart` (the `oniguruma_dart` port), and
+  `dart run shiki_flutter:install --native` (the native/WebAssembly engine; needs
+  the `shiki_flutter_native_engine` dependency). Build a worker for a custom engine
+  with the Flutter-free `package:shiki_flutter/worker_runtime.dart`
+  (`runTokenizeWorker`) + `worker_protocol.dart`.
 * Results are cached in a bounded LRU (`TokenCache`, keyed by code + lang + theme),
   so rebuilds and repeat views are instant with no isolate round trip. Size it via
   `createHighlighter(cache: TokenCache(maxEntries: …, maxChars: …))`.

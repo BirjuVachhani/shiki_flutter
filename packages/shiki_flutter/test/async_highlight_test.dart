@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:shiki_flutter/src/textmate/theme.dart'
+    show RawThemeSetting, ThemeSettingStyle;
 import 'package:shiki_flutter/themes/github_dark.dart';
 
 const _code = '''
@@ -77,6 +79,42 @@ void main() {
     final first = await hl.codeToTokensAsync(_code, _options);
     expect(hl.peekTokens(_code, _options), same(first)); // warm, synchronous
     expect(await hl.codeToTokensAsync(_code, _options), same(first));
+  });
+
+  test('loadThemeRegistration (object theme) reaches the async worker', () async {
+    // A theme built as a Dart object, not from JSON. Before the worker seam
+    // forwarded it, codeToTokensAsync threw "theme not loaded" on the isolate.
+    final custom = ThemeRegistration(
+      name: 'custom-object-theme',
+      type: 'dark',
+      settings: [
+        RawThemeSetting(
+          settings:
+              ThemeSettingStyle(foreground: '#c9d1d9', background: '#0d1117'),
+        ),
+        RawThemeSetting(
+          scope: 'keyword',
+          settings: ThemeSettingStyle(foreground: '#ff7b72'),
+        ),
+      ],
+    );
+
+    final hl = createHighlighter(langs: [dart]);
+    addTearDown(hl.dispose);
+    final themeName = hl.loadThemeRegistration(custom);
+    final options = TokenizeOptions(lang: 'dart', theme: themeName);
+
+    final sync = hl.codeToTokens(_code, options);
+    // Computed on the background isolate, which only knows this theme because
+    // loadThemeRegistration serialized and forwarded it to the worker.
+    final result = await hl.codeToTokensAsync(_code, options);
+
+    _expectTokensEqual(result, sync);
+    // The theme genuinely applied (colored tokens), not a plain fallback.
+    expect(
+      sync.expand((line) => line).any((t) => (t.color ?? '').isNotEmpty),
+      isTrue,
+    );
   });
 
   test('plain language is served synchronously without a worker', () {
