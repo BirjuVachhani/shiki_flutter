@@ -1,0 +1,87 @@
+name: Deploy website
+
+# Builds the /website showcase app to WebAssembly and publishes it to GitHub
+# Pages.
+#
+# One-time repo setup: Settings -> Pages -> "Build and deployment" -> Source:
+# "GitHub Actions". This deploys the built artifact directly, so no gh-pages
+# branch is created or needed.
+#
+# The site is served from https://birjuvachhani.github.io/shiki_flutter/, so the
+# build uses a base href of "/<repo>/" (derived from GITHUB_REPOSITORY below).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'packages/**'
+      - 'pubspec.yaml'
+      - 'pubspec_overrides.yaml'
+      - '.github/workflows/deploy-website.yml'
+  workflow_dispatch:
+
+# Least-privilege token plus the scopes the Pages deploy action needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time; let an in-progress run finish rather than
+# cancelling it mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build (WASM)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pin to the same Flutter the project is developed against (see
+      # website/.metadata revision ee80f08bb).
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.6
+          channel: stable
+          cache: true
+
+      # Run from the workspace member; pub resolves the whole workspace and
+      # honours the root pubspec_overrides.yaml (meta override).
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Copy the embedded-engine Web Worker into web/ so async highlighting runs
+      # off the main thread on web. Regenerating it here keeps it in sync with
+      # the resolved shiki_flutter version (the app also commits a copy).
+      - name: Install web worker
+        run: dart run shiki_flutter:install
+
+      - name: Build web (WASM)
+        run: flutter build web --wasm --base-href "/${GITHUB_REPOSITORY#*/}/"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/build/web
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

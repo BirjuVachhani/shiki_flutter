@@ -21,6 +21,13 @@ dependencies:
   shiki_flutter:
     path: ../packages/shiki_flutter
 
+  # The native Oniguruma engine (dart:ffi on IO, WebAssembly on web). The site
+  # uses it as the IO engine (see lib/src/highlight/engine_config_io.dart); on
+  # web a conditional import keeps it out of the build. Also drives the engine
+  # benchmarks under integration_test/.
+  shiki_flutter_native_engine:
+    path: ../packages/shiki_flutter_native_engine
+
   go_router: ^17.3.0
   url_launcher: ^6.3.2
   simple_icons: ^16.23.0
@@ -34,12 +41,6 @@ dev_dependencies:
 
   integration_test:
     sdk: flutter
-
-  # Used only by integration_test/engine_web_benchmark_test.dart to benchmark the
-  # Oniguruma engine (native FFI on IO, WebAssembly on web) against the built-in
-  # pure-Dart engine. Not shipped in the site build.
-  shiki_flutter_native_engine:
-    path: ../packages/shiki_flutter_native_engine
 
 flutter:
   uses-material-design: true

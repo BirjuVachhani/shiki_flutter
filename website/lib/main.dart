@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 
+import 'src/highlight/engine_config.dart';
 import 'src/router/app_router.dart';
 import 'src/theme/app_theme.dart';
 import 'src/theme/theme_controller.dart';
@@ -9,13 +10,17 @@ import 'src/theme/theme_controller.dart';
 void main() {
   // Clean URLs for the web (/, /docs) instead of hash fragments.
   usePathUrlStrategy();
-  // Dogfood async highlighting: code appears immediately in the theme's base
-  // color and swaps to the highlighted result when tokenization finishes (on a
-  // background isolate on native, or a browser Web Worker on web, installed via
-  // `dart run shiki_flutter:install_web_worker` into web/), with results cached
-  // so rebuilds are instant. This keeps the UI thread from freezing on the
-  // one-time grammar compile.
-  ShikiHighlighter.config = const ShikiHighlighterConfig(asyncWeb: true);
+  // Dogfood off-main-thread highlighting on both platforms: code appears
+  // immediately in the theme's base color and swaps to the highlighted result
+  // when tokenization finishes, with results cached so rebuilds are instant.
+  // This keeps the UI thread from freezing on the one-time grammar compile.
+  //   * IO (desktop/mobile): the native Oniguruma engine (dart:ffi) on a
+  //     background isolate.
+  //   * Web: the pure-Dart embedded engine in a browser Web Worker
+  //     (web/shiki_tokenize_worker.js, from `dart run shiki_flutter:install`).
+  // The engine/async split lives in engine_config.dart so the web build never
+  // pulls in the native engine's WebAssembly.
+  ShikiHighlighter.config = siteHighlighterConfig();
   runApp(const ShikiSite());
 }
 

@@ -19,10 +19,23 @@ flutter run -d chrome
 ## Build for the web
 
 ```sh
-flutter build web --release
+dart run shiki_flutter:install   # copy the embedded-engine Web Worker into web/
+flutter build web --wasm --base-href /shiki_flutter/
 ```
 
-The output is written to `build/web/`.
+The output is written to `build/web/`. This is what the `Deploy website` GitHub
+Action ships to GitHub Pages (WASM, base href derived from the repo name).
+
+## Highlighting engines
+
+Code is tokenized off the main thread on both platforms, configured in
+`lib/src/highlight/engine_config.dart`:
+
+- **Desktop/mobile (IO):** the native Oniguruma engine (`dart:ffi`) on a
+  background isolate. Native runs need `flutter config --enable-native-assets`.
+- **Web:** the built-in pure-Dart embedded engine (no WASM) in a browser Web
+  Worker (`web/shiki_tokenize_worker.js`). A conditional import keeps the native
+  engine out of the web build.
 
 ## Structure
 
