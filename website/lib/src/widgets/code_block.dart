@@ -113,6 +113,7 @@ class CodeBlock extends StatelessWidget {
 
     return Container(
       clipBehavior: Clip.antiAlias,
+      margin: .only(bottom: 12),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(AppRadii.lg),

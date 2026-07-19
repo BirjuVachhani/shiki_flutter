@@ -4,6 +4,7 @@ import '../data/snippets.dart';
 import '../data/supported.dart';
 import '../theme/tokens.dart';
 import '../widgets/code_block.dart';
+import '../widgets/footer.dart';
 import '../widgets/section.dart';
 import '../widgets/theme_gallery.dart';
 import 'docs_content.dart';
@@ -121,21 +122,26 @@ class _DocsPageState extends State<DocsPage> {
       child: SelectionArea(
         child: SingleChildScrollView(
           controller: _controller,
-          child: Padding(
-            padding: const EdgeInsets.only(top: AppLayout.navHeight + 24),
-            child: ContentContainer(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _StickyBox(
-                    controller: _controller,
-                    child: _Sidebar(active: _active, onTap: _scrollTo),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: AppLayout.navHeight + 24),
+                child: ContentContainer(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _StickyBox(
+                        controller: _controller,
+                        child: _Sidebar(active: _active, onTap: _scrollTo),
+                      ),
+                      const SizedBox(width: 48),
+                      Expanded(child: _sectionsColumn(context)),
+                    ],
                   ),
-                  const SizedBox(width: 48),
-                  Expanded(child: _sectionsColumn(context)),
-                ],
+                ),
               ),
-            ),
+              const SimpleFooter(),
+            ],
           ),
         ),
       ),
@@ -155,6 +161,7 @@ class _DocsPageState extends State<DocsPage> {
               child: _CompactToc(onTap: _scrollTo),
             ),
             _sectionsColumn(context),
+            const SimpleFooter(),
           ],
         ),
       ),

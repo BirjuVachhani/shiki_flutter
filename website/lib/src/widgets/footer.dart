@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/links.dart';
@@ -29,11 +30,7 @@ class Footer extends StatelessWidget {
             'ported from Shiki in pure Dart.',
             linkLabel: 'Shiki',
             url: Links.shiki,
-            style: TextStyle(
-              color: colors.mutedForeground,
-              fontSize: 14,
-              height: 1.6,
-            ),
+            style: TextStyle(color: colors.mutedForeground, fontSize: 14, height: 1.6),
           ),
         ],
       ),
@@ -61,10 +58,7 @@ class Footer extends StatelessWidget {
           title: 'Credits',
           links: [
             _FooterLink('Shiki', onTap: () => Links.open(Links.shiki)),
-            _FooterLink(
-              'vscode-textmate',
-              onTap: () => Links.open(Links.vscodeTextmate),
-            ),
+            _FooterLink('vscode-textmate', onTap: () => Links.open(Links.vscodeTextmate)),
           ],
         ),
       ],
@@ -103,22 +97,61 @@ class Footer extends StatelessWidget {
               ),
             ),
           ),
-          Divider(color: colors.border, height: 1),
-          ContentContainer(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 24, bottom: 48),
-              child: Text(
-                'Built with shiki_flutter. Every code sample on this site is '
-                'tokenized live by the package.',
-                style: TextStyle(
-                  color: colors.mutedForeground,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
+    );
+  }
+}
+
+class SimpleFooter extends StatelessWidget {
+  const SimpleFooter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final compact = context.isCompact;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ContentContainer(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 64),
+            child: Column(
+              // crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox.square(dimension: 48, child: SvgPicture.asset('assets/shiki_logo_with_bg.svg')),
+                const SizedBox(height: 12),
+                const FooterBrand(),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: [
+                    _FooterLink('Home', onTap: () => context.go('/')),
+                    _FooterLink('Docs', onTap: () => context.go('/docs')),
+                    _FooterLink('GitHub', onTap: () => Links.open(Links.github)),
+                    _FooterLink('pub.dev', onTap: () => Links.open(Links.pubDev)),
+                    _FooterLink('Shiki', onTap: () => Links.open(Links.shiki)),
+                  ],
+                ),
+                // if (compact) ...[
+                //   const Brand(),
+                //   const SizedBox(height: 40),
+                //   columns,
+                // ] else
+                //   Row(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Expanded(child: const Brand()),
+                //       columns,
+                //     ],
+                //   ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -136,11 +169,7 @@ class _FooterColumn extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TextStyle(
-            color: context.colors.foreground,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: context.colors.foreground, fontSize: 13, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 14),
         ...links,
@@ -178,8 +207,7 @@ class _FooterLinkState extends State<_FooterLink> {
             style: TextStyle(
               color: _hovered ? colors.foreground : colors.mutedForeground,
               fontSize: 14,
-              decoration:
-                  _hovered ? TextDecoration.underline : TextDecoration.none,
+              decoration: _hovered ? TextDecoration.underline : TextDecoration.none,
               decorationColor: colors.foreground,
             ),
           ),

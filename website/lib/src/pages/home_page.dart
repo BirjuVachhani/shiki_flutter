@@ -36,7 +36,7 @@ class HomePage extends StatelessWidget {
             _WidgetFeature(),
             _EngineFeature(),
             _CtaBand(),
-            Footer(),
+            SimpleFooter(),
           ],
         ),
       ),
@@ -97,7 +97,8 @@ class _HeroState extends State<_Hero> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _HeroMark(),
-            const SizedBox(height: 20),
+            // const SizedBox(height: 20),
+            const SizedBox(height: 8),
             headline,
             const SizedBox(height: 12),
             ConstrainedBox(
@@ -169,6 +170,11 @@ class _HeroMark extends StatelessWidget {
     final compact = context.isCompact;
     final markSize = compact ? 34.0 : 44.0;
 
+    return SizedBox.square(
+      dimension: 64,
+      child: SvgPicture.asset('assets/shiki_logo_with_bg.svg'),
+    );
+
     // The identity behind the package, drawn as a visual equation: Shiki (the
     // "S" mark) combined with Flutter yields the "式" brand logo. Each mark keeps
     // its native colors, which read on both light and dark surfaces.
@@ -178,13 +184,14 @@ class _HeroMark extends StatelessWidget {
         spacing: 8,
         children: [
           SvgPicture.asset(asset, height: markSize),
-          if(false)
-          Text(label,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-              fontWeight: .w200,
+          if (false)
+            Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                fontWeight: .w200,
+              ),
             ),
-          ),
         ],
       );
     }
@@ -586,67 +593,67 @@ class _CtaBand extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final compact = context.isCompact;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: colors.border)),
-      ),
-      child: ContentContainer(
-        // diffs.com: py-16 (64px). Trimmed slightly on compact, like the rest
-        // of the site's sections.
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: compact ? 48 : 64),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // text-2xl font-medium - identical to every SectionHeading title.
-              Text(
-                'Free, open source, and built for Flutter.',
-                style: TextStyle(
-                  color: colors.foreground,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: -0.3,
-                  height: 1.3,
-                ),
-              ),
-              // space-y-3 (12px) between heading and paragraph.
-              const SizedBox(height: 12),
-              ConstrainedBox(
-                // max-w-2xl.
-                constraints: const BoxConstraints(maxWidth: 672),
-                child: Text(
-                  'shiki_flutter is crafted in the open and free for everyone to '
-                  'use. Star the repo, open an issue, or pull it in from pub.dev. '
-                  'Every contribution and bug report makes the highlighter '
-                  'better.',
-                  style: TextStyle(color: colors.mutedForeground, fontSize: 16, height: 1.5),
-                ),
-              ),
-              // space-y-6 (24px) between the text group and the buttons.
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  AppButton(
-                    label: 'View on GitHub',
-                    leadingDiffIcon: DiffIcon.github,
-                    size: AppButtonSize.sm,
-                    trailingDiffIcon: DiffIcon.arrowUpRight,
-                    onPressed: () => Links.open(Links.github),
-                  ),
-                  AppButton(
-                    label: 'pub.dev',
-                    icon: SimpleIcons.dart,
-                    variant: AppButtonVariant.secondary,
-                    size: AppButtonSize.sm,
-                    trailingDiffIcon: DiffIcon.arrowUpRight,
-                    onPressed: () => Links.open(Links.pubDev),
-                  ),
-                ],
-              ),
-            ],
+    return ContentContainer(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: colors.border),
+            bottom: BorderSide(color: colors.border),
           ),
+        ),
+        margin: const .only(top: 48),
+        padding: EdgeInsets.symmetric(vertical: compact ? 48 : 64),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // text-2xl font-medium - identical to every SectionHeading title.
+            Text(
+              'Free, open source, and built for Flutter.',
+              style: TextStyle(
+                color: colors.foreground,
+                fontSize: 24,
+                fontWeight: FontWeight.w500,
+                letterSpacing: -0.3,
+                height: 1.3,
+              ),
+            ),
+            // space-y-3 (12px) between heading and paragraph.
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              // max-w-2xl.
+              constraints: const BoxConstraints(maxWidth: 672),
+              child: Text(
+                'shiki_flutter is crafted in the open and free for everyone to '
+                'use. Star the repo, open an issue, or pull it in from pub.dev. '
+                'Every contribution and bug report makes the highlighter '
+                'better.',
+                style: TextStyle(color: colors.mutedForeground, fontSize: 16, height: 1.5),
+              ),
+            ),
+            // space-y-6 (24px) between the text group and the buttons.
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                AppButton(
+                  label: 'View on GitHub',
+                  leadingDiffIcon: DiffIcon.github,
+                  size: AppButtonSize.sm,
+                  trailingDiffIcon: DiffIcon.arrowUpRight,
+                  onPressed: () => Links.open(Links.github),
+                ),
+                AppButton(
+                  label: 'pub.dev',
+                  icon: SimpleIcons.dart,
+                  variant: AppButtonVariant.secondary,
+                  size: AppButtonSize.sm,
+                  trailingDiffIcon: DiffIcon.arrowUpRight,
+                  onPressed: () => Links.open(Links.pubDev),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
