@@ -130,8 +130,9 @@ class _HeroState extends State<_Hero> {
                       text:
                           '. It brings the exact VS Code grammars and themes '
                           'to Flutter, tokenized token-for-token and rendered '
-                          'as native TextSpans, with no WebView, JavaScript, or '
-                          'asset bundles.',
+                          'as native TextSpans. It runs on every platform '
+                          'Flutter targets, with no native setup and no assets '
+                          'to bundle.',
                     ),
                   ],
                 ),
@@ -153,7 +154,7 @@ class _HeroState extends State<_Hero> {
               ],
             ),
             const SizedBox(height: 20),
-            Text('Currently v0.2.0', style: TextStyle(color: colors.mutedForeground, fontSize: 14)),
+            Text('Currently v1.0.0', style: TextStyle(color: colors.mutedForeground, fontSize: 14)),
           ],
         ),
       ),
@@ -543,9 +544,10 @@ class _EngineFeature extends StatelessWidget {
     return _FeatureBlock(
       title: 'A regex engine built from scratch.',
       subtitle:
-          'Shiki leans on Oniguruma via WASM. shiki_flutter ships its own '
-          'Oniguruma-subset backtracking engine in Dart, so it runs anywhere '
-          'Flutter runs, with no native code.',
+          'Shiki leans on Oniguruma compiled to WebAssembly. shiki_flutter '
+          'ships its own Oniguruma-subset engine in pure Dart, so the default '
+          'runs on every platform Flutter targets with no native build and '
+          'nothing to install.',
       subtitleLink: ('Shiki', Links.shiki),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

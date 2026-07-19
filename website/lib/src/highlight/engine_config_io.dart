@@ -5,9 +5,9 @@ import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 /// via `dart:ffi` (the native engine), on a background isolate (`asyncIO`) so the
 /// one-time grammar/regex compile never blocks the UI thread.
 ///
-/// Native runs need native assets enabled
-/// (`flutter config --enable-native-assets`); this variant is never part of the
-/// web build (see [engine_config.dart]).
+/// The native library builds automatically on first run (via `oniguruma_native`'s
+/// build hook), so there is no flag to set; this variant is never part of the web
+/// build (see [engine_config.dart]).
 ShikiHighlighterConfig siteHighlighterConfig() => const ShikiHighlighterConfig(
       ioEngine: ShikiHighlighterNativeEngine(),
       asyncIO: true,

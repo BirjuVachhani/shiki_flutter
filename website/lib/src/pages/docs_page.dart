@@ -12,23 +12,55 @@ import 'docs_content.dart';
 /// Metadata for one docs section (used for the sidebar and anchors).
 class _SectionMeta {
   const _SectionMeta(this.id, this.title);
+
   final String id;
   final String title;
 }
 
-const _sections = <_SectionMeta>[
-  _SectionMeta('introduction', 'Introduction'),
-  _SectionMeta('installation', 'Installation'),
-  _SectionMeta('quick-start', 'Quick start'),
-  _SectionMeta('rendering', 'Rendering code'),
-  _SectionMeta('themes', 'Themes'),
-  _SectionMeta('extra-themes', 'Extra themes'),
-  _SectionMeta('languages', 'Languages'),
-  _SectionMeta('bundle-size', 'Bundle size'),
-  _SectionMeta('shikicodeview', 'The widget'),
-  _SectionMeta('large-files', 'Large files'),
-  _SectionMeta('custom', 'Custom grammars'),
-  _SectionMeta('limitations', 'Limitations'),
+/// A named group of sections, rendered as one labeled block in the sidebar.
+class _SectionGroup {
+  const _SectionGroup(this.title, this.sections);
+
+  final String title;
+  final List<_SectionMeta> sections;
+}
+
+/// The docs, grouped and ordered top-to-bottom from first-run basics to
+/// advanced tuning. The sidebar renders these groups with their labels; the
+/// reading column and scroll-spy walk the flattened [_sections] in this order.
+const _groups = <_SectionGroup>[
+  _SectionGroup('Getting started', [
+    _SectionMeta('introduction', 'Introduction'),
+    _SectionMeta('installation', 'Installation'),
+    _SectionMeta('quick-start', 'Quick start'),
+  ]),
+  _SectionGroup('Rendering code', [
+    _SectionMeta('rendering', 'Rendering code'),
+    _SectionMeta('shikicodeview', 'The widget'),
+    _SectionMeta('large-files', 'Large files'),
+  ]),
+  _SectionGroup('Themes & languages', [
+    _SectionMeta('themes', 'Themes'),
+    _SectionMeta('extra-themes', 'Extra themes'),
+    _SectionMeta('languages', 'Languages'),
+  ]),
+  _SectionGroup('Performance & platforms', [
+    _SectionMeta('async', 'Async highlighting'),
+    _SectionMeta('engines', 'Engines'),
+    _SectionMeta('web', 'Web setup'),
+    _SectionMeta('configuration', 'Configuration'),
+  ]),
+  _SectionGroup('Advanced', [
+    _SectionMeta('bundle-size', 'Bundle size'),
+    _SectionMeta('custom', 'Custom grammars'),
+    _SectionMeta('limitations', 'Limitations'),
+  ]),
+];
+
+/// The groups flattened into reading order, for the anchor keys, scroll-spy,
+/// and the content column (all index-based).
+final _sections = <_SectionMeta>[
+  for (final group in _groups) ...group.sections,
 ];
 
 /// The documentation page: a sticky section sidebar beside a scrolling reading
@@ -46,8 +78,7 @@ class DocsPage extends StatefulWidget {
 
 class _DocsPageState extends State<DocsPage> {
   final ScrollController _controller = ScrollController();
-  final List<GlobalKey> _keys =
-      List.generate(_sections.length, (_) => GlobalKey());
+  final List<GlobalKey> _keys = List.generate(_sections.length, (_) => GlobalKey());
   int _active = 0;
 
   static const double _anchorGap = AppLayout.navHeight + 24;
@@ -97,8 +128,7 @@ class _DocsPageState extends State<DocsPage> {
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox;
     final dy = box.localToGlobal(Offset.zero).dy;
-    final target = (_controller.offset + dy - _anchorGap)
-        .clamp(0.0, _controller.position.maxScrollExtent);
+    final target = (_controller.offset + dy - _anchorGap).clamp(0.0, _controller.position.maxScrollExtent);
     setState(() => _active = index);
     _controller.animateTo(
       target,
@@ -202,6 +232,7 @@ class _DocsPageState extends State<DocsPage> {
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
+
   final String text;
 
   @override
@@ -228,6 +259,28 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Walk the groups in order, carrying a running index into the flattened
+    // section list so active-state and taps map back to the right anchor.
+    final children = <Widget>[];
+    var index = 0;
+    for (var gi = 0; gi < _groups.length; gi++) {
+      children.add(
+        Padding(
+          padding: EdgeInsets.only(top: gi == 0 ? 0 : 22, bottom: 8, left: 12),
+          child: _GroupLabel(_groups[gi].title),
+        ),
+      );
+      for (final section in _groups[gi].sections) {
+        final i = index++;
+        children.add(
+          _SidebarItem(
+            label: section.title,
+            active: i == active,
+            onTap: () => onTap(i),
+          ),
+        );
+      }
+    }
     return SizedBox(
       width: 220,
       child: Padding(
@@ -236,14 +289,30 @@ class _Sidebar extends StatelessWidget {
           // Stretch so the selected pill spans the full rail width (like
           // diffs.com), rather than shrink-wrapping the label.
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < _sections.length; i++)
-              _SidebarItem(
-                label: _sections[i].title,
-                active: i == active,
-                onTap: () => onTap(i),
-              ),
-          ],
+          children: children,
+        ),
+      ),
+    );
+  }
+}
+
+/// A small uppercase category label sitting above a group of sidebar items.
+class _GroupLabel extends StatelessWidget {
+  const _GroupLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return SelectionContainer.disabled(
+      child: Text(
+        text.toUpperCase(),
+        style: TextStyle(
+          color: context.colors.foreground,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.0,
+          height: 1.4,
         ),
       ),
     );
@@ -296,9 +365,7 @@ class _SidebarItemState extends State<_SidebarItem> {
     final active = widget.active;
     // diffs.com: selection changes colour + a subtle pill only - never weight.
     // Active = foreground on an accent pill; others muted, brightening on hover.
-    final color = active || _hovered
-        ? colors.foreground
-        : colors.mutedForeground;
+    final color = active || _hovered ? colors.foreground : colors.mutedForeground;
     final Widget item = MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
@@ -311,9 +378,7 @@ class _SidebarItemState extends State<_SidebarItem> {
           decoration: BoxDecoration(
             color: active
                 ? colors.surfaceInset
-                : (_hovered
-                    ? colors.foreground.withValues(alpha: 0.05)
-                    : Colors.transparent),
+                : (_hovered ? colors.foreground.withValues(alpha: 0.05) : Colors.transparent),
             borderRadius: BorderRadius.circular(AppRadii.sm),
           ),
           child: Text(
@@ -340,6 +405,53 @@ class _CompactToc extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    // One labeled block of pills per group, carrying a running index into the
+    // flattened section list so a tap scrolls to the matching anchor.
+    final blocks = <Widget>[];
+    var index = 0;
+    for (var gi = 0; gi < _groups.length; gi++) {
+      if (gi > 0) blocks.add(const SizedBox(height: 16));
+      blocks.add(
+        Text(
+          _groups[gi].title.toUpperCase(),
+          style: TextStyle(
+            color: colors.mutedForeground,
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
+          ),
+        ),
+      );
+      blocks.add(const SizedBox(height: 10));
+      final pills = <Widget>[];
+      for (final section in _groups[gi].sections) {
+        final i = index++;
+        pills.add(
+          SelectionContainer.disabled(
+            child: GestureDetector(
+              onTap: () => onTap(i),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: colors.surfaceInset,
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                  border: Border.all(color: colors.border),
+                ),
+                child: Text(
+                  section.title,
+                  style: TextStyle(
+                    color: colors.foreground,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      blocks.add(Wrap(spacing: 8, runSpacing: 8, children: pills));
+    }
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -349,47 +461,7 @@ class _CompactToc extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'ON THIS PAGE',
-            style: TextStyle(
-              color: colors.mutedForeground,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (var i = 0; i < _sections.length; i++)
-                SelectionContainer.disabled(
-                  child: GestureDetector(
-                    onTap: () => onTap(i),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: colors.surfaceInset,
-                        borderRadius: BorderRadius.circular(AppRadii.pill),
-                        border: Border.all(color: colors.border),
-                      ),
-                      child: Text(
-                        _sections[i].title,
-                        style: TextStyle(
-                          color: colors.foreground,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
+        children: blocks,
       ),
     );
   }
@@ -408,9 +480,11 @@ List<Widget> _content(String id) {
           'like it does in VS Code.',
         ),
         DocProse(
-          "It's pure Dart (no WebView, no JavaScript, and no bundled JSON "
-          'assets), so it runs everywhere Flutter runs: iOS, Android, web, '
-          'macOS, Windows, and Linux.',
+          "It's pure Dart with no native build step and no JSON assets to "
+          'bundle, so it runs everywhere Flutter runs: iOS, Android, web, '
+          'macOS, Windows, and Linux. On native and desktop, highlighting runs '
+          'off the UI thread by default, so the one-time grammar compile never '
+          'freezes a frame (see **Async highlighting**).',
         ),
         DocProse(
           '**~250 languages and 65 themes are built in.** You import only the '
@@ -455,8 +529,10 @@ List<Widget> _content(String id) {
     case 'rendering':
       return const [
         DocProse(
-          'There are three ways to render tokenized code. For very large files, '
-          'see **Large files** for a lazily rendered, line-based option.',
+          'There are three ways to render tokenized code. The calls below are '
+          'synchronous; for the non-blocking variants that keep the UI thread '
+          'free, see **Async highlighting**. For very large files, see **Large '
+          'files** for a lazily rendered, line-based option.',
         ),
         DocH3('As a TextSpan'),
         DocProse(
@@ -628,6 +704,237 @@ List<Widget> _content(String id) {
         ),
         DocLangList(supportedLanguages),
       ];
+    case 'async':
+      return const [
+        DocProse(
+          'Highlighting a file means compiling its grammar and running the '
+          'regex engine over every line. The first time, that one-time compile '
+          'can take long enough to drop a frame. Async highlighting moves that '
+          'work off the UI thread so the app never freezes.',
+        ),
+        DocProse(
+          'On native and desktop it is **on by default** (`asyncIO: true`). '
+          '`ShikiCodeView` and `ShikiCodeListView` show your code immediately '
+          "in the theme's base color, then swap in the fully highlighted result "
+          'once the background isolate finishes. Results are cached (LRU) per '
+          '`(code, lang, theme)`, so later rebuilds are instant and never flash '
+          'a placeholder.',
+        ),
+        DocNote(
+          'Web has no isolates, so async there is opt-in and runs in a browser '
+          'Web Worker you install once. See **Web setup**. Everything below '
+          'works the same on web once that worker is enabled.',
+        ),
+        DocH3('In the widgets'),
+        DocProse(
+          'Both view widgets take an optional `async:` flag that overrides the '
+          'global default for that one widget. Leave it unset to follow the '
+          'platform default (on for IO, off for web):',
+        ),
+        CodeBlock(
+          code: Snippets.asyncWidget,
+          lang: 'dart',
+          filename: 'async_widget.dart',
+        ),
+        DocH3('Imperatively'),
+        DocProse(
+          'For raw tokens, `codeToTokensAsync` mirrors `codeToTokens` but returns '
+          'a `Future`, tokenizing off the current isolate and caching the result. '
+          'Identical in-flight requests are coalesced:',
+        ),
+        CodeBlock(
+          code: Snippets.asyncTokens,
+          lang: 'dart',
+          filename: 'async_tokens.dart',
+        ),
+        DocProse(
+          'Call `highlighter.dispose()` when a highlighter is no longer needed '
+          'to tear down its background worker and clear the token cache. The '
+          'highlighter still works synchronously afterward; a later async call '
+          'spawns a fresh worker.',
+        ),
+      ];
+    case 'engines':
+      return const [
+        DocProse(
+          'Tokenization runs through a pluggable regex engine, chosen per '
+          'platform. **The defaults are pure Dart**, so there is nothing to '
+          'install: the embedded engine on web, the Oniguruma-port engine on '
+          'native / VM. Every engine produces identical tokens (verified against '
+          'golden Shiki output); they differ only in speed and setup.',
+        ),
+        DocTable(
+          headers: ['Platform', 'Off-thread async', 'Default engine'],
+          rows: [
+            ['Android / iOS', 'Background isolate', 'Dart port'],
+            ['macOS / Windows / Linux', 'Background isolate', 'Dart port'],
+            ['Web', 'Web Worker (opt-in)', 'Embedded'],
+          ],
+        ),
+        DocH3('The three engines'),
+        DocTable(
+          headers: ['Engine', 'Package', 'When to use'],
+          rows: [
+            [
+              '`ShikiHighlighterEmbeddedEngine`',
+              '`shiki_flutter` (built in)',
+              '**Default on web.** Pure-Dart Oniguruma-subset engine with a '
+                  'native-`RegExp` fast path. Fastest on web, zero setup.',
+            ],
+            [
+              '`ShikiHighlighterDartEngine`',
+              '`shiki_flutter_dart_engine`',
+              '**Default on IO.** A faithful pure-Dart Oniguruma port with full '
+                  'parity and no native build, so it runs everywhere.',
+            ],
+            [
+              '`ShikiHighlighterNativeEngine`',
+              '`shiki_flutter_native_engine`',
+              '**Fastest on IO** (~2.4x the Dart port) via `dart:ffi`; full '
+                  'parity. Best for large files or heavy re-highlighting.',
+            ],
+          ],
+        ),
+        DocH3('Switching engine'),
+        DocProse(
+          'For the best native performance, add `shiki_flutter_native_engine` and '
+          'point IO at it in `main` (the native library builds automatically on '
+          'first run). Guard with `kIsWeb` so the web build keeps the embedded '
+          'engine, which is faster there:',
+        ),
+        CodeBlock(
+          code: Snippets.engineNative,
+          lang: 'dart',
+          filename: 'main.dart',
+        ),
+        DocProse('Or override the engine for a single highlighter:'),
+        CodeBlock(
+          code: Snippets.enginePerHighlighter,
+          lang: 'dart',
+          filename: 'per_highlighter.dart',
+        ),
+        DocNote(
+          'The native engine also runs on web as WebAssembly, but the embedded '
+          'engine is ~2x faster there, so prefer embedded on web unless you '
+          'specifically want the real Oniguruma engine everywhere.',
+        ),
+      ];
+    case 'web':
+      return const [
+        DocProse(
+          'The default web path needs no setup: the embedded pure-Dart engine '
+          'runs on the main thread with no WebAssembly and no worker. That is '
+          'fast enough for typical files. Two things are web-specific: moving '
+          'the one-time compile off the main thread, and the release build.',
+        ),
+        DocH3('Off the main thread'),
+        DocProse(
+          'Web has no isolates, so `asyncWeb` is **off by default**. To move the '
+          'cold grammar compile off the UI thread (worth it for large '
+          'documents), install the prebuilt Web Worker once, then turn '
+          '`asyncWeb` on. The worker is grammar-free (~53 KB gzipped) and '
+          'receives your grammars and themes at runtime, so the same prebuilt '
+          'script serves any app.',
+        ),
+        CodeBlock(
+          code: Snippets.webInstall,
+          lang: 'shellscript',
+          filename: 'shell',
+        ),
+        CodeBlock(
+          code: Snippets.webAsyncEnable,
+          lang: 'dart',
+          filename: 'main.dart',
+        ),
+        DocProse(
+          'The default install command installs the worker for the embedded '
+          'engine. If you set `webEngine` to another engine, install its '
+          'matching worker with a flag:',
+        ),
+        DocTable(
+          headers: ['Web engine', 'Install command'],
+          rows: [
+            [
+              '`ShikiHighlighterEmbeddedEngine` (default)',
+              '`dart run shiki_flutter:install`',
+            ],
+            [
+              '`ShikiHighlighterDartEngine`',
+              '`dart run shiki_flutter:install --dart`',
+            ],
+            [
+              '`ShikiHighlighterNativeEngine`',
+              '`dart run shiki_flutter:install --native`',
+            ],
+          ],
+        ),
+        DocNote(
+          'If the worker is not installed (or a strict CSP blocks it), web async '
+          'transparently falls back to inline tokenization, so nothing breaks. '
+          'Re-run the install command after upgrading shiki_flutter to refresh '
+          'the worker.',
+        ),
+        DocH3('Building for the web'),
+        DocProse(
+          'The only shiki_flutter-specific web step is installing the worker. '
+          'Everything else is a standard Flutter web build; the optional '
+          '`--wasm` flag opts into the WasmGC runtime:',
+        ),
+        CodeBlock(
+          code: Snippets.webBuild,
+          lang: 'shellscript',
+          filename: 'shell',
+        ),
+      ];
+    case 'configuration':
+      return const [
+        DocProse(
+          'Engine and async defaults live in a single `ShikiHighlighterConfig`, '
+          'split by platform so IO and web are configured independently. Set it '
+          'once (e.g. in `main`) via `ShikiHighlighter.config`, overriding only '
+          'the fields you need with `copyWith`:',
+        ),
+        CodeBlock(
+          code: Snippets.configExample,
+          lang: 'dart',
+          filename: 'main.dart',
+        ),
+        DocTable(
+          headers: ['Field', 'Type', 'Default', 'What it does'],
+          rows: [
+            [
+              '`ioEngine`',
+              '`ShikiHighlighterEngine`',
+              '`ShikiHighlighterDartEngine`',
+              'Engine used on native / VM (IO).',
+            ],
+            [
+              '`webEngine`',
+              '`ShikiHighlighterEngine`',
+              '`ShikiHighlighterEmbeddedEngine`',
+              'Engine used on web.',
+            ],
+            [
+              '`asyncIO`',
+              '`bool`',
+              '`true`',
+              'Highlight off the UI thread on IO (background isolate).',
+            ],
+            [
+              '`asyncWeb`',
+              '`bool`',
+              '`false`',
+              'Highlight off the UI thread on web (Web Worker; opt-in).',
+            ],
+          ],
+        ),
+        DocProse(
+          'Two narrower overrides sit on top of the global config: '
+          '`createHighlighter(engine: ...)` sets the engine for a single '
+          "highlighter, and a widget's `async:` argument sets async for a single "
+          'widget.',
+        ),
+      ];
     case 'bundle-size':
       return const [
         DocProse(
@@ -663,7 +970,9 @@ List<Widget> _content(String id) {
       return const [
         DocProse(
           '`ShikiCodeView` is the quickest way to display highlighted code. '
-          'The highlighter must already have the language and theme loaded.',
+          'The highlighter must already have the language and theme loaded. On '
+          'IO it highlights off the UI thread by default; see **Async '
+          'highlighting**.',
         ),
         DocTable(
           headers: ['Property', 'Type', 'Description'],
@@ -675,6 +984,8 @@ List<Widget> _content(String id) {
             ['`textStyle`', '`TextStyle?`', 'Base style; use a monospace font.'],
             ['`padding`', '`EdgeInsetsGeometry`', 'Defaults to `16` all round.'],
             ['`paintBackground`', '`bool`', "Paint the theme's background."],
+            ['`selectable`', '`bool`', 'Wrap in a `SelectionArea` (default off).'],
+            ['`async`', '`bool?`', 'Override the global async default.'],
             ['`textScaler`', '`TextScaler?`', 'Optional text scaling.'],
           ],
         ),

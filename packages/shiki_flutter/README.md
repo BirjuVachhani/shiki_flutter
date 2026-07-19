@@ -59,7 +59,7 @@ Add the dependency:
 
 ```yaml
 dependencies:
-  shiki_flutter: ^0.1.0
+  shiki_flutter: ^1.0.0
 ```
 
 **Batteries included:** ~250 languages and ~65 VS Code themes ship inside the

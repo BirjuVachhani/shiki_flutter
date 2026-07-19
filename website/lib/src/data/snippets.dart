@@ -15,7 +15,7 @@ final highlighter = createHighlighter(
   themes: [githubDark],
 );
 
-// Turn source straight into a styled TextSpan: no assets, no WASM.
+// Source in, styled TextSpan out. Pure Dart, nothing to bundle.
 final span = codeToTextSpan(
   highlighter,
   sourceCode,
@@ -154,7 +154,7 @@ func main() {
 
   static const String pubspec = r'''
 dependencies:
-  shiki_flutter: ^0.2.0
+  shiki_flutter: ^1.0.0
 ''';
 
   static const String quickStart = r'''
@@ -357,6 +357,98 @@ final span = codeToTextSpan(
   lang: 'my-lang',
   theme: themeName,
 );
+''';
+
+  // ---- Async, engines, web setup, configuration ---------------------------
+
+  static const String asyncWidget = r'''
+// async is on by default on native/desktop (asyncIO). The widget shows the
+// code in the theme's base color, then swaps in the highlighted result when
+// the background isolate is done - the UI thread never freezes. Pass async:
+// explicitly to override the global default for a single widget.
+ShikiCodeView(
+  highlighter: highlighter,
+  code: sourceCode,
+  lang: 'dart',
+  theme: 'github-dark',
+  async: true, // force off-thread; omit to follow the global default
+)
+''';
+
+  static const String asyncTokens = r'''
+// The imperative equivalent: tokenize off the current isolate and await the
+// result. Cached (LRU) by (code, lang, theme), so repeat calls are instant.
+final lines = await highlighter.codeToTokensAsync(
+  sourceCode,
+  const TokenizeOptions(lang: 'dart', theme: 'github-dark'),
+);
+
+final span = tokensToTextSpan(
+  lines,
+  baseStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+);
+''';
+
+  static const String engineNative = r'''
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
+
+void main() {
+  // The native Oniguruma engine (dart:ffi) is ~2.4x the pure-Dart port on IO.
+  // The native library builds automatically on first run - nothing to install.
+  if (!kIsWeb) {
+    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+      ioEngine: const ShikiHighlighterNativeEngine(),
+    );
+  }
+  runApp(const MyApp());
+}
+''';
+
+  static const String enginePerHighlighter = r'''
+// Override the engine for a single highlighter instead of globally.
+final highlighter = createHighlighter(
+  langs: [dart],
+  themes: [githubDark],
+  engine: const ShikiHighlighterNativeEngine(),
+);
+''';
+
+  static const String webInstall = r'''
+# Copy the prebuilt Web Worker into your app's web/ folder. Run once
+# (and again after upgrading shiki_flutter). The worker is grammar-free
+# (~53 KB gzipped) and receives your grammars/themes at runtime.
+dart run shiki_flutter:install
+''';
+
+  static const String webAsyncEnable = r'''
+import 'package:shiki_flutter/shiki_flutter.dart';
+
+void main() {
+  // Web has no isolates, so asyncWeb is off by default. After installing the
+  // worker, turn it on to move the one-time grammar compile off the UI thread.
+  ShikiHighlighter.config =
+      ShikiHighlighter.config.copyWith(asyncWeb: true);
+  runApp(const MyApp());
+}
+''';
+
+  static const String webBuild = r'''
+dart run shiki_flutter:install   # copy the Web Worker into web/ (once)
+flutter build web                # standard build (add --wasm to opt into WasmGC)
+''';
+
+  static const String configExample = r'''
+// One config object, split by platform so IO and web are set independently.
+// Set it once in main(); copyWith overrides only the fields you name.
+void main() {
+  ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+    ioEngine: const ShikiHighlighterNativeEngine(), // faster on native/desktop
+    asyncWeb: true,                                 // after installing the worker
+  );
+  runApp(const MyApp());
+}
 ''';
 
   /// A small sample rendered live by the drop-in-widget demo.

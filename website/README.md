@@ -32,7 +32,8 @@ Code is tokenized off the main thread on both platforms, configured in
 `lib/src/highlight/engine_config.dart`:
 
 - **Desktop/mobile (IO):** the native Oniguruma engine (`dart:ffi`) on a
-  background isolate. Native runs need `flutter config --enable-native-assets`.
+  background isolate. The native library builds automatically on first run (via
+  `oniguruma_native`'s build hook), so there is no flag to set.
 - **Web:** the built-in pure-Dart embedded engine (no WASM) in a browser Web
   Worker (`web/shiki_tokenize_worker.js`). A conditional import keeps the native
   engine out of the web build.
