@@ -49,13 +49,16 @@ class CodeBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final service = HighlighterService.instance;
-    final themeId = theme ??
-        HighlighterService.themeForBrightness(Theme.of(context).brightness);
+    final themeId = theme ?? HighlighterService.themeForBrightness(Theme.of(context).brightness);
 
     final trimmed = code.trim();
     final bg = service.displayBackground(themeId, colors.surface);
     final onBg = bg.computeLuminance() > 0.5 ? Colors.black : Colors.white;
     final border = onBg.withValues(alpha: 0.10);
+
+    // With a header the copy button lives in the header; without one it floats
+    // over the code in the top-right.
+    final hasHeader = filename != null;
 
     // Async highlighting: the block shows the plain code first and swaps to the
     // highlighted result when tokenization finishes, with the shared
@@ -64,7 +67,7 @@ class CodeBlock extends StatelessWidget {
     // row-aligned, plus horizontal scrolling for long lines. Shrink-wrapped so
     // the block grows to fit and never traps the page's vertical scroll.
     final body = SelectionArea(
-      child: ShikiCodeListView(
+      child: ShikiCodeView(
         highlighter: service.highlighter,
         code: trimmed,
         lang: lang,
@@ -74,18 +77,14 @@ class CodeBlock extends StatelessWidget {
           fontSize: fontSize,
           height: 1.55,
         ),
-        showLineNumbers: showLineNumbers,
-        lineNumberColor: onBg.withValues(alpha: 0.32),
+        // showLineNumbers: showLineNumbers,
+        // lineNumberColor: onBg.withValues(alpha: 0.32),
         paintBackground: false,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(left: 20, top: 18, bottom: 18, right: 20),
+        // shrinkWrap: true,
+        // physics: const NeverScrollableScrollPhysics(),
+        padding: .only(left: 20, top: hasHeader ? 0 : 18, bottom: 18, right: 20),
       ),
     );
-
-    // With a header the copy button lives in the header; without one it floats
-    // over the code in the top-right.
-    final hasHeader = filename != null;
 
     final Widget content = hasHeader
         ? Column(

@@ -220,7 +220,7 @@ class _DocsPageState extends State<DocsPage> {
                 children: [
                   _SectionTitle(_sections[i].title),
                   const SizedBox(height: 16),
-                  ..._content(_sections[i].id),
+                  ..._content(context, _sections[i].id),
                 ],
               ),
             ),
@@ -469,26 +469,78 @@ class _CompactToc extends StatelessWidget {
 
 // ---- Section content ------------------------------------------------------
 
-List<Widget> _content(String id) {
+List<Widget> _content(BuildContext context, String id) {
   switch (id) {
     case 'introduction':
-      return const [
-        DocProse(
+      return [
+        const DocProse(
           'shiki_flutter is a syntax highlighter for Flutter. It tokenizes '
           'source code with real VS Code TextMate grammars and themes and '
           'renders it as styled `TextSpan`s, so highlighted code looks exactly '
           'like it does in VS Code.',
         ),
-        DocProse(
-          "It's pure Dart with no native build step and no JSON assets to "
-          'bundle, so it runs everywhere Flutter runs: iOS, Android, web, '
-          'macOS, Windows, and Linux. On native and desktop, highlighting runs '
-          'off the UI thread by default, so the one-time grammar compile never '
+        const DocProse(
+          "Out of the box, it's pure Dart and runs everywhere Flutter runs: **iOS, Android, web, "
+          'macOS, Windows, and Linux**. On native and desktop, highlighting runs '
+          '**off the UI thread by default**, so the one-time grammar compile never '
           'freezes a frame (see **Async highlighting**).',
         ),
-        DocProse(
-          '**~250 languages and 65 themes are built in.** You import only the '
-          'ones you use, and everything else is tree-shaken out of your app. '
+        Row(
+          mainAxisSize: .min,
+          spacing: 8,
+          children: [
+            Container(
+              width: 200,
+              padding: .symmetric(horizontal: 20, vertical: 16),
+              decoration: ShapeDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                shape: RoundedSuperellipseBorder(borderRadius: .circular(16)),
+              ),
+              child: Column(
+                mainAxisSize: .min,
+                crossAxisAlignment: .start,
+                children: [
+                  Text(
+                    '~250',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: .w600,
+                      height: 1,
+                    ),
+                  ),
+                  Text('Supported Languages'),
+                ],
+              ),
+            ),
+            Container(
+              width: 200,
+              padding: .symmetric(horizontal: 20, vertical: 16),
+              decoration: ShapeDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                shape: RoundedSuperellipseBorder(borderRadius: .circular(16)),
+              ),
+              child: Column(
+                mainAxisSize: .min,
+                crossAxisAlignment: .start,
+                children: [
+                  Text(
+                    '65+',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: .w600,
+                      height: 1,
+                    ),
+                  ),
+                  Text('Built-in Themes'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        const DocProse(
+          'From all the themes and languages, you import only the '
+          'ones you use, and everything else is **tree-shaken** out of your app. '
           'Reach for the `ShikiCodeView` widget for the common case, '
           '`ShikiCodeListView` for large files, or drop down to '
           '`codeToTextSpan` and raw tokens when you need more control.',

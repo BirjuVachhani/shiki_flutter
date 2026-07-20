@@ -131,8 +131,7 @@ class _HeroState extends State<_Hero> {
                           '. It brings the exact VS Code grammars and themes '
                           'to Flutter, tokenized token-for-token and rendered '
                           'as native TextSpans. It runs on every platform '
-                          'Flutter targets, with no native setup and no assets '
-                          'to bundle.',
+                          'Flutter targets, out of the box.',
                     ),
                   ],
                 ),
