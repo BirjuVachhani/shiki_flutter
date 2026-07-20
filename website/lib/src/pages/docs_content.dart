@@ -256,44 +256,6 @@ class DocNote extends StatelessWidget {
   }
 }
 
-/// A compact, wrapped grid of language-id chips.
-class DocLangList extends StatelessWidget {
-  const DocLangList(this.ids, {super.key});
-
-  final List<String> ids;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 22),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: [
-          for (final id in ids)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: colors.border),
-              ),
-              child: Text(
-                id,
-                style: TextStyle(
-                  fontFamily: AppFonts.mono,
-                  fontSize: 12.5,
-                  color: colors.mutedForeground,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Parses a small subset of Markdown inline syntax: `` `code` `` becomes plain
 /// mono (no background box) and `**bold**` becomes semibold.
 List<InlineSpan> inlineSpans(String text, AppColors colors) {

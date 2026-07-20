@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../data/docs_sections.dart';
 import '../data/snippets.dart';
-import '../data/supported.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/code_block.dart';
 import '../widgets/footer.dart';
+import '../widgets/language_grid.dart';
 import '../widgets/nav_sheet.dart';
 import '../widgets/section.dart';
 import '../widgets/theme_gallery.dart';
@@ -665,7 +665,7 @@ List<Widget> _content(BuildContext context, String id) {
           'shiki_flutter bundles grammars for **253 languages**. Pass any of '
           'these ids as `lang`:',
         ),
-        DocLangList(supportedLanguages),
+        LanguageGrid(),
       ];
     case 'async':
       return const [
