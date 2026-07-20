@@ -161,6 +161,113 @@ void main() {
     });
   });
 
+  group('ShikiCodeView gutter', () {
+    // Three digit-free lines: the only digits in the tree are line numbers.
+    const code = 'const alpha = a;\nconst bravo = b;\nconst charlie = c;';
+
+    Future<void> pump(
+      WidgetTester tester, {
+      GutterStyle gutter = const GutterStyle(),
+      EdgeInsetsGeometry padding = const EdgeInsets.all(16),
+    }) {
+      final hl = buildHighlighter();
+      return tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 500,
+              child: ShikiCodeView(
+                highlighter: hl,
+                code: code,
+                lang: 'javascript',
+                theme: 'github-dark',
+                showLineNumbers: true,
+                gutterStyle: gutter,
+                padding: padding,
+                async: false,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('shows one number per code line', (tester) async {
+      await pump(tester);
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('4'), findsNothing);
+    });
+
+    testWidgets('keeps the code one Text.rich, aligned row-for-row',
+        (tester) async {
+      await pump(tester);
+
+      // Still a single blob: one RichText holds all three lines.
+      final blob = tester
+          .widgetList<RichText>(find.byType(RichText))
+          .map((rt) => rt.text.toPlainText())
+          .firstWhere((t) => t.contains('alpha'));
+      expect(blob, contains('bravo'));
+      expect(blob, contains('charlie'));
+
+      // Numbers are evenly spaced by one row.
+      final y1 = tester.getTopLeft(find.text('1')).dy;
+      final y2 = tester.getTopLeft(find.text('2')).dy;
+      final y3 = tester.getTopLeft(find.text('3')).dy;
+      expect(y2 - y1, greaterThan(0));
+      expect(y3 - y2, moreOrLessEquals(y2 - y1, epsilon: 0.5));
+
+      // The first number's top lines up with the code's top (same padding).
+      final codeTop = tester
+          .getTopLeft(find.byWidgetPredicate(
+              (w) => w is RichText && w.text.toPlainText().contains('alpha')))
+          .dy;
+      expect(y1, moreOrLessEquals(codeTop, epsilon: 1.0));
+    });
+
+    testWidgets('draws an edge-to-edge divider when set', (tester) async {
+      const dividerColor = Color(0xFF33AA55);
+      await pump(
+        tester,
+        gutter: const GutterStyle(dividerColor: dividerColor),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      );
+
+      final box = tester
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .firstWhere((w) => w.color == dividerColor);
+      final dividerRect = tester.getRect(find.byWidget(box));
+      final widgetRect = tester.getRect(find.byType(ShikiCodeView));
+      expect(dividerRect.top, moreOrLessEquals(widgetRect.top, epsilon: 0.5));
+      expect(dividerRect.bottom, moreOrLessEquals(widgetRect.bottom, epsilon: 0.5));
+      // Numbers stay inset by the top padding.
+      expect(tester.getRect(find.text('1')).top,
+          greaterThan(dividerRect.top + 15));
+    });
+
+    testWidgets('no numbers and a single Text.rich when disabled',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: ShikiCodeView(
+            highlighter: hl,
+            code: code,
+            lang: 'javascript',
+            theme: 'github-dark',
+            async: false,
+          ),
+        ),
+      );
+      expect(find.text('1'), findsNothing);
+      expect(find.byType(RichText), findsOneWidget);
+    });
+  });
+
   group('tokensToLineSpans', () {
     test('keeps line grouping and preserves blank lines', () {
       final tokens = <List<ThemedToken>>[
@@ -327,7 +434,7 @@ void main() {
       expect(boxWidth, greaterThan(labelWidth));
     });
 
-    testWidgets('lineNumberTextScale shrinks the gutter font vs the code',
+    testWidgets('GutterStyle.textScale shrinks the gutter font vs the code',
         (tester) async {
       final hl = buildHighlighter();
       final code = List.filled(12, 'const x = y;').join('\n');
@@ -344,7 +451,7 @@ void main() {
                 theme: 'github-dark',
                 textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 20),
                 showLineNumbers: true,
-                lineNumberTextScale: 0.5,
+                gutterStyle: const GutterStyle(textScale: 0.5),
                 shrinkWrap: true,
                 async: false,
                 physics: const NeverScrollableScrollPhysics(),

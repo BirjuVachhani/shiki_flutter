@@ -5,7 +5,9 @@ import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/widgets.dart';
 
 import '../async/async_token_resolver.dart';
+import '../core/colors.dart';
 import '../core/highlighter.dart';
+import 'gutter.dart';
 import 'render.dart';
 
 /// Displays [code] highlighted with the given [lang] and [theme].
@@ -21,6 +23,10 @@ import 'render.dart';
 ///
 /// Set [selectable] to `true` to let users select and copy the code; it wraps
 /// the subtree in a [SelectionArea], unless an ancestor already provides one.
+///
+/// Set [showLineNumbers] to `true` for a line-number gutter (styled via
+/// [gutterStyle]). The code stays a single `Text.rich`; a fixed numbers column
+/// is placed beside it and never scrolls horizontally.
 class ShikiCodeView extends StatefulWidget {
   const ShikiCodeView({
     super.key,
@@ -33,6 +39,8 @@ class ShikiCodeView extends StatefulWidget {
     this.paintBackground = true,
     this.selectable = false,
     this.textScaler,
+    this.showLineNumbers = false,
+    this.gutterStyle = const GutterStyle(),
     this.async,
   });
 
@@ -60,6 +68,19 @@ class ShikiCodeView extends StatefulWidget {
 
   final TextScaler? textScaler;
 
+  /// Show a line-number gutter to the left of the code.
+  ///
+  /// The code remains a single `Text.rich`; a fixed numbers column sits beside
+  /// it (so numbers never scroll horizontally). Enabling this forces a uniform
+  /// line height on the code so the numbers stay row-aligned. Style it with
+  /// [gutterStyle].
+  final bool showLineNumbers;
+
+  /// Styling for the line-number gutter: the numbers' color and scale, the gap
+  /// between the gutter and the code, and an optional divider. Only used when
+  /// [showLineNumbers] is `true`.
+  final GutterStyle gutterStyle;
+
   /// Overrides the global [ShikiHighlighter.asyncDefault] default for this widget.
   /// When null, the global default applies.
   final bool? async;
@@ -80,9 +101,19 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
   @override
   void initState() {
     super.initState();
+    // Re-measure the gutter after fonts finish loading. Like ShikiCodeListView,
+    // the gutter is sized from a build-time TextPainter; on web the bundled
+    // monospace font loads asynchronously, so the first measurement uses a
+    // fallback whose metrics differ. Text relayouts on this signal on its own,
+    // but our manual measurement does not, so we listen and rebuild.
+    PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
     if (_asyncEffective) {
       _resolver.resolve(widget.highlighter, widget.code, _options);
     }
+  }
+
+  void _onSystemFontsChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -95,6 +126,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
 
   @override
   void dispose() {
+    PaintingBinding.instance.systemFonts.removeListener(_onSystemFontsChanged);
     _resolver.dispose();
     super.dispose();
   }
@@ -103,11 +135,13 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
   Widget build(BuildContext context) {
     final base = widget.textStyle ?? const TextStyle(fontFamily: 'monospace');
     final registration = widget.highlighter.getThemeRegistration(widget.theme);
+    final fg = parseColor(registration.fg);
     final bg = widget.paintBackground ? parseColor(registration.bg) : null;
+    final effectiveBase = base.copyWith(color: fg);
 
     final TextSpan span;
     if (!_asyncEffective) {
-      // Synchronous path: unchanged behavior.
+      // Synchronous path: unchanged behavior (codeToTextSpan bakes in the fg).
       span = codeToTextSpan(
         widget.highlighter,
         widget.code,
@@ -116,7 +150,6 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
         baseStyle: base,
       );
     } else {
-      final effectiveBase = base.copyWith(color: parseColor(registration.fg));
       final tokens = _resolver.tokens;
       span = tokens != null
           ? tokensToTextSpan(tokens, baseStyle: effectiveBase)
@@ -124,6 +157,11 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
           : TextSpan(text: widget.code, style: effectiveBase);
     }
 
+    if (widget.showLineNumbers) {
+      return _buildWithGutter(context, span, effectiveBase, fg, bg);
+    }
+
+    // Default: the whole document as one Text.rich in a horizontal scroller.
     Widget child = Padding(
       padding: widget.padding,
       child: Text.rich(
@@ -148,5 +186,62 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
       result = SelectionArea(child: result);
     }
     return result;
+  }
+
+  /// The line-number variant: keep the code as one [Text.rich] (with a forced
+  /// uniform strut so rows align) and place a fixed gutter column beside it.
+  Widget _buildWithGutter(
+    BuildContext context,
+    TextSpan span,
+    TextStyle effectiveBase,
+    Color? fg,
+    Color? bg,
+  ) {
+    final textDirection = Directionality.of(context);
+    final textScaler = widget.textScaler ?? MediaQuery.textScalerOf(context);
+    final strut = StrutStyle.fromTextStyle(effectiveBase, forceStrutHeight: true);
+    final metrics = measureGutter(effectiveBase, strut, textScaler);
+    final pad = widget.padding.resolve(textDirection);
+
+    // The code stays one Text.rich; the strut forces each line to the measured
+    // row height so the fixed numbers column lines up. It scrolls horizontally
+    // inside the row; the gutter sits outside the scroller and stays fixed.
+    final codeColumn = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Padding(
+        padding: EdgeInsets.only(right: pad.right),
+        child: Text.rich(
+          span,
+          textScaler: textScaler,
+          softWrap: false,
+          strutStyle: strut,
+        ),
+      ),
+    );
+
+    Widget content = buildGutterRow(
+      context: context,
+      codeColumn: codeColumn,
+      showLineNumbers: true,
+      lineCount: splitLines(widget.code).length,
+      metrics: metrics,
+      effectiveBase: effectiveBase,
+      strut: strut,
+      textScaler: textScaler,
+      fg: fg,
+      gutterStyle: widget.gutterStyle,
+      padding: pad,
+      // ShikiCodeView never scrolls vertically, so the gutter is a full column.
+      windowed: false,
+    );
+
+    if (bg != null) {
+      content = ColoredBox(color: bg, child: content);
+    }
+
+    if (widget.selectable && SelectionContainer.maybeOf(context) == null) {
+      content = SelectionArea(child: content);
+    }
+    return content;
   }
 }

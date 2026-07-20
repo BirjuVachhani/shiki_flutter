@@ -1019,7 +1019,8 @@ List<Widget> _content(BuildContext context, String id) {
           '`ShikiCodeView` is the quickest way to display highlighted code. '
           'The highlighter must already have the language and theme loaded. On '
           'IO it highlights off the UI thread by default; see **Async '
-          'highlighting**.',
+          'highlighting**. Set `showLineNumbers` for a line-number gutter '
+          '(styled via `gutterStyle`); the code stays a single `Text.rich`.',
         ),
         DocTable(
           headers: ['Property', 'Type', 'Description'],
@@ -1032,6 +1033,8 @@ List<Widget> _content(BuildContext context, String id) {
             ['`padding`', '`EdgeInsetsGeometry`', 'Defaults to `16` all round.'],
             ['`paintBackground`', '`bool`', "Paint the theme's background."],
             ['`selectable`', '`bool`', 'Wrap in a `SelectionArea` (default off).'],
+            ['`showLineNumbers`', '`bool`', 'Show a line-number gutter (default off).'],
+            ['`gutterStyle`', '`GutterStyle`', 'Gutter numbers, gap, and divider.'],
             ['`async`', '`bool?`', 'Override the global async default.'],
             ['`textScaler`', '`TextScaler?`', 'Optional text scaling.'],
           ],
@@ -1049,9 +1052,10 @@ List<Widget> _content(BuildContext context, String id) {
         DocH3('The widget'),
         DocProse(
           '`ShikiCodeListView` is the drop-in option: it renders one line per '
-          'row in a lazily built `ListView`, with an optional line-number '
-          'gutter and horizontal scrolling for long lines. Give it a bounded '
-          'height, like any `ListView`.',
+          'row in a lazily built `ListView`, so only the lines on screen are '
+          'laid out. Like `ShikiCodeView` it supports a line-number gutter and '
+          'horizontal scrolling for long lines. Give it a bounded height, like '
+          'any `ListView`.',
         ),
         CodeBlock(
           code: Snippets.largeFileView,
@@ -1066,7 +1070,7 @@ List<Widget> _content(BuildContext context, String id) {
             ['`lang`', '`String`', 'Language id, e.g. `dart`.'],
             ['`theme`', '`String`', 'Theme id, e.g. `github-dark`.'],
             ['`showLineNumbers`', '`bool`', 'Show a line-number gutter.'],
-            ['`lineNumberColor`', '`Color?`', 'Gutter color; defaults from fg.'],
+            ['`gutterStyle`', '`GutterStyle`', 'Gutter numbers, gap, and divider.'],
             ['`softWrap`', '`bool`', 'Wrap long lines instead of scrolling.'],
             ['`shrinkWrap`', '`bool`', 'Grow to fit instead of filling.'],
             ['`textStyle`', '`TextStyle?`', 'Base style; use a monospace font.'],

@@ -45,6 +45,14 @@
   names a different engine (the `oniguruma_dart` port); update any code that set
   the engine by name.
 * An experimental native FFI backend is available as `shiki_flutter_native_engine`.
+* `ShikiCodeView` now supports a line-number gutter via `showLineNumbers` /
+  `gutterStyle`, while staying a single `Text.rich` (numbers sit in a fixed
+  column beside the code and never scroll horizontally).
+* Unified all gutter styling under `GutterStyle`, now shared by both code
+  widgets: it carries `spacing`, `dividerColor`, `dividerThickness`, `textColor`,
+  and `textScale`. **Breaking:** the `ShikiCodeListView.lineNumberColor` and
+  `lineNumberTextScale` parameters moved into `GutterStyle` as `textColor` and
+  `textScale`.
 
 ## 0.3.0
 

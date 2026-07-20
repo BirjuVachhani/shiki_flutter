@@ -70,7 +70,7 @@ class CodeBlock extends StatelessWidget {
     // row-aligned, plus horizontal scrolling for long lines. Shrink-wrapped so
     // the block grows to fit and never traps the page's vertical scroll.
     final body = SelectionArea(
-      child: ShikiCodeListView(
+      child: ShikiCodeView(
         highlighter: service.highlighter,
         code: trimmed,
         lang: lang,
@@ -84,13 +84,13 @@ class CodeBlock extends StatelessWidget {
         gutterStyle: GutterStyle(
           spacing: 15.6,
           dividerColor: showDividers ? border : null,
+          textColor: onBg.withValues(alpha: 0.32),
+          textScale: 0.9,
         ),
         showLineNumbers: showLineNumbers,
-        lineNumberColor: onBg.withValues(alpha: 0.32),
-        lineNumberTextScale: 0.9,
         paintBackground: false,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
+        // shrinkWrap: true,
+        // physics: const NeverScrollableScrollPhysics(),
         padding: .only(left: 15.6, top: hasHeader && !showDividers ? 0 : 12, bottom: 12, right: 15.6),
       ),
     );
