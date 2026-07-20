@@ -38,9 +38,81 @@
   <style>
     /* Dark background before Flutter boots, to avoid a white flash. */
     html, body { margin: 0; background-color: #0A0A0A; }
+
+    /* Branded loading indicator shown until Flutter paints its first frame.
+       Pure HTML/CSS: the site's Geist fonts are Flutter-bundled and not
+       available here, so the loader uses no text, just the logo mark and a
+       thin indeterminate rainbow bar. */
+    #loading {
+      position: fixed; inset: 0; z-index: 2147483647;
+      display: flex; align-items: center; justify-content: center;
+      background-color: #0A0A0A;
+      opacity: 1; transition: opacity 320ms ease;
+    }
+    #loading.loaded { opacity: 0; }
+    .loader-inner { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+    .loader-logo { width: 72px; height: 72px; animation: shiki-breathe 1.8s ease-in-out infinite; }
+    .loader-bar {
+      width: 132px; height: 3px; border-radius: 999px; overflow: hidden;
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+    .loader-bar-fill {
+      display: block; height: 100%; width: 40%; border-radius: 999px;
+      background: linear-gradient(90deg, #1FBCFD, #47D1FD, #5ECC71, #FFA359, #FF678D);
+      animation: shiki-slide 1.15s ease-in-out infinite;
+    }
+    @keyframes shiki-slide { 0% { transform: translateX(-120%); } 100% { transform: translateX(360%); } }
+    @keyframes shiki-breathe { 0%, 100% { opacity: .85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+    @media (prefers-reduced-motion: reduce) {
+      #loading { transition: none; }
+      .loader-logo { animation: none; }
+      .loader-bar-fill { animation: none; width: 100%; }
+    }
   </style>
 </head>
 <body>
+  <!-- Branded loader: the shiki_flutter logo mark (inlined from favicon.svg so
+       it needs no network fetch) above a thin indeterminate rainbow bar. The
+       inline script below removes it once Flutter paints. -->
+  <div id="loading" role="presentation" aria-hidden="true">
+    <div class="loader-inner">
+      <svg class="loader-logo" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 128C0 22.592 22.592 0 128 0C233.408 0 256 22.592 256 128C256 233.408 233.408 256 128 256C22.592 256 0 233.408 0 128Z" fill="#171717"/>
+        <path d="M73.6855 128.937H100.796V190.45H73.6855V128.937Z" fill="#1FBCFD"/>
+        <path d="M48.2578 113.791H128.282V139.967H48.2578V113.791Z" fill="#47D1FD"/>
+        <path d="M40.4043 184.467C48.0078 183.469 56.8578 182.223 66.9543 180.727C77.1754 179.231 87.9574 177.611 99.3004 175.866C110.643 173.996 121.862 172.127 132.955 170.257L134.825 194.376C124.853 196.495 114.694 198.552 104.349 200.546C94.1275 202.665 84.1557 204.66 74.4331 206.529C64.8353 208.524 55.9229 210.331 47.6962 211.952L40.4043 184.467Z" fill="#08599D"/>
+        <path d="M40.9648 69.4795H210.174V96.0295H40.9648V69.4795Z" fill="#5ECC71"/>
+        <path d="M130.898 40.125H160.253C159.754 54.3348 159.817 68.5447 160.44 82.7545C161.063 96.9644 162.123 110.426 163.618 123.14C165.239 135.73 167.171 146.948 169.415 156.795C171.658 166.642 174.151 174.371 176.893 179.98C179.636 185.589 182.503 188.393 185.494 188.393C187.239 188.393 188.61 185.776 189.608 180.541C190.605 175.181 191.353 166.829 191.851 155.486C194.967 158.603 198.707 161.719 203.069 164.835C207.557 167.827 211.732 170.008 215.597 171.379C214.35 183.844 212.418 193.317 209.8 199.799C207.183 206.405 203.693 210.892 199.33 213.261C195.092 215.754 189.67 217 183.064 217C175.959 217 169.726 214.57 164.366 209.708C159.131 204.972 154.582 198.365 150.717 189.889C146.853 181.413 143.613 171.504 140.995 160.161C138.502 148.818 136.508 136.602 135.012 123.514C133.516 110.302 132.457 96.6527 131.833 82.5676C131.21 68.3577 130.898 54.2102 130.898 40.125Z" fill="#FFA359"/>
+        <path d="M165.676 53.3997L183.625 38.6289C186.243 40.374 189.047 42.4307 192.039 44.799C195.03 47.0426 197.835 49.3486 200.453 51.7169C203.195 54.0852 205.376 56.2666 206.997 58.2609L187.925 74.5275C186.554 72.4084 184.622 70.1025 182.129 67.6095C179.636 65.1165 176.956 62.6236 174.09 60.1306C171.223 57.6377 168.418 55.394 165.676 53.3997Z" fill="#FF678D"/>
+      </svg>
+      <div class="loader-bar"><span class="loader-bar-fill"></span></div>
+    </div>
+  </div>
+  <script>
+    // Remove the branded loader once Flutter renders. Arms a MutationObserver
+    // before the engine boots, waits two frames after the flutter view is
+    // injected (so the first paint lands before we fade), then fades + removes.
+    (function () {
+      var loader = document.getElementById('loading');
+      if (!loader) return;
+      var done = false, obs;
+      function hide() {
+        if (done) return;
+        done = true;
+        if (obs) obs.disconnect();
+        loader.classList.add('loaded');
+        setTimeout(function () { loader.remove(); }, 400);
+      }
+      obs = new MutationObserver(function () {
+        if (document.querySelector('flutter-view, flt-glass-pane, flt-scene-host')) {
+          requestAnimationFrame(function () { requestAnimationFrame(hide); });
+        }
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+      setTimeout(hide, 15000); // fallback: never leave the loader stuck
+    })();
+  </script>
+
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
