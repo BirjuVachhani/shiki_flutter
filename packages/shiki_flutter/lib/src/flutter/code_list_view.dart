@@ -9,6 +9,7 @@ import '../core/colors.dart';
 import '../core/highlighter.dart';
 import 'gutter.dart';
 import 'render.dart';
+import 'render_cache.dart';
 
 /// Displays [code] highlighted with [lang]/[theme], rendering **one line per
 /// row** via a lazily-built [ListView] so large files stay smooth.
@@ -147,7 +148,15 @@ class ShikiCodeListView extends StatefulWidget {
 class _ShikiCodeListViewState extends State<ShikiCodeListView> {
   ScrollController? _internalController;
 
-  late final AsyncTokenResolver _resolver = AsyncTokenResolver(() => setState(() {}));
+  late final AsyncTokenResolver _resolver = AsyncTokenResolver(() {
+    if (mounted) setState(() {});
+  });
+
+  // Per-build memoization (see render_cache.dart). Each recomputes only when its
+  // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
+  final RenderMemo<List<List<TextSpan>>> _spanMemo = RenderMemo();
+  final MetricsCache _metrics = MetricsCache();
+  final Memoized<String, int> _maxLen = Memoized();
 
   ScrollController get _controller => widget.controller ?? (_internalController ??= ScrollController());
 
@@ -166,8 +175,10 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     // metrics differ. Text widgets relayout on this signal on their own, but
     // our manual measurement does not, so we listen and rebuild.
     PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
-    if (_asyncEffective) {
-      _resolver.resolve(widget.highlighter, widget.code, _options);
+    // Skip tokenization entirely when the caller supplied pre-highlighted lines.
+    if (widget.lines == null) {
+      _resolver.resolve(widget.highlighter, widget.code, _options,
+          async: _asyncEffective);
     }
   }
 
@@ -184,8 +195,9 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       _internalController!.dispose();
       _internalController = null;
     }
-    if (_asyncEffective) {
-      _resolver.resolve(widget.highlighter, widget.code, _options);
+    if (widget.lines == null) {
+      _resolver.resolve(widget.highlighter, widget.code, _options,
+          async: _asyncEffective);
     }
   }
 
@@ -211,26 +223,27 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     // codeToLineSpans re-resolve the theme foreground: this both avoids the
     // duplicate lookup and guarantees the gutter/strut and the code share one
     // base style.
-    final List<List<TextSpan>> lines;
-    if (widget.lines != null) {
-      lines = widget.lines!;
-    } else if (!_asyncEffective) {
-      // Synchronous path: unchanged behavior.
-      lines = tokensToLineSpans(widget.highlighter.codeToTokens(widget.code, _options), baseStyle: effectiveBase);
-    } else {
-      final tokens = _resolver.tokens;
-      lines = tokens != null
-          ? tokensToLineSpans(tokens, baseStyle: effectiveBase)
+    //
+    // Pre-highlighted lines are the final artifact and bypass everything. Otherwise
+    // tokens come from the shared resolver (sync-memoized or async-resolved) and the
+    // spans are memoized on (tokens identity, effectiveBase), so an unchanged
+    // rebuild reuses them and neither re-tokenizes nor rebuilds any TextSpan.
+    final List<List<TextSpan>> lines = widget.lines ??
+        _spanMemo.resolve(
+          tokens: _resolver.tokens,
+          code: widget.code,
+          base: effectiveBase,
+          render: (tokens, b) => tokensToLineSpans(tokens, baseStyle: b),
           // Placeholder: one plain span per line in the theme's base color,
           // preserving the line count (and thus height) so nothing jumps when
           // the highlighted result swaps in.
-          : [
-              for (final line in splitLines(widget.code)) [TextSpan(text: line.content, style: effectiveBase)],
-            ];
-    }
+          placeholder: (code, b) => [
+            for (final line in splitLines(code)) [TextSpan(text: line.content, style: b)],
+          ],
+        );
 
     final strut = StrutStyle.fromTextStyle(effectiveBase, forceStrutHeight: true);
-    final metrics = measureGutter(effectiveBase, strut, textScaler);
+    final metrics = _metrics.measure(effectiveBase, strut, textScaler);
     final pad = widget.padding.resolve(textDirection);
 
     Widget rowFor(int i) => Text.rich(
@@ -260,7 +273,8 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
         child: codeList,
       );
     } else {
-      final contentWidth = (_maxLineLength(widget.code) + 1) * metrics.charWidth;
+      final maxLen = _maxLen.of(widget.code, () => _maxLineLength(widget.code));
+      final contentWidth = (maxLen + 1) * metrics.charWidth;
       codeArea = SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Padding(
@@ -282,6 +296,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       fg: fg,
       gutterStyle: widget.gutterStyle,
       padding: pad,
+      metricsCache: _metrics,
       // Scrollable mode virtualizes the gutter against the shared controller;
       // shrink-wrap mode lays out every number.
       windowed: !widget.shrinkWrap,

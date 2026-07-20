@@ -9,6 +9,7 @@ import '../core/colors.dart';
 import '../core/highlighter.dart';
 import 'gutter.dart';
 import 'render.dart';
+import 'render_cache.dart';
 
 /// Displays [code] highlighted with the given [lang] and [theme].
 ///
@@ -90,8 +91,15 @@ class ShikiCodeView extends StatefulWidget {
 }
 
 class _ShikiCodeViewState extends State<ShikiCodeView> {
-  late final AsyncTokenResolver _resolver =
-      AsyncTokenResolver(() => setState(() {}));
+  late final AsyncTokenResolver _resolver = AsyncTokenResolver(() {
+    if (mounted) setState(() {});
+  });
+
+  // Per-build memoization (see render_cache.dart). Each recomputes only when its
+  // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
+  final RenderMemo<TextSpan> _spanMemo = RenderMemo();
+  final MetricsCache _metrics = MetricsCache();
+  final Memoized<String, int> _lineCount = Memoized();
 
   bool get _asyncEffective => widget.async ?? ShikiHighlighter.asyncDefault;
 
@@ -107,9 +115,8 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
     // fallback whose metrics differ. Text relayouts on this signal on its own,
     // but our manual measurement does not, so we listen and rebuild.
     PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
-    if (_asyncEffective) {
-      _resolver.resolve(widget.highlighter, widget.code, _options);
-    }
+    _resolver.resolve(widget.highlighter, widget.code, _options,
+        async: _asyncEffective);
   }
 
   void _onSystemFontsChanged() {
@@ -119,9 +126,8 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
   @override
   void didUpdateWidget(ShikiCodeView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_asyncEffective) {
-      _resolver.resolve(widget.highlighter, widget.code, _options);
-    }
+    _resolver.resolve(widget.highlighter, widget.code, _options,
+        async: _asyncEffective);
   }
 
   @override
@@ -139,23 +145,19 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
     final bg = widget.paintBackground ? parseColor(registration.bg) : null;
     final effectiveBase = base.copyWith(color: fg);
 
-    final TextSpan span;
-    if (!_asyncEffective) {
-      // Synchronous path: unchanged behavior (codeToTextSpan bakes in the fg).
-      span = codeToTextSpan(
-        widget.highlighter,
-        widget.code,
-        lang: widget.lang,
-        theme: widget.theme,
-        baseStyle: base,
-      );
-    } else {
-      final tokens = _resolver.tokens;
-      span = tokens != null
-          ? tokensToTextSpan(tokens, baseStyle: effectiveBase)
-          // Placeholder: the same code in the theme's base color.
-          : TextSpan(text: widget.code, style: effectiveBase);
-    }
+    // Tokens come from the shared resolver (sync-memoized or async-resolved); the
+    // span is memoized on (tokens identity, effectiveBase), so an unchanged
+    // rebuild reuses it and neither re-tokenizes nor rebuilds any TextSpan. The
+    // sync path is byte-for-byte the old codeToTextSpan(baseStyle: base), which
+    // bakes the same fg into effectiveBase.
+    final span = _spanMemo.resolve(
+      tokens: _resolver.tokens,
+      code: widget.code,
+      base: effectiveBase,
+      render: (tokens, b) => tokensToTextSpan(tokens, baseStyle: b),
+      // Placeholder: the same code in the theme's base color.
+      placeholder: (code, b) => TextSpan(text: code, style: b),
+    );
 
     if (widget.showLineNumbers) {
       return _buildWithGutter(context, span, effectiveBase, fg, bg);
@@ -200,7 +202,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
     final textDirection = Directionality.of(context);
     final textScaler = widget.textScaler ?? MediaQuery.textScalerOf(context);
     final strut = StrutStyle.fromTextStyle(effectiveBase, forceStrutHeight: true);
-    final metrics = measureGutter(effectiveBase, strut, textScaler);
+    final metrics = _metrics.measure(effectiveBase, strut, textScaler);
     final pad = widget.padding.resolve(textDirection);
 
     // The code stays one Text.rich; the strut forces each line to the measured
@@ -223,7 +225,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
       context: context,
       codeColumn: codeColumn,
       showLineNumbers: true,
-      lineCount: splitLines(widget.code).length,
+      lineCount: _lineCount.of(widget.code, () => splitLines(widget.code).length),
       metrics: metrics,
       effectiveBase: effectiveBase,
       strut: strut,
@@ -231,6 +233,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
       fg: fg,
       gutterStyle: widget.gutterStyle,
       padding: pad,
+      metricsCache: _metrics,
       // ShikiCodeView never scrolls vertically, so the gutter is a full column.
       windowed: false,
     );

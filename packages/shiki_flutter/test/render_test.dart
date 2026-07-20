@@ -3,7 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart' hide FontStyle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:shiki_flutter/themes/github_dark.dart';
 
 ShikiHighlighter buildHighlighter() {
   final hl = ShikiHighlighter();
@@ -764,6 +766,133 @@ void main() {
       );
 
       expect(find.byType(SelectionArea), findsOneWidget);
+    });
+  });
+
+  group('span memoization', () {
+    // The leaf-span list a code row renders. `Text.rich` wraps the supplied span
+    // under a DefaultTextStyle parent (children: [supplied]); the supplied span's
+    // own children are the memoized artifact (the token spans for ShikiCodeView,
+    // the per-line list for ShikiCodeListView). Identity of that list is stable
+    // across a no-op rebuild iff the spans were cached.
+    List<InlineSpan> rowChildren(WidgetTester tester) {
+      final rt = tester.widget<RichText>(find.byType(RichText).first);
+      return ((rt.text as TextSpan).children!.single as TextSpan).children!;
+    }
+
+    testWidgets('ShikiCodeView reuses spans on a no-op rebuild, rebuilds on change',
+        (tester) async {
+      final hl = buildHighlighter();
+      var fontSize = 14.0;
+      var code = 'const x = 1;';
+      late StateSetter setOuter;
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: StatefulBuilder(builder: (context, setState) {
+          setOuter = setState;
+          return ShikiCodeView(
+            highlighter: hl,
+            code: code,
+            lang: 'javascript',
+            theme: 'github-dark',
+            textStyle: TextStyle(fontFamily: 'monospace', fontSize: fontSize),
+            async: false,
+          );
+        }),
+      ));
+
+      final first = rowChildren(tester);
+
+      // No-op rebuild (new widget, equal inputs): same span objects reused.
+      setOuter(() {});
+      await tester.pump();
+      expect(identical(rowChildren(tester), first), isTrue);
+
+      // Style change invalidates (base style is part of the key).
+      setOuter(() => fontSize = 20.0);
+      await tester.pump();
+      final afterStyle = rowChildren(tester);
+      expect(identical(afterStyle, first), isFalse);
+
+      // Content change invalidates (new tokens).
+      setOuter(() => code = 'const y = 2;');
+      await tester.pump();
+      expect(identical(rowChildren(tester), afterStyle), isFalse);
+    });
+
+    testWidgets('ShikiCodeListView reuses spans on a no-op rebuild, rebuilds on change',
+        (tester) async {
+      final hl = buildHighlighter();
+      var fontSize = 14.0;
+      var code = 'const x = 1;';
+      late StateSetter setOuter;
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: StatefulBuilder(builder: (context, setState) {
+          setOuter = setState;
+          return SizedBox(
+            width: 400,
+            height: 300,
+            child: ShikiCodeListView(
+              highlighter: hl,
+              code: code,
+              lang: 'javascript',
+              theme: 'github-dark',
+              textStyle: TextStyle(fontFamily: 'monospace', fontSize: fontSize),
+              async: false,
+            ),
+          );
+        }),
+      ));
+
+      final first = rowChildren(tester);
+
+      setOuter(() {});
+      await tester.pump();
+      expect(identical(rowChildren(tester), first), isTrue);
+
+      setOuter(() => fontSize = 20.0);
+      await tester.pump();
+      final afterStyle = rowChildren(tester);
+      expect(identical(afterStyle, first), isFalse);
+
+      setOuter(() => code = 'const y = 2;');
+      await tester.pump();
+      expect(identical(rowChildren(tester), afterStyle), isFalse);
+    });
+  });
+
+  group('async lifecycle', () {
+    testWidgets('disposing while an async tokenize is in flight does not throw',
+        (tester) async {
+      final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+      addTearDown(hl.dispose);
+
+      // Pump the async widget: first frame is the plain placeholder, an off-thread
+      // tokenize is now in flight.
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 400,
+          height: 300,
+          child: ShikiCodeView(
+            highlighter: hl,
+            code: 'void main() {}',
+            lang: 'dart',
+            theme: 'github-dark',
+            async: true,
+          ),
+        ),
+      ));
+
+      // Dispose the widget's State by swapping the tree before the result lands.
+      await tester.pumpWidget(const SizedBox());
+
+      // Let the in-flight isolate result arrive; the resolver's _disposed guard
+      // must drop it rather than calling setState on the dead State.
+      await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 1)));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
     });
   });
 }

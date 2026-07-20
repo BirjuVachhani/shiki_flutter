@@ -76,6 +76,31 @@ GutterMetrics measureGutter(
   return metrics;
 }
 
+/// Memoizes [measureGutter] results, keyed on the font-affecting inputs and the
+/// scaler, so a code widget doesn't lay out a `TextPainter` on every build.
+///
+/// Measurement (row height, monospace advance) depends only on the style's font
+/// fields and the [TextScaler] — **never on color** — so the key normalizes color
+/// out: a theme, foreground, or any color-only change reuses the cached metrics.
+/// The two live styles a widget measures (the code base style and, when the gutter
+/// numbers are scaled, the smaller number style) differ in `fontSize`, so they get
+/// distinct keys without any extra discriminator. Bounded to a few entries.
+class MetricsCache {
+  // Color is folded to a constant in the key; its value is irrelevant since it
+  // never affects the measured result.
+  static const Color _keyColor = Color(0xFF000000);
+
+  final Map<Object, GutterMetrics> _cache = {};
+
+  GutterMetrics measure(TextStyle style, StrutStyle strut, TextScaler textScaler) {
+    final key = (style.copyWith(color: _keyColor), textScaler);
+    final hit = _cache[key];
+    if (hit != null) return hit;
+    if (_cache.length >= 8) _cache.clear(); // bound; only a few live keys
+    return _cache[key] = measureGutter(style, strut, textScaler);
+  }
+}
+
 /// Composes the line-number gutter, the gap/divider, and the code column into a
 /// row shared by both code widgets.
 ///
@@ -102,6 +127,7 @@ Widget buildGutterRow({
   required EdgeInsets padding,
   required bool windowed,
   ScrollController? controller,
+  MetricsCache? metricsCache,
 }) {
   // Split the vertical padding into the gutter and code columns rather than
   // wrapping the whole row, so a gutter divider between them can run edge to
@@ -132,7 +158,9 @@ Widget buildGutterRow({
     // font still gets a snug box.
     final numberCharWidth = scale == 1.0
         ? metrics.charWidth
-        : measureGutter(numberStyle, strut, textScaler).charWidth;
+        : (metricsCache?.measure(numberStyle, strut, textScaler) ??
+                measureGutter(numberStyle, strut, textScaler))
+            .charWidth;
     final gutterWidth = digits * numberCharWidth + 1;
     children.add(Padding(
       padding: vpad,

@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../data/links.dart';
-import '../theme/theme_controller.dart';
 import '../theme/tokens.dart';
-import 'app_icon.dart';
-import 'brand.dart';
 import 'nav_bar.dart';
+import 'nav_sheet.dart';
 
 /// Page scaffold shared by every route: a pinned, translucent [NavBar] over a
-/// full-bleed [child] that scrolls behind it, plus an end drawer for compact
-/// navigation.
+/// full-bleed [child] that scrolls behind it. On compact widths the nav's menu
+/// button opens the app-wide navigation popup (see [showAppNavSheet]).
 class AppShell extends StatefulWidget {
   const AppShell({
     super.key,
@@ -26,8 +22,6 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
-
   /// Whether the page has scrolled off the top. Drives the nav's bottom border,
   /// which is invisible at the top of the page (like diffs.com) and fades in on
   /// scroll. Kept in a notifier so only the nav rebuilds, not the page body.
@@ -62,9 +56,7 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: context.colors.background,
-      endDrawer: _MobileMenu(currentRoute: widget.currentRoute),
       body: Stack(
         children: [
           Positioned.fill(
@@ -80,152 +72,11 @@ class _AppShellState extends State<AppShell> {
             child: NavBar(
               currentRoute: widget.currentRoute,
               scrolled: _scrolled,
-              onMenu: () => _scaffoldKey.currentState?.openEndDrawer(),
+              onMenu: () =>
+                  showAppNavSheet(context, currentRoute: widget.currentRoute),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MobileMenu extends StatelessWidget {
-  const _MobileMenu({required this.currentRoute});
-
-  final String currentRoute;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    void goThenClose(String route) {
-      Navigator.of(context).pop();
-      context.go(route);
-    }
-
-    return Drawer(
-      backgroundColor: colors.surface,
-      shape: Border(left: BorderSide(color: colors.border)),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Brand(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: AppIcon(
-                      DiffIcon.x,
-                      size: 20,
-                      color: colors.foreground,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _MenuItem(
-                label: 'Home',
-                active: currentRoute == '/',
-                onTap: () => goThenClose('/'),
-              ),
-              _MenuItem(
-                label: 'Docs',
-                active: currentRoute.startsWith('/docs'),
-                onTap: () => goThenClose('/docs'),
-              ),
-              _MenuItem(
-                label: 'GitHub',
-                external: true,
-                onTap: () => Links.open(Links.github),
-              ),
-              _MenuItem(
-                label: 'pub.dev',
-                external: true,
-                onTap: () => Links.open(Links.pubDev),
-              ),
-              const Spacer(),
-              _ThemeRow(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MenuItem extends StatelessWidget {
-  const _MenuItem({
-    required this.label,
-    required this.onTap,
-    this.active = false,
-    this.external = false,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final bool active;
-  final bool external;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadii.sm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: active ? colors.foreground : colors.mutedForeground,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Spacer(),
-            if (external)
-              AppIcon(
-                DiffIcon.arrowUpRight,
-                size: 16,
-                color: colors.mutedForeground,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ThemeRow extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final controller = AppTheme.of(context);
-    return InkWell(
-      onTap: controller.toggle,
-      borderRadius: BorderRadius.circular(AppRadii.sm),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-        child: Row(
-          children: [
-            AppIcon(
-              controller.isDark ? DiffIcon.sun : DiffIcon.moon,
-              size: 20,
-              color: colors.foreground,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              controller.isDark ? 'Light mode' : 'Dark mode',
-              style: TextStyle(color: colors.foreground, fontSize: 16),
-            ),
-          ],
-        ),
       ),
     );
   }

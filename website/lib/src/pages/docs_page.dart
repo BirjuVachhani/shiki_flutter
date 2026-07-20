@@ -1,67 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../data/docs_sections.dart';
 import '../data/snippets.dart';
 import '../data/supported.dart';
 import '../theme/tokens.dart';
+import '../widgets/app_icon.dart';
 import '../widgets/code_block.dart';
 import '../widgets/footer.dart';
+import '../widgets/nav_sheet.dart';
 import '../widgets/section.dart';
 import '../widgets/theme_gallery.dart';
 import 'docs_content.dart';
 
-/// Metadata for one docs section (used for the sidebar and anchors).
-class _SectionMeta {
-  const _SectionMeta(this.id, this.title);
-
-  final String id;
-  final String title;
-}
-
-/// A named group of sections, rendered as one labeled block in the sidebar.
-class _SectionGroup {
-  const _SectionGroup(this.title, this.sections);
-
-  final String title;
-  final List<_SectionMeta> sections;
-}
-
-/// The docs, grouped and ordered top-to-bottom from first-run basics to
-/// advanced tuning. The sidebar renders these groups with their labels; the
-/// reading column and scroll-spy walk the flattened [_sections] in this order.
-const _groups = <_SectionGroup>[
-  _SectionGroup('Getting started', [
-    _SectionMeta('introduction', 'Introduction'),
-    _SectionMeta('installation', 'Installation'),
-    _SectionMeta('quick-start', 'Quick start'),
-  ]),
-  _SectionGroup('Rendering code', [
-    _SectionMeta('rendering', 'Rendering code'),
-    _SectionMeta('shikicodeview', 'The widget'),
-    _SectionMeta('large-files', 'Large files'),
-  ]),
-  _SectionGroup('Themes & languages', [
-    _SectionMeta('themes', 'Themes'),
-    _SectionMeta('extra-themes', 'Extra themes'),
-    _SectionMeta('languages', 'Languages'),
-  ]),
-  _SectionGroup('Performance & platforms', [
-    _SectionMeta('async', 'Async highlighting'),
-    _SectionMeta('engines', 'Engines'),
-    _SectionMeta('web', 'Web setup'),
-    _SectionMeta('configuration', 'Configuration'),
-  ]),
-  _SectionGroup('Advanced', [
-    _SectionMeta('bundle-size', 'Bundle size'),
-    _SectionMeta('custom', 'Custom grammars'),
-    _SectionMeta('limitations', 'Limitations'),
-  ]),
-];
-
-/// The groups flattened into reading order, for the anchor keys, scroll-spy,
-/// and the content column (all index-based).
-final _sections = <_SectionMeta>[
-  for (final group in _groups) ...group.sections,
-];
+/// Height of the breadcrumb bar pinned under the nav on compact layouts, where
+/// the section rail collapses into a popup. Sections scroll behind it, so the
+/// scroll-spy and scroll-to math offset by both the nav and this bar.
+const double _kCompactBarHeight = 52;
 
 /// The documentation page: a sticky section sidebar beside a scrolling reading
 /// column. On compact widths the sidebar becomes a contents card at the top.
@@ -76,10 +30,15 @@ class DocsPage extends StatefulWidget {
   State<DocsPage> createState() => _DocsPageState();
 }
 
-class _DocsPageState extends State<DocsPage> {
+class _DocsPageState extends State<DocsPage> implements DocsSectionNavigator {
   final ScrollController _controller = ScrollController();
-  final List<GlobalKey> _keys = List.generate(_sections.length, (_) => GlobalKey());
+  final List<GlobalKey> _keys =
+      List.generate(docsSections.length, (_) => GlobalKey());
   int _active = 0;
+
+  /// The app-wide nav popup bridge; we register with it so its section list and
+  /// scroll target come from this page whenever the popup is opened on docs.
+  NavSheetController? _navSheet;
 
   static const double _anchorGap = AppLayout.navHeight + 24;
 
@@ -89,7 +48,7 @@ class _DocsPageState extends State<DocsPage> {
     _controller.addListener(_onScroll);
     final target = widget.initialSection;
     if (target != null) {
-      final index = _sections.indexWhere((s) => s.id == target);
+      final index = docsSections.indexWhere((s) => s.id == target);
       if (index != -1) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _scrollTo(index);
@@ -99,14 +58,33 @@ class _DocsPageState extends State<DocsPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _navSheet = NavSheetScope.of(context)..docs = this;
+  }
+
+  @override
   void dispose() {
+    if (_navSheet?.docs == this) _navSheet?.docs = null;
     _controller.removeListener(_onScroll);
     _controller.dispose();
     super.dispose();
   }
 
+  // DocsSectionNavigator: lets the shared nav popup read the active section and
+  // scroll here, regardless of which control (nav bar or breadcrumb) opened it.
+  @override
+  int get activeSection => _active;
+
+  @override
+  void scrollToSection(int index) => _scrollTo(index);
+
   void _onScroll() {
-    const threshold = AppLayout.navHeight + 72;
+    // On compact layouts the section headings scroll behind the pinned nav and
+    // breadcrumb bar, so a heading counts as active once it passes below both.
+    final threshold = context.isCompact
+        ? AppLayout.navHeight + _kCompactBarHeight + 24
+        : AppLayout.navHeight + 72;
     var active = 0;
     for (var i = 0; i < _keys.length; i++) {
       final ctx = _keys[i].currentContext;
@@ -128,7 +106,12 @@ class _DocsPageState extends State<DocsPage> {
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox;
     final dy = box.localToGlobal(Offset.zero).dy;
-    final target = (_controller.offset + dy - _anchorGap).clamp(0.0, _controller.position.maxScrollExtent);
+    // Compact stacks the nav over the pinned breadcrumb bar; land the heading
+    // just below both so it isn't hidden behind them.
+    final gap = context.isCompact
+        ? AppLayout.navHeight + _kCompactBarHeight + 16
+        : _anchorGap;
+    final target = (_controller.offset + dy - gap).clamp(0.0, _controller.position.maxScrollExtent);
     setState(() => _active = index);
     _controller.animateTo(
       target,
@@ -136,6 +119,11 @@ class _DocsPageState extends State<DocsPage> {
       curve: Curves.easeInOutCubic,
     );
   }
+
+  /// Opens the app-wide navigation popup (site links + this page's section
+  /// list). The popup reads the active section and scrolls via this page's
+  /// [DocsSectionNavigator] registration, so nothing is returned here.
+  void _openNav() => showAppNavSheet(context, currentRoute: '/docs');
 
   @override
   Widget build(BuildContext context) {
@@ -179,22 +167,30 @@ class _DocsPageState extends State<DocsPage> {
   }
 
   Widget _buildCompact(BuildContext context) {
-    return SelectionArea(
-      child: SingleChildScrollView(
-        controller: _controller,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: AppLayout.navHeight + 16),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: _CompactToc(onTap: _scrollTo),
-            ),
-            _sectionsColumn(context),
-            const SimpleFooter(),
-          ],
+    // The section rail collapses into a popup: a breadcrumb bar pinned under the
+    // nav opens it, and the reading column scrolls beneath both.
+    return Column(
+      children: [
+        const SizedBox(height: AppLayout.navHeight),
+        _CompactDocsBar(
+          sectionTitle: docsSections[_active].title,
+          onOpen: _openNav,
         ),
-      ),
+        Expanded(
+          child: SelectionArea(
+            child: SingleChildScrollView(
+              controller: _controller,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _sectionsColumn(context),
+                  const SimpleFooter(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -210,7 +206,7 @@ class _DocsPageState extends State<DocsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 0; i < _sections.length; i++)
+          for (var i = 0; i < docsSections.length; i++)
             Padding(
               key: _keys[i],
               // diffs.com separates sections with `space-y-8` (32px).
@@ -218,9 +214,9 @@ class _DocsPageState extends State<DocsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _SectionTitle(_sections[i].title),
+                  _SectionTitle(docsSections[i].title),
                   const SizedBox(height: 16),
-                  ..._content(context, _sections[i].id),
+                  ..._content(context, docsSections[i].id),
                 ],
               ),
             ),
@@ -263,17 +259,17 @@ class _Sidebar extends StatelessWidget {
     // section list so active-state and taps map back to the right anchor.
     final children = <Widget>[];
     var index = 0;
-    for (var gi = 0; gi < _groups.length; gi++) {
+    for (var gi = 0; gi < docsGroups.length; gi++) {
       children.add(
         Padding(
           padding: EdgeInsets.only(top: gi == 0 ? 0 : 22, bottom: 8, left: 12),
-          child: _GroupLabel(_groups[gi].title),
+          child: DocsGroupLabel(docsGroups[gi].title),
         ),
       );
-      for (final section in _groups[gi].sections) {
+      for (final section in docsGroups[gi].sections) {
         final i = index++;
         children.add(
-          _SidebarItem(
+          DocsSectionTile(
             label: section.title,
             active: i == active,
             onTap: () => onTap(i),
@@ -290,29 +286,6 @@ class _Sidebar extends StatelessWidget {
           // diffs.com), rather than shrink-wrapping the label.
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: children,
-        ),
-      ),
-    );
-  }
-}
-
-/// A small uppercase category label sitting above a group of sidebar items.
-class _GroupLabel extends StatelessWidget {
-  const _GroupLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return SelectionContainer.disabled(
-      child: Text(
-        text.toUpperCase(),
-        style: TextStyle(
-          color: context.colors.foreground,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.0,
-          height: 1.4,
         ),
       ),
     );
@@ -341,127 +314,70 @@ class _StickyBox extends StatelessWidget {
   }
 }
 
-class _SidebarItem extends StatefulWidget {
-  const _SidebarItem({
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
+/// The compact trigger: a breadcrumb bar pinned under the nav that shows where
+/// you are (`Docs › <section>`) and opens the navigation popup on tap. Matches
+/// the diffs.com mobile docs header.
+class _CompactDocsBar extends StatelessWidget {
+  const _CompactDocsBar({required this.sectionTitle, required this.onOpen});
 
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  State<_SidebarItem> createState() => _SidebarItemState();
-}
-
-class _SidebarItemState extends State<_SidebarItem> {
-  bool _hovered = false;
+  final String sectionTitle;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final active = widget.active;
-    // diffs.com: selection changes colour + a subtle pill only - never weight.
-    // Active = foreground on an accent pill; others muted, brightening on hover.
-    final color = active || _hovered ? colors.foreground : colors.mutedForeground;
-    final Widget item = MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 2),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(
-            color: active
-                ? colors.surfaceInset
-                : (_hovered ? colors.foreground.withValues(alpha: 0.05) : Colors.transparent),
-            borderRadius: BorderRadius.circular(AppRadii.sm),
-          ),
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              color: color,
-              fontSize: 14,
-              height: 20 / 14,
-              fontWeight: FontWeight.w400,
+    return SelectionContainer.disabled(
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onOpen,
+          child: Container(
+            height: _kCompactBarHeight,
+            decoration: BoxDecoration(
+              color: colors.background,
+              border: Border(bottom: BorderSide(color: colors.border)),
             ),
-          ),
-        ),
-      ),
-    );
-    return SelectionContainer.disabled(child: item);
-  }
-}
-
-class _CompactToc extends StatelessWidget {
-  const _CompactToc({required this.onTap});
-
-  final ValueChanged<int> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    // One labeled block of pills per group, carrying a running index into the
-    // flattened section list so a tap scrolls to the matching anchor.
-    final blocks = <Widget>[];
-    var index = 0;
-    for (var gi = 0; gi < _groups.length; gi++) {
-      if (gi > 0) blocks.add(const SizedBox(height: 16));
-      blocks.add(
-        Text(
-          _groups[gi].title.toUpperCase(),
-          style: TextStyle(
-            color: colors.mutedForeground,
-            fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
-          ),
-        ),
-      );
-      blocks.add(const SizedBox(height: 10));
-      final pills = <Widget>[];
-      for (final section in _groups[gi].sections) {
-        final i = index++;
-        pills.add(
-          SelectionContainer.disabled(
-            child: GestureDetector(
-              onTap: () => onTap(i),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: colors.surfaceInset,
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                  border: Border.all(color: colors.border),
-                ),
-                child: Text(
-                  section.title,
-                  style: TextStyle(
-                    color: colors.foreground,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+            child: ContentContainer(
+              child: Row(
+                children: [
+                  Text(
+                    'Docs',
+                    style: TextStyle(
+                      color: colors.mutedForeground,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  // The icon set has no right chevron; a quarter-turn of the
+                  // dropdown chevron points it at the section title.
+                  RotatedBox(
+                    quarterTurns: 3,
+                    child: AppIcon(
+                      DiffIcon.chevronDown,
+                      size: 13,
+                      color: colors.mutedForeground,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      sectionTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.foreground,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      }
-      blocks.add(Wrap(spacing: 8, runSpacing: 8, children: pills));
-    }
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: blocks,
+        ),
       ),
     );
   }

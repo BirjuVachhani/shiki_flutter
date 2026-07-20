@@ -172,7 +172,7 @@ abstract final class AppLayout {
 
   /// Below this width, the layout collapses to a single column and menus move
   /// into drawers.
-  static const double compactBreakpoint = 800;
+  static const double compactBreakpoint = 900;
 }
 
 /// Font families declared in `pubspec.yaml`.

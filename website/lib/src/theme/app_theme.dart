@@ -42,7 +42,7 @@ ThemeData buildTheme(Brightness brightness) {
             states.contains(WidgetState.dragged);
         return colors.foreground.withValues(alpha: hovered ? 0.45 : 0.28);
       }),
-      thickness: const WidgetStatePropertyAll(9),
+      thickness: const WidgetStatePropertyAll(6),
       radius: const Radius.circular(8),
       crossAxisMargin: 3,
     ),

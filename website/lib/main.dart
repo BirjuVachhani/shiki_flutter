@@ -6,6 +6,7 @@ import 'src/highlight/engine_config.dart';
 import 'src/router/app_router.dart';
 import 'src/theme/app_theme.dart';
 import 'src/theme/theme_controller.dart';
+import 'src/widgets/nav_sheet.dart';
 
 void main() {
   // Clean URLs for the web (/, /docs) instead of hash fragments.
@@ -36,6 +37,10 @@ class ShikiSite extends StatefulWidget {
 class _ShikiSiteState extends State<ShikiSite> {
   final ThemeController _theme = ThemeController();
 
+  /// Bridges the docs page's section list to the app-wide nav popup. Lives above
+  /// the router so the shell's nav bar and the docs page share one instance.
+  final NavSheetController _navSheet = NavSheetController();
+
   @override
   void dispose() {
     _theme.dispose();
@@ -46,18 +51,21 @@ class _ShikiSiteState extends State<ShikiSite> {
   Widget build(BuildContext context) {
     return AppTheme(
       controller: _theme,
-      child: ListenableBuilder(
-        listenable: _theme,
-        builder: (context, _) {
-          return MaterialApp.router(
-            title: 'shiki_flutter: syntax highlighting for Flutter',
-            debugShowCheckedModeBanner: false,
-            theme: buildTheme(Brightness.light),
-            darkTheme: buildTheme(Brightness.dark),
-            themeMode: _theme.value,
-            routerConfig: appRouter,
-          );
-        },
+      child: NavSheetScope(
+        controller: _navSheet,
+        child: ListenableBuilder(
+          listenable: _theme,
+          builder: (context, _) {
+            return MaterialApp.router(
+              title: 'shiki_flutter: syntax highlighting for Flutter',
+              debugShowCheckedModeBanner: false,
+              theme: buildTheme(Brightness.light),
+              darkTheme: buildTheme(Brightness.dark),
+              themeMode: _theme.value,
+              routerConfig: appRouter,
+            );
+          },
+        ),
       ),
     );
   }
