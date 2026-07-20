@@ -26,7 +26,7 @@ const docsGroups = <DocsSectionGroup>[
   ]),
   DocsSectionGroup('Rendering code', [
     DocsSection('rendering', 'Rendering code'),
-    DocsSection('shikicodeview', 'The widget'),
+    DocsSection('widgets', 'Widgets'),
     DocsSection('large-files', 'Large files'),
   ]),
   DocsSectionGroup('Themes & languages', [

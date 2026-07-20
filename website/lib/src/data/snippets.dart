@@ -210,6 +210,19 @@ ShikiCodeView(
 )
 ''';
 
+  static const String codeListView = r'''
+// Give it a bounded height, like any ListView (here, an Expanded parent).
+Expanded(
+  child: ShikiCodeListView(
+    highlighter: highlighter,
+    code: sourceCode,
+    lang: 'dart',
+    theme: 'github-dark',
+    textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
+  ),
+)
+''';
+
   static const String renderTokens = r'''
 final lines = highlighter.codeToTokens(
   sourceCode,

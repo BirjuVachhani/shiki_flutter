@@ -156,6 +156,11 @@ class DocTable extends StatelessWidget {
 
   Widget _cell(BuildContext context, String text, {bool header = false}) {
     final colors = context.colors;
+    // A body cell that is exactly one inline-code token (e.g. the Property and
+    // Type columns) renders as a code chip, so types read as code too.
+    if (!header && _isCodeToken(text)) {
+      return _codeChip(context, text.substring(1, text.length - 1));
+    }
     return Padding(
       padding: const EdgeInsets.only(top: 12, bottom: 12, right: 24),
       child: Text.rich(
@@ -165,6 +170,42 @@ class DocTable extends StatelessWidget {
           fontSize: 14,
           height: 1.5,
           fontWeight: header ? FontWeight.w600 : FontWeight.w400,
+        ),
+      ),
+    );
+  }
+
+  /// Whether [text] is a single inline-code token, e.g. `` `String` ``.
+  static bool _isCodeToken(String text) {
+    return text.length >= 2 &&
+        text.startsWith('`') &&
+        text.endsWith('`') &&
+        !text.substring(1, text.length - 1).contains('`');
+  }
+
+  /// A boxed inline-code chip, matching the `DocLangList` chip style.
+  Widget _codeChip(BuildContext context, String label) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 8, right: 24),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: colors.border),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: AppFonts.mono,
+              fontSize: 13,
+              height: 1.3,
+              color: colors.foreground,
+            ),
+          ),
         ),
       ),
     );

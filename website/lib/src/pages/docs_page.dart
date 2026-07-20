@@ -929,15 +929,43 @@ List<Widget> _content(BuildContext context, String id) {
           'import is tree-shaken out.',
         ),
       ];
-    case 'shikicodeview':
+    case 'widgets':
       return const [
         DocProse(
-          '`ShikiCodeView` is the quickest way to display highlighted code. '
-          'The highlighter must already have the language and theme loaded. On '
-          'IO it highlights off the UI thread by default; see **Async '
-          'highlighting**. Set `showLineNumbers` for a line-number gutter '
-          '(styled via `gutterStyle`); the code stays a single `Text.rich`.',
+          'shiki_flutter ships two widgets for rendering highlighted code. '
+          'Both take the same core inputs (a loaded `highlighter`, the `code`, '
+          'and a `lang`/`theme` id) and share the same optional features: a '
+          'line-number gutter (`showLineNumbers` + `gutterStyle`), text '
+          'selection, and async highlighting. Pick the one that fits how much '
+          'code you are showing.',
         ),
+        DocH3('ShikiCodeView'),
+        DocProse(
+          'The quickest way to display a snippet. It builds the whole document '
+          'as a single `Text.rich` and sizes to its content, scrolling '
+          'horizontally for long lines, so it is best for small-to-medium '
+          'blocks. On IO it highlights off the UI thread by default; see '
+          '**Async highlighting**.',
+        ),
+        CodeBlock(
+          code: Snippets.renderWidget,
+          lang: 'dart',
+          filename: 'code_view.dart',
+        ),
+        DocH3('ShikiCodeListView'),
+        DocProse(
+          'Renders one line per row in a lazily built `ListView`, laying out '
+          'only the lines on screen, so it stays smooth on large files. Give '
+          'it a bounded height like any `ListView`. See **Large files** for '
+          'the full walkthrough.',
+        ),
+        CodeBlock(
+          code: Snippets.codeListView,
+          lang: 'dart',
+          filename: 'code_list_view.dart',
+        ),
+        DocH3('Properties'),
+        DocProse('Both widgets accept these core properties:'),
         DocTable(
           headers: ['Property', 'Type', 'Description'],
           rows: [
@@ -955,6 +983,24 @@ List<Widget> _content(BuildContext context, String id) {
             ['`textScaler`', '`TextScaler?`', 'Optional text scaling.'],
           ],
         ),
+        DocProse(
+          '`ShikiCodeListView` adds a few more for scrolling and wrapping:',
+        ),
+        DocTable(
+          headers: ['Property', 'Type', 'Description'],
+          rows: [
+            ['`softWrap`', '`bool`', 'Wrap long lines instead of scrolling.'],
+            ['`shrinkWrap`', '`bool`', 'Grow to fit instead of filling its parent.'],
+            ['`physics`', '`ScrollPhysics?`', 'Physics for the vertical list.'],
+            ['`controller`', '`ScrollController?`', 'External vertical scroll controller.'],
+            ['`selectionColor`', '`Color?`', 'Highlight color for selected code.'],
+            ['`lines`', '`List<List<TextSpan>>?`', 'Pre-highlighted spans to skip tokenizing.'],
+          ],
+        ),
+        DocNote(
+          '`showLineNumbers` requires `softWrap: false` on `ShikiCodeListView`: '
+          'wrapped lines cannot align with a fixed-height gutter.',
+        ),
       ];
     case 'large-files':
       return const [
@@ -965,34 +1011,14 @@ List<Widget> _content(BuildContext context, String id) {
           'line instead, so a `ListView.builder` renders only the lines '
           'currently on screen.',
         ),
-        DocH3('The widget'),
         DocProse(
-          '`ShikiCodeListView` is the drop-in option: it renders one line per '
-          'row in a lazily built `ListView`, so only the lines on screen are '
-          'laid out. Like `ShikiCodeView` it supports a line-number gutter and '
-          'horizontal scrolling for long lines. Give it a bounded height, like '
-          'any `ListView`.',
+          '`ShikiCodeListView` (see **Widgets**) is the drop-in option. Give '
+          'it a bounded height, like any `ListView`:',
         ),
         CodeBlock(
           code: Snippets.largeFileView,
           lang: 'dart',
           filename: 'large_file.dart',
-        ),
-        DocTable(
-          headers: ['Property', 'Type', 'Description'],
-          rows: [
-            ['`highlighter`', '`ShikiHighlighter`', 'Loaded highlighter.'],
-            ['`code`', '`String`', 'Source to render.'],
-            ['`lang`', '`String`', 'Language id, e.g. `dart`.'],
-            ['`theme`', '`String`', 'Theme id, e.g. `github-dark`.'],
-            ['`showLineNumbers`', '`bool`', 'Show a line-number gutter.'],
-            ['`gutterStyle`', '`GutterStyle`', 'Gutter numbers, gap, and divider.'],
-            ['`softWrap`', '`bool`', 'Wrap long lines instead of scrolling.'],
-            ['`shrinkWrap`', '`bool`', 'Grow to fit instead of filling.'],
-            ['`textStyle`', '`TextStyle?`', 'Base style; use a monospace font.'],
-            ['`padding`', '`EdgeInsetsGeometry`', 'Defaults to `16` all round.'],
-            ['`paintBackground`', '`bool`', "Paint the theme's background."],
-          ],
         ),
         DocH3('Build your own list'),
         DocProse(
