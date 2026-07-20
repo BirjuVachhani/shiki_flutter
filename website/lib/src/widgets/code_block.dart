@@ -25,7 +25,8 @@ class CodeBlock extends StatelessWidget {
     this.filename,
     this.showCopy = true,
     this.showLineNumbers = true,
-    this.fontSize = 13.5,
+    this.fontSize = 13,
+    this.showDividers = false,
   });
 
   final String code;
@@ -44,6 +45,8 @@ class CodeBlock extends StatelessWidget {
   final bool showLineNumbers;
 
   final double fontSize;
+
+  final bool showDividers;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +70,7 @@ class CodeBlock extends StatelessWidget {
     // row-aligned, plus horizontal scrolling for long lines. Shrink-wrapped so
     // the block grows to fit and never traps the page's vertical scroll.
     final body = SelectionArea(
-      child: ShikiCodeView(
+      child: ShikiCodeListView(
         highlighter: service.highlighter,
         code: trimmed,
         lang: lang,
@@ -75,14 +78,20 @@ class CodeBlock extends StatelessWidget {
         textStyle: TextStyle(
           fontFamily: AppFonts.mono,
           fontSize: fontSize,
-          height: 1.55,
+          height: 20 / fontSize,
+          fontFeatures: [.tabularFigures()],
         ),
-        // showLineNumbers: showLineNumbers,
-        // lineNumberColor: onBg.withValues(alpha: 0.32),
+        gutterStyle: GutterStyle(
+          spacing: 15.6,
+          dividerColor: showDividers ? border : null,
+        ),
+        showLineNumbers: showLineNumbers,
+        lineNumberColor: onBg.withValues(alpha: 0.32),
+        lineNumberTextScale: 0.9,
         paintBackground: false,
-        // shrinkWrap: true,
-        // physics: const NeverScrollableScrollPhysics(),
-        padding: .only(left: 20, top: hasHeader ? 0 : 18, bottom: 18, right: 20),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: .only(left: 15.6, top: hasHeader && !showDividers ? 0 : 12, bottom: 12, right: 15.6),
       ),
     );
 
@@ -95,6 +104,11 @@ class CodeBlock extends StatelessWidget {
                 onBg: onBg,
                 copyText: showCopy ? trimmed : null,
               ),
+              if (showDividers)
+                Divider(
+                  height: 1,
+                  color: border,
+                ),
               body,
             ],
           )

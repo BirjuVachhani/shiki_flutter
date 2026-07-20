@@ -288,6 +288,232 @@ void main() {
       expect(find.text('3'), findsOneWidget);
     });
 
+    testWidgets('gutter is wider than multi-digit numbers so none are clipped',
+        (tester) async {
+      final hl = buildHighlighter();
+      // 12 digit-free lines: the only "12" in the tree is the line number, and
+      // its two digits must both fit the gutter.
+      final code = List.filled(12, 'const x = y;').join('\n');
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              child: ShikiCodeListView(
+                highlighter: hl,
+                code: code,
+                lang: 'javascript',
+                theme: 'github-dark',
+                showLineNumbers: true,
+                shrinkWrap: true,
+                async: false,
+                physics: const NeverScrollableScrollPhysics(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // The gutter box must be strictly wider than the two-digit label. Sizing
+      // it to exactly the label width (the previous behavior) left the trailing
+      // digit on a knife edge that web text layout rounds off the end.
+      final label = find.text('12');
+      expect(label, findsOneWidget);
+      final labelWidth = tester.getSize(label).width;
+      final boxWidth = tester
+          .getSize(find.ancestor(of: label, matching: find.byType(Align)).first)
+          .width;
+      expect(boxWidth, greaterThan(labelWidth));
+    });
+
+    testWidgets('lineNumberTextScale shrinks the gutter font vs the code',
+        (tester) async {
+      final hl = buildHighlighter();
+      final code = List.filled(12, 'const x = y;').join('\n');
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              child: ShikiCodeListView(
+                highlighter: hl,
+                code: code,
+                lang: 'javascript',
+                theme: 'github-dark',
+                textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 20),
+                showLineNumbers: true,
+                lineNumberTextScale: 0.5,
+                shrinkWrap: true,
+                async: false,
+                physics: const NeverScrollableScrollPhysics(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // The gutter label is sized to the scaled font (20 * 0.5), while the code
+      // spans keep the full 20.
+      final label = tester.widget<Text>(find.text('12'));
+      expect(label.style?.fontSize, 10.0);
+    });
+
+    testWidgets('GutterStyle.spacing sets the gap between gutter and code',
+        (tester) async {
+      final hl = buildHighlighter();
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              child: ShikiCodeListView(
+                highlighter: hl,
+                code: 'const a = x;\nconst b = y;',
+                lang: 'javascript',
+                theme: 'github-dark',
+                showLineNumbers: true,
+                gutterStyle: const GutterStyle(spacing: 37),
+                shrinkWrap: true,
+                async: false,
+                physics: const NeverScrollableScrollPhysics(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final gap = find.byWidgetPredicate(
+        (w) => w is SizedBox && w.width == 37.0,
+      );
+      expect(gap, findsOneWidget);
+    });
+
+    testWidgets('GutterStyle renders a divider only when dividerColor is set',
+        (tester) async {
+      final hl = buildHighlighter();
+      const dividerColor = Color(0xFFABCDEF);
+
+      Future<void> pump(GutterStyle style) => tester.pumpWidget(
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Center(
+                child: SizedBox(
+                  width: 400,
+                  child: ShikiCodeListView(
+                    highlighter: hl,
+                    code: 'const a = x;\nconst b = y;\nconst c = z;',
+                    lang: 'javascript',
+                    theme: 'github-dark',
+                    showLineNumbers: true,
+                    paintBackground: false,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    gutterStyle: style,
+                    shrinkWrap: true,
+                    async: false,
+                    physics: const NeverScrollableScrollPhysics(),
+                  ),
+                ),
+              ),
+            ),
+          );
+
+      ColoredBox? dividerBox() {
+        for (final w in tester.widgetList<ColoredBox>(find.byType(ColoredBox))) {
+          if (w.color == dividerColor) return w;
+        }
+        return null;
+      }
+
+      // No dividerColor: no divider.
+      await pump(const GutterStyle());
+      expect(dividerBox(), isNull);
+
+      // dividerColor set: a divider of the requested thickness that runs edge
+      // to edge, into the vertical padding, while the numbers stay inset.
+      await pump(const GutterStyle(dividerColor: dividerColor, dividerThickness: 2));
+      final box = dividerBox();
+      expect(box, isNotNull);
+      final dividerRect = tester.getRect(find.byWidget(box!));
+      expect(dividerRect.width, 2.0);
+
+      // Edge to edge: the divider spans the full widget height (top and bottom
+      // padding included).
+      final widgetRect = tester.getRect(find.byType(ShikiCodeListView));
+      expect(dividerRect.top, moreOrLessEquals(widgetRect.top, epsilon: 0.5));
+      expect(dividerRect.bottom, moreOrLessEquals(widgetRect.bottom, epsilon: 0.5));
+
+      // The first line number is inset by the top padding, so it sits well
+      // below the divider's top.
+      final firstNumberTop = tester.getRect(find.text('1')).top;
+      expect(firstNumberTop, greaterThan(dividerRect.top + 15));
+    });
+
+    testWidgets('GutterStyle divider fills height in scrollable mode',
+        (tester) async {
+      final hl = buildHighlighter();
+      const dividerColor = Color(0xFF00CC99);
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              height: 120,
+              child: ShikiCodeListView(
+                highlighter: hl,
+                code: 'const a = x;\nconst b = y;',
+                lang: 'javascript',
+                theme: 'github-dark',
+                showLineNumbers: true,
+                gutterStyle: const GutterStyle(dividerColor: dividerColor),
+                async: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final box = tester
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .firstWhere((w) => w.color == dividerColor);
+      // Stretched to the viewport (minus vertical padding), not collapsed.
+      expect(tester.getSize(find.byWidget(box)).height, greaterThan(50));
+    });
+
+    testWidgets('selectionColor is exposed via DefaultSelectionStyle',
+        (tester) async {
+      final hl = buildHighlighter();
+      const color = Color(0xFF00FF88);
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              child: ShikiCodeListView(
+                highlighter: hl,
+                code: 'const a = x;',
+                lang: 'javascript',
+                theme: 'github-dark',
+                selectionColor: color,
+                async: false,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final styles =
+          tester.widgetList<DefaultSelectionStyle>(find.byType(DefaultSelectionStyle));
+      expect(styles.any((s) => s.selectionColor == color), isTrue);
+    });
+
     testWidgets('shrink-wraps inside an unbounded parent without error',
         (tester) async {
       final hl = buildHighlighter();

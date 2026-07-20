@@ -560,11 +560,6 @@ List<Widget> _content(BuildContext context, String id) {
           lang: 'shellscript',
           filename: 'shell',
         ),
-        DocProse(
-          '**Batteries included:** ~250 languages and ~65 VS Code themes ship '
-          'inside the package. You never bundle JSON assets. You import the '
-          'ones you use.',
-        ),
       ];
     case 'quick-start':
       return const [

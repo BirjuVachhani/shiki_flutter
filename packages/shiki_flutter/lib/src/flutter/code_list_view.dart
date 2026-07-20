@@ -11,6 +11,31 @@ import '../core/colors.dart';
 import '../core/highlighter.dart';
 import 'render.dart';
 
+/// Styling for the line-number gutter of a [ShikiCodeListView]: the gap between
+/// the gutter and the code, and an optional divider between them.
+///
+/// Only used when [ShikiCodeListView.showLineNumbers] is `true`.
+class GutterStyle {
+  const GutterStyle({
+    this.spacing,
+    this.dividerColor,
+    this.dividerThickness = 1.0,
+  }) : assert(dividerThickness >= 0, 'dividerThickness must be non-negative.');
+
+  /// Horizontal gap between the gutter and the code, in logical pixels. When
+  /// null, defaults to two character widths of the base text style, so the gap
+  /// scales with the font size.
+  final double? spacing;
+
+  /// Color of the vertical divider drawn between the gutter and the code,
+  /// centered in the [spacing] gap. When null, no divider is rendered.
+  final Color? dividerColor;
+
+  /// Thickness of the divider in logical pixels. Defaults to `1.0`. Ignored
+  /// when [dividerColor] is null.
+  final double dividerThickness;
+}
+
 /// Displays [code] highlighted with [lang]/[theme], rendering **one line per
 /// row** via a lazily-built [ListView] so large files stay smooth.
 ///
@@ -45,6 +70,8 @@ import 'render.dart';
 /// Selection spans all lines, but because the list is virtualized only the rows
 /// currently built participate. Off-screen lines become selectable as they
 /// scroll into view.
+///
+/// Style the line-number gutter (gap and divider) with [gutterStyle].
 class ShikiCodeListView extends StatefulWidget {
   const ShikiCodeListView({
     super.key,
@@ -57,18 +84,25 @@ class ShikiCodeListView extends StatefulWidget {
     this.padding = const EdgeInsets.all(16),
     this.paintBackground = true,
     this.selectable = false,
+    this.selectionColor,
     this.textScaler,
     this.softWrap = false,
     this.showLineNumbers = false,
     this.lineNumberColor,
+    this.lineNumberTextScale = 1.0,
+    this.gutterStyle = const GutterStyle(),
     this.shrinkWrap = false,
     this.physics,
     this.controller,
     this.async,
-  }) : assert(
+  })  : assert(
           !(showLineNumbers && softWrap),
           'showLineNumbers requires softWrap: false. Wrapped lines cannot '
           'align with a fixed-height line-number gutter.',
+        ),
+        assert(
+          lineNumberTextScale > 0,
+          'lineNumberTextScale must be greater than 0.',
         );
 
   final ShikiHighlighter highlighter;
@@ -101,6 +135,15 @@ class ShikiCodeListView extends StatefulWidget {
   /// two selection contexts.
   final bool selectable;
 
+  /// Highlight color for selected code. Defaults to the ambient selection color
+  /// (e.g. the app theme's [TextSelectionThemeData.selectionColor]).
+  ///
+  /// Applies whether selection is driven by this widget's own [SelectionArea]
+  /// (see [selectable]) or by an enclosing one, since the code is wrapped in a
+  /// [DefaultSelectionStyle] the selectable rows read from. The line-number
+  /// gutter is excluded from selection and unaffected.
+  final Color? selectionColor;
+
   final TextScaler? textScaler;
 
   /// Wrap long lines instead of scrolling horizontally. Incompatible with
@@ -113,6 +156,19 @@ class ShikiCodeListView extends StatefulWidget {
   /// Color for the line numbers. Defaults to the theme foreground at low
   /// opacity.
   final Color? lineNumberColor;
+
+  /// Scales the line-number font size relative to the code. Defaults to `1.0`
+  /// (numbers match the code size).
+  ///
+  /// A value below `1.0` renders smaller numbers, e.g. `0.9`, matching the
+  /// convention in editors where the gutter recedes behind the code. Numbers
+  /// keep the code's baseline and row height, so they stay aligned; only the
+  /// glyph size shrinks.
+  final double lineNumberTextScale;
+
+  /// Styling for the line-number gutter: the gap between the gutter and the
+  /// code, and an optional divider. Only used when [showLineNumbers] is `true`.
+  final GutterStyle gutterStyle;
 
   /// Grow to fit content rather than filling (and scrolling within) the parent.
   final bool shrinkWrap;
@@ -152,9 +208,19 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
   @override
   void initState() {
     super.initState();
+    // Re-measure when fonts finish loading. This widget sizes the gutter and
+    // row height from a build-time TextPainter; on web the bundled monospace
+    // font loads asynchronously, so the first measurement uses a fallback whose
+    // metrics differ. Text widgets relayout on this signal on their own, but
+    // our manual measurement does not, so we listen and rebuild.
+    PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
     if (_asyncEffective) {
       _resolver.resolve(widget.highlighter, widget.code, _options);
     }
+  }
+
+  void _onSystemFontsChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -173,6 +239,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
 
   @override
   void dispose() {
+    PaintingBinding.instance.systemFonts.removeListener(_onSystemFontsChanged);
     _resolver.dispose();
     _internalController?.dispose();
     super.dispose();
@@ -255,27 +322,82 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       );
     }
 
+    // Split the vertical padding into the gutter and code columns rather than
+    // wrapping the whole row, so a gutter divider between them can run edge to
+    // edge (into the top and bottom padding) instead of being inset by it.
+    final vpad = EdgeInsets.only(top: pad.top, bottom: pad.bottom);
+
     final children = <Widget>[];
     if (widget.showLineNumbers) {
       final digits = lines.length.toString().length;
       final numberColor = widget.lineNumberColor ??
           (fg ?? const Color(0xFF808080)).withValues(alpha: 0.4);
-      children.add(_LineNumberGutter(
-        controller: _controller,
-        lineCount: lines.length,
-        rowHeight: metrics.rowHeight,
-        width: digits * metrics.charWidth,
-        style: effectiveBase.copyWith(color: numberColor),
-        textScaler: textScaler,
-        strut: strut,
-        windowed: !widget.shrinkWrap,
+      // Line numbers may be rendered smaller than the code, but keep the code's
+      // strut and row height so they share its baseline and stay row-aligned;
+      // only the glyph size shrinks.
+      final scale = widget.lineNumberTextScale;
+      final baseFontSize = effectiveBase.fontSize ??
+          DefaultTextStyle.of(context).style.fontSize ??
+          14.0;
+      final numberStyle = effectiveBase.copyWith(
+        color: numberColor,
+        fontSize: baseFontSize * scale,
+      );
+      // Size the gutter to the widest number plus a one-pixel guard. Sizing it
+      // to exactly `digits * charWidth` leaves the label on a knife edge: web
+      // text layout rounds line width up, pushing the last glyph past the box
+      // and, with maxLines: 1, dropping it entirely, so multi-digit numbers
+      // rendered as just their leading digit(s). Measure the gutter's own
+      // advance so a scaled-down font still gets a snug box.
+      final numberCharWidth = scale == 1.0
+          ? metrics.charWidth
+          : _measure(numberStyle, strut, textScaler).charWidth;
+      final gutterWidth = digits * numberCharWidth + 1;
+      children.add(Padding(
+        padding: vpad,
+        child: _LineNumberGutter(
+          controller: _controller,
+          lineCount: lines.length,
+          rowHeight: metrics.rowHeight,
+          width: gutterWidth,
+          style: numberStyle,
+          textScaler: textScaler,
+          strut: strut,
+          windowed: !widget.shrinkWrap,
+        ),
       ));
-      children.add(SizedBox(width: metrics.charWidth * 2));
+
+      // The gap between gutter and code, with an optional divider centered in
+      // it. The divider is not padded, so it runs the full column height. The
+      // scrollable row stretches it to the viewport; the shrink-wrap row
+      // (crossAxisAlignment.start) does not, so give it the explicit height,
+      // including the vertical padding it now spans.
+      final gutter = widget.gutterStyle;
+      final spacing = gutter.spacing ?? metrics.charWidth * 2;
+      final dividerColor = gutter.dividerColor;
+      if (dividerColor == null) {
+        children.add(SizedBox(width: spacing));
+      } else {
+        final dividerHeight = widget.shrinkWrap
+            ? pad.top + lines.length * metrics.rowHeight + pad.bottom
+            : null;
+        children.add(SizedBox(
+          width: spacing,
+          height: dividerHeight,
+          child: Center(
+            child: SizedBox(
+              width: gutter.dividerThickness,
+              height: double.infinity,
+              child: ColoredBox(color: dividerColor),
+            ),
+          ),
+        ));
+      }
     }
-    children.add(Expanded(child: codeArea));
+    children.add(Expanded(child: Padding(padding: vpad, child: codeArea)));
 
     Widget content = Padding(
-      padding: EdgeInsets.only(top: pad.top, bottom: pad.bottom, left: pad.left),
+      padding: EdgeInsets.only(left: pad.left),
       child: Row(
         // Stretch the gutter to the viewport height so it can window its
         // numbers; in shrink-wrap mode there is no viewport to fill.
@@ -289,6 +411,15 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     if (widget.paintBackground) {
       final bg = parseColor(registration.bg);
       if (bg != null) content = ColoredBox(color: bg, child: content);
+    }
+
+    // Set the selection color for the code rows below. Keep this inside any
+    // SelectionArea (ours or an ancestor's) so the selectable rows read it.
+    if (widget.selectionColor != null) {
+      content = DefaultSelectionStyle(
+        selectionColor: widget.selectionColor,
+        child: content,
+      );
     }
 
     // Only add our own SelectionArea when asked to and when there isn't one

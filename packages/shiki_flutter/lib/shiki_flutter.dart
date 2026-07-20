@@ -39,7 +39,7 @@ export 'src/onig/onig.dart'
         OnigString,
         OnigMatch,
         OnigCaptureIndex;
-export 'src/flutter/code_list_view.dart' show ShikiCodeListView;
+export 'src/flutter/code_list_view.dart' show ShikiCodeListView, GutterStyle;
 export 'src/flutter/code_view.dart' show ShikiCodeView;
 export 'src/flutter/render.dart'
     show
