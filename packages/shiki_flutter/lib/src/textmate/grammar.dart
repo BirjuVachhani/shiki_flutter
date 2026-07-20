@@ -55,8 +55,13 @@ abstract class GrammarAndThemeRepository
     implements GrammarRepository, ThemeProvider {}
 
 class Injection {
-  Injection(this.debugSelector, this.matcher, this.priority, this.ruleId,
-      this.grammar);
+  Injection(
+    this.debugSelector,
+    this.matcher,
+    this.priority,
+    this.ruleId,
+    this.grammar,
+  );
 
   final String debugSelector;
   final Matcher<List<String>> matcher;
@@ -77,8 +82,16 @@ Grammar createGrammar(
   GrammarAndThemeRepository grammarRepository,
   ShikiHighlighterEngine onigLib,
 ) {
-  return Grammar(scopeName, grammar, initialLanguage, embeddedLanguages,
-      tokenTypes, balancedBracketSelectors, grammarRepository, onigLib);
+  return Grammar(
+    scopeName,
+    grammar,
+    initialLanguage,
+    embeddedLanguages,
+    tokenTypes,
+    balancedBracketSelectors,
+    grammarRepository,
+    onigLib,
+  );
 }
 
 void _collectInjections(
@@ -89,16 +102,15 @@ void _collectInjections(
   RawGrammar grammar,
 ) {
   final matchers = createMatchers<List<String>>(selector, nameMatcher);
-  final ruleId =
-      RuleFactory.getCompiledRuleId(rule, ruleFactoryHelper, grammar.repository);
+  final ruleId = RuleFactory.getCompiledRuleId(
+    rule,
+    ruleFactoryHelper,
+    grammar.repository,
+  );
   for (final matcher in matchers) {
-    result.add(Injection(
-      selector,
-      matcher.matcher,
-      matcher.priority,
-      ruleId,
-      grammar,
-    ));
+    result.add(
+      Injection(selector, matcher.matcher, matcher.priority, ruleId, grammar),
+    );
   }
 }
 
@@ -136,16 +148,19 @@ class Grammar implements GrammarRules {
     this._grammarRepository,
     this._onigLib,
   ) {
-    _basicScopeAttributesProvider =
-        BasicScopeAttributesProvider(initialLanguage, embeddedLanguages);
+    _basicScopeAttributesProvider = BasicScopeAttributesProvider(
+      initialLanguage,
+      embeddedLanguages,
+    );
     _grammar = initGrammar(grammar, null);
 
     if (tokenTypes != null) {
       for (final selector in tokenTypes.keys) {
         final matchers = createMatchers<List<String>>(selector, nameMatcher);
         for (final matcher in matchers) {
-          _tokenTypeMatchers
-              .add(_TokenTypeMatcher(matcher.matcher, tokenTypes[selector]!));
+          _tokenTypeMatchers.add(
+            _TokenTypeMatcher(matcher.matcher, tokenTypes[selector]!),
+          );
         }
       }
     }
@@ -202,14 +217,15 @@ class Grammar implements GrammarRules {
             final selector = injectionGrammar.injectionSelector;
             if (selector != null) {
               _collectInjections(
-                  result,
-                  selector,
-                  RawRule(
-                    patterns: injectionGrammar.patterns,
-                    name: injectionGrammar.scopeName,
-                  ),
-                  this,
-                  injectionGrammar);
+                result,
+                selector,
+                RawRule(
+                  patterns: injectionGrammar.patterns,
+                  name: injectionGrammar.scopeName,
+                ),
+                this,
+                injectionGrammar,
+              );
             }
           }
         }
@@ -245,22 +261,29 @@ class Grammar implements GrammarRules {
       ruleId >= 0 && ruleId < _ruleId2desc.length ? _ruleId2desc[ruleId] : null;
 
   @override
-  RawGrammar? getExternalGrammar(String scopeName,
-      [RawRepository? repository]) {
+  RawGrammar? getExternalGrammar(
+    String scopeName, [
+    RawRepository? repository,
+  ]) {
     if (_includedGrammars.containsKey(scopeName)) {
       return _includedGrammars[scopeName];
     }
     final rawIncludedGrammar = _grammarRepository.lookup(scopeName);
     if (rawIncludedGrammar != null) {
-      _includedGrammars[scopeName] =
-          initGrammar(rawIncludedGrammar, repository?.base);
+      _includedGrammars[scopeName] = initGrammar(
+        rawIncludedGrammar,
+        repository?.base,
+      );
       return _includedGrammars[scopeName];
     }
     return null;
   }
 
-  TokenizeLineResult tokenizeLine(String lineText, StateStack? prevState,
-      [int timeLimit = 0]) {
+  TokenizeLineResult tokenizeLine(
+    String lineText,
+    StateStack? prevState, [
+    int timeLimit = 0,
+  ]) {
     final r = _tokenize(lineText, prevState, false, timeLimit);
     return TokenizeLineResult(
       r.lineTokens.getResult(r.ruleStack, r.lineLength),
@@ -269,8 +292,11 @@ class Grammar implements GrammarRules {
     );
   }
 
-  TokenizeLineResult2 tokenizeLine2(String lineText, StateStack? prevState,
-      [int timeLimit = 0]) {
+  TokenizeLineResult2 tokenizeLine2(
+    String lineText,
+    StateStack? prevState, [
+    int timeLimit = 0,
+  ]) {
     final r = _tokenize(lineText, prevState, true, timeLimit);
     return TokenizeLineResult2(
       r.lineTokens.getBinaryResult(r.ruleStack, r.lineLength),
@@ -279,11 +305,18 @@ class Grammar implements GrammarRules {
     );
   }
 
-  _TokenizeResult _tokenize(String lineText, StateStack? prevState,
-      bool emitBinaryTokens, int timeLimit) {
+  _TokenizeResult _tokenize(
+    String lineText,
+    StateStack? prevState,
+    bool emitBinaryTokens,
+    int timeLimit,
+  ) {
     if (_rootId == -1) {
       _rootId = RuleFactory.getCompiledRuleId(
-          _grammar.repository.self!, this, _grammar.repository);
+        _grammar.repository.self!,
+        this,
+        _grammar.repository,
+      );
       getInjections();
     }
 
@@ -291,8 +324,8 @@ class Grammar implements GrammarRules {
     StateStack state;
     if (prevState == null || identical(prevState, StateStack.nullState)) {
       isFirstLine = true;
-      final rawDefaultMetadata =
-          _basicScopeAttributesProvider.getDefaultAttributes();
+      final rawDefaultMetadata = _basicScopeAttributesProvider
+          .getDefaultAttributes();
       final defaultStyle = themeProvider.getDefaults();
       final defaultMetadata = EncodedTokenMetadata.set(
         0,
@@ -309,14 +342,24 @@ class Grammar implements GrammarRules {
       AttributedScopeStack scopeList;
       if (rootScopeName != null) {
         scopeList = AttributedScopeStack.createRootAndLookUpScopeName(
-            rootScopeName, defaultMetadata, this);
+          rootScopeName,
+          defaultMetadata,
+          this,
+        );
       } else {
-        scopeList =
-            AttributedScopeStack.createRoot('unknown', defaultMetadata);
+        scopeList = AttributedScopeStack.createRoot('unknown', defaultMetadata);
       }
 
       state = StateStack(
-          null, _rootId, -1, -1, false, null, scopeList, scopeList);
+        null,
+        _rootId,
+        -1,
+        -1,
+        false,
+        null,
+        scopeList,
+        scopeList,
+      );
     } else {
       isFirstLine = false;
       prevState.reset();
@@ -327,7 +370,11 @@ class Grammar implements GrammarRules {
     final onigLineText = createString(line);
     final lineLength = line.length;
     final lineTokens = LineTokens(
-        emitBinaryTokens, line, _tokenTypeMatchers, _balancedBracketSelectors);
+      emitBinaryTokens,
+      line,
+      _tokenTypeMatchers,
+      _balancedBracketSelectors,
+    );
     final r = tokenizeString(
       this,
       onigLineText,
@@ -345,7 +392,11 @@ class Grammar implements GrammarRules {
 
 class _TokenizeResult {
   _TokenizeResult(
-      this.lineLength, this.lineTokens, this.ruleStack, this.stoppedEarly);
+    this.lineLength,
+    this.lineTokens,
+    this.ruleStack,
+    this.stoppedEarly,
+  );
   final int lineLength;
   final LineTokens lineTokens;
   final StateStack ruleStack;
@@ -378,19 +429,30 @@ class AttributedScopeStack {
   String get scopeName => scopePath.scopeName;
 
   static AttributedScopeStack createRoot(
-      String scopeName, int tokenAttributes) {
+    String scopeName,
+    int tokenAttributes,
+  ) {
     return AttributedScopeStack._(
-        null, ScopeStack(null, scopeName), tokenAttributes);
+      null,
+      ScopeStack(null, scopeName),
+      tokenAttributes,
+    );
   }
 
   static AttributedScopeStack createRootAndLookUpScopeName(
-      String scopeName, int tokenAttributes, Grammar grammar) {
+    String scopeName,
+    int tokenAttributes,
+    Grammar grammar,
+  ) {
     final rawRootMetadata = grammar.getMetadataForScope(scopeName);
     final scopePath = ScopeStack(null, scopeName);
     final rootStyle = grammar.themeProvider.themeMatch(scopePath);
 
     final resolvedTokenAttributes = _mergeAttributes(
-        tokenAttributes, rawRootMetadata, rootStyle);
+      tokenAttributes,
+      rawRootMetadata,
+      rootStyle,
+    );
 
     return AttributedScopeStack._(null, scopePath, resolvedTokenAttributes);
   }
@@ -440,12 +502,18 @@ class AttributedScopeStack {
   }
 
   static AttributedScopeStack _pushAttributed(
-      AttributedScopeStack target, String scopeName, Grammar grammar) {
+    AttributedScopeStack target,
+    String scopeName,
+    Grammar grammar,
+  ) {
     final rawMetadata = grammar.getMetadataForScope(scopeName);
     final newPath = target.scopePath.pushScope(scopeName);
     final scopeThemeMatchResult = grammar.themeProvider.themeMatch(newPath);
-    final metadata =
-        _mergeAttributes(target.tokenAttributes, rawMetadata, scopeThemeMatchResult);
+    final metadata = _mergeAttributes(
+      target.tokenAttributes,
+      rawMetadata,
+      scopeThemeMatchResult,
+    );
     return AttributedScopeStack._(target, newPath, metadata);
   }
 }
@@ -461,12 +529,20 @@ class StateStack {
     this.endRule,
     this.nameScopesList,
     this.contentNameScopesList,
-  )   : _enterPos = enterPos,
-        _anchorPos = anchorPos,
-        depth = parent != null ? parent.depth + 1 : 1;
+  ) : _enterPos = enterPos,
+      _anchorPos = anchorPos,
+      depth = parent != null ? parent.depth + 1 : 1;
 
-  static final StateStack nullState =
-      StateStack(null, 0, 0, 0, false, null, null, null);
+  static final StateStack nullState = StateStack(
+    null,
+    0,
+    0,
+    0,
+    false,
+    null,
+    null,
+    null,
+  );
 
   final StateStack? parent;
   final RuleId _ruleId;
@@ -500,8 +576,16 @@ class StateStack {
     AttributedScopeStack? nameScopesList,
     AttributedScopeStack? contentNameScopesList,
   ) {
-    return StateStack(this, ruleId, enterPos, anchorPos, beginRuleCapturedEOL,
-        endRule, nameScopesList, contentNameScopesList);
+    return StateStack(
+      this,
+      ruleId,
+      enterPos,
+      anchorPos,
+      beginRuleCapturedEOL,
+      endRule,
+      nameScopesList,
+      contentNameScopesList,
+    );
   }
 
   int getEnterPos() => _enterPos;
@@ -509,7 +593,9 @@ class StateStack {
 
   Rule getRule(RuleFactoryHelper grammar) => grammar.getRule(_ruleId);
 
-  StateStack withContentNameScopesList(AttributedScopeStack contentNameScopeStack) {
+  StateStack withContentNameScopesList(
+    AttributedScopeStack contentNameScopeStack,
+  ) {
     if (identical(contentNameScopesList, contentNameScopeStack)) return this;
     return parent!.push(
       _ruleId,
@@ -524,8 +610,16 @@ class StateStack {
 
   StateStack withEndRule(String endRule) {
     if (this.endRule == endRule) return this;
-    return StateStack(parent, _ruleId, _enterPos, _anchorPos,
-        beginRuleCapturedEOL, endRule, nameScopesList, contentNameScopesList);
+    return StateStack(
+      parent,
+      _ruleId,
+      _enterPos,
+      _anchorPos,
+      beginRuleCapturedEOL,
+      endRule,
+      nameScopesList,
+      contentNameScopesList,
+    );
   }
 
   bool hasSameRuleAs(StateStack other) {
@@ -540,9 +634,10 @@ class StateStack {
 
 class BalancedBracketSelectors {
   BalancedBracketSelectors(
-      List<String> balancedBracketScopes, List<String> unbalancedBracketScopes)
-      : _balancedBracketScopes = [],
-        _unbalancedBracketScopes = [] {
+    List<String> balancedBracketScopes,
+    List<String> unbalancedBracketScopes,
+  ) : _balancedBracketScopes = [],
+      _unbalancedBracketScopes = [] {
     for (final selector in balancedBracketScopes) {
       if (selector == '*') {
         _allowAny = true;
@@ -578,8 +673,12 @@ class BalancedBracketSelectors {
 }
 
 class LineTokens {
-  LineTokens(this._emitBinaryTokens, String lineText, this._tokenTypeOverrides,
-      this._balancedBracketSelectors);
+  LineTokens(
+    this._emitBinaryTokens,
+    String lineText,
+    this._tokenTypeOverrides,
+    this._balancedBracketSelectors,
+  );
 
   final bool _emitBinaryTokens;
   final List<Token> _tokens = [];

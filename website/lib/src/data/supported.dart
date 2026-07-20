@@ -245,7 +245,10 @@ const List<({String id, String name})> supportedLanguages = [
   (id: 'vue-directives', name: 'Vue Directives'),
   (id: 'vue-html', name: 'Vue HTML'),
   (id: 'vue-interpolations', name: 'Vue Interpolations'),
-  (id: 'vue-sfc-style-variable-injection', name: 'Vue SFC Style Variable Injection'),
+  (
+    id: 'vue-sfc-style-variable-injection',
+    name: 'Vue SFC Style Variable Injection',
+  ),
   (id: 'vue-vine', name: 'Vue Vine'),
   (id: 'vyper', name: 'Vyper'),
   (id: 'wasm', name: 'WebAssembly'),

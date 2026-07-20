@@ -30,8 +30,10 @@ const _targets = <(String entry, String output)>[
 Future<void> main() async {
   for (final (entry, output) in _targets) {
     if (!File(entry).existsSync()) {
-      stderr.writeln('Run this from the shiki_flutter package root '
-          '(cannot find $entry).');
+      stderr.writeln(
+        'Run this from the shiki_flutter package root '
+        '(cannot find $entry).',
+      );
       exit(1);
     }
     Directory(output).parent.createSync(recursive: true);

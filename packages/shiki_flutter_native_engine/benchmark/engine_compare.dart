@@ -26,10 +26,10 @@ const _sizes = [CorpusSize.m, CorpusSize.l, CorpusSize.xl];
 const _opts = TokenizeOptions(lang: 'dart', theme: 'github-dark');
 
 ({int warmup, int iters}) _budget(CorpusSize size) => switch (size) {
-      CorpusSize.xl => (warmup: 2, iters: 8),
-      CorpusSize.l => (warmup: 2, iters: 10),
-      _ => (warmup: 3, iters: 20),
-    };
+  CorpusSize.xl => (warmup: 2, iters: 8),
+  CorpusSize.l => (warmup: 2, iters: 10),
+  _ => (warmup: 3, iters: 20),
+};
 
 class _EngineUnderTest {
   const _EngineUnderTest(this.label, this.engine);
@@ -40,11 +40,17 @@ class _EngineUnderTest {
 void main() {
   final engines = <_EngineUnderTest>[
     const _EngineUnderTest(
-        'bundled (built-in Dart)', ShikiHighlighterEmbeddedEngine()),
+      'bundled (built-in Dart)',
+      ShikiHighlighterEmbeddedEngine(),
+    ),
     const _EngineUnderTest(
-        'oniguruma_dart (port)', ShikiHighlighterDartEngine()),
+      'oniguruma_dart (port)',
+      ShikiHighlighterDartEngine(),
+    ),
     const _EngineUnderTest(
-        'FFI Oniguruma (native C)', ShikiHighlighterNativeEngine()),
+      'FFI Oniguruma (native C)',
+      ShikiHighlighterNativeEngine(),
+    ),
   ];
 
   // Corpus structure + token counts (identical across engines). Tokenize once
@@ -52,7 +58,10 @@ void main() {
   final structure = <CorpusSize, ({int lines, int bytes, int tokens})>{};
   {
     final hl = createHighlighter(
-        langs: [dart], themes: [githubDark], engine: engines.first.engine);
+      langs: [dart],
+      themes: [githubDark],
+      engine: engines.first.engine,
+    );
     for (final size in _sizes) {
       final src = corpusFor(size);
       final w = WorkloadStats(src);
@@ -66,8 +75,11 @@ void main() {
   // engineLabel -> sizeLabel -> Sample
   final samples = <String, Map<CorpusSize, Sample>>{};
   for (final e in engines) {
-    final hl =
-        createHighlighter(langs: [dart], themes: [githubDark], engine: e.engine);
+    final hl = createHighlighter(
+      langs: [dart],
+      themes: [githubDark],
+      engine: e.engine,
+    );
     samples[e.label] = {};
     for (final size in _sizes) {
       final src = corpusFor(size);
@@ -106,10 +118,17 @@ void _report(
   // Per-size: engine | median ms | p90 | tokens/s | vs bundled.
   const bundled = 'bundled (built-in Dart)';
   for (final size in _sizes) {
-    buf.writeln('\n${size.label} (${count(structure[size]!.lines)} lines, '
-        '${count(structure[size]!.tokens)} tokens)');
-    final t = ConsoleTable(
-        ['engine', 'median ms', 'p90 ms', 'tokens/s', 'vs bundled']);
+    buf.writeln(
+      '\n${size.label} (${count(structure[size]!.lines)} lines, '
+      '${count(structure[size]!.tokens)} tokens)',
+    );
+    final t = ConsoleTable([
+      'engine',
+      'median ms',
+      'p90 ms',
+      'tokens/s',
+      'vs bundled',
+    ]);
     final base = samples[bundled]![size]!.medianMs;
     for (final e in engines) {
       final s = samples[e.label]![size]!;

@@ -84,7 +84,11 @@ class DocBullets extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 10, left: 4, right: 14),
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        left: 4,
+                        right: 14,
+                      ),
                       child: Container(
                         width: 4,
                         height: 4,
@@ -263,22 +267,27 @@ List<InlineSpan> inlineSpans(String text, AppColors colors) {
   final pattern = RegExp(r'\*\*[^*]+\*\*|`[^`]+`');
   var last = 0;
   for (final m in pattern.allMatches(text)) {
-    if (m.start > last) spans.add(TextSpan(text: text.substring(last, m.start)));
+    if (m.start > last)
+      spans.add(TextSpan(text: text.substring(last, m.start)));
     final token = m.group(0)!;
     if (token.startsWith('`')) {
-      spans.add(TextSpan(
-        text: token.substring(1, token.length - 1),
-        style: TextStyle(
-          fontFamily: AppFonts.mono,
-          fontSize: 14.5,
-          color: colors.foreground,
+      spans.add(
+        TextSpan(
+          text: token.substring(1, token.length - 1),
+          style: TextStyle(
+            fontFamily: AppFonts.mono,
+            fontSize: 14.5,
+            color: colors.foreground,
+          ),
         ),
-      ));
+      );
     } else {
-      spans.add(TextSpan(
-        text: token.substring(2, token.length - 2),
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ));
+      spans.add(
+        TextSpan(
+          text: token.substring(2, token.length - 2),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      );
     }
     last = m.end;
   }

@@ -58,8 +58,9 @@ void runTokenizeWorker(
       case 'config':
         if (prepare != null) await prepare();
         // Build the warm highlighter from the shipped grammars/themes.
-        final cfg =
-            workerConfigFromJson((msg['config'] as Map).cast<String, dynamic>());
+        final cfg = workerConfigFromJson(
+          (msg['config'] as Map).cast<String, dynamic>(),
+        );
         final h = ShikiHighlighter(engine: engine);
         for (final themeJson in cfg.themeJsons) {
           h.loadThemeFromJson(themeJson);
@@ -76,14 +77,19 @@ void runTokenizeWorker(
         final id = msg['id'] as int;
         final h = highlighter;
         if (h == null) {
-          _post({'type': 'error', 'id': id, 'message': 'worker not configured'});
+          _post({
+            'type': 'error',
+            'id': id,
+            'message': 'worker not configured',
+          });
           return;
         }
         try {
           final tokens = h.codeToTokens(
             msg['code'] as String,
             tokenizeOptionsFromJson(
-                (msg['options'] as Map).cast<String, dynamic>()),
+              (msg['options'] as Map).cast<String, dynamic>(),
+            ),
           );
           _post({'type': 'result', 'id': id, 'tokens': tokensToJson(tokens)});
         } catch (e, st) {
@@ -95,9 +101,13 @@ void runTokenizeWorker(
           });
         }
       case 'loadLang':
-        highlighter?.loadBundledLanguage(rebuildBundledLanguage(
+        highlighter?.loadBundledLanguage(
+          rebuildBundledLanguage(
             langDescriptorFromJson(
-                (msg['lang'] as Map).cast<String, dynamic>())));
+              (msg['lang'] as Map).cast<String, dynamic>(),
+            ),
+          ),
+        );
       case 'loadRawLang':
         highlighter?.loadLanguageFromJson(msg['json'] as String);
       case 'loadTheme':

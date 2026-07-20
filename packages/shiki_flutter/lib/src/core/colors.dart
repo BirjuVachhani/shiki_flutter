@@ -25,7 +25,9 @@ Map<String, String> resolveColorReplacements(
 
 /// Applies color replacements to a resolved color (case-insensitive key).
 String? applyColorReplacements(
-    String? color, Map<String, String>? replacements) {
+  String? color,
+  Map<String, String>? replacements,
+) {
   if (color == null || color.isEmpty) return color;
   return replacements?[color.toLowerCase()] ?? color;
 }

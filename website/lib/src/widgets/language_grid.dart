@@ -41,7 +41,9 @@ class _LanguageGridState extends State<LanguageGrid> {
   List<({String id, String name})> get _filtered {
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return supportedLanguages;
-    return supportedLanguages.where((l) => l.id.contains(q) || l.name.toLowerCase().contains(q)).toList();
+    return supportedLanguages
+        .where((l) => l.id.contains(q) || l.name.toLowerCase().contains(q))
+        .toList();
   }
 
   @override
@@ -69,15 +71,21 @@ class _LanguageGridState extends State<LanguageGrid> {
               shape: RoundedSuperellipseBorder(
                 borderRadius: .circular(16),
                 side: BorderSide(
-                  color: Theme.of(context).brightness == .dark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-                )
+                  color: Theme.of(context).brightness == .dark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.1),
+                ),
               ),
             ),
             child: results.isEmpty
                 ? _empty(context)
                 : ClipPath(
-                  clipper: ShapeBorderClipper(shape: RoundedSuperellipseBorder(borderRadius: .circular(16))),
-                  child: Scrollbar(
+                    clipper: ShapeBorderClipper(
+                      shape: RoundedSuperellipseBorder(
+                        borderRadius: .circular(16),
+                      ),
+                    ),
+                    child: Scrollbar(
                       controller: _scroll,
                       thumbVisibility: true,
                       child: ListView.separated(
@@ -86,7 +94,8 @@ class _LanguageGridState extends State<LanguageGrid> {
                         scrollDirection: Axis.horizontal,
                         // padding: EdgeInsets.zero,
                         itemCount: columnCount,
-                        separatorBuilder: (_, _) => const SizedBox(width: _columnSpacing),
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(width: _columnSpacing),
                         itemBuilder: (context, col) {
                           final start = col * _rows;
                           final end = (start + _rows).clamp(0, results.length);
@@ -96,7 +105,8 @@ class _LanguageGridState extends State<LanguageGrid> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 for (var i = start; i < end; i++) ...[
-                                  if (i != start) const SizedBox(height: _rowSpacing),
+                                  if (i != start)
+                                    const SizedBox(height: _rowSpacing),
                                   SizedBox(
                                     height: _tileHeight,
                                     child: _LangTile(lang: results[i]),
@@ -108,7 +118,7 @@ class _LanguageGridState extends State<LanguageGrid> {
                         },
                       ),
                     ),
-                ),
+                  ),
           ),
         ],
       ),
@@ -131,11 +141,21 @@ class _LanguageGridState extends State<LanguageGrid> {
           isDense: true,
           hintText: 'Search ${supportedLanguages.length} languages…',
           hintStyle: TextStyle(color: colors.mutedForeground, fontSize: 13.5),
-          prefixIcon: Icon(Icons.search, size: 18, color: colors.mutedForeground),
-          prefixIconConstraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+          prefixIcon: Icon(
+            Icons.search,
+            size: 18,
+            color: colors.mutedForeground,
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 38,
+            minHeight: 38,
+          ),
           filled: true,
           fillColor: colors.surface,
-          contentPadding: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 11,
+            horizontal: 4,
+          ),
           border: _searchBorder(colors.border),
           enabledBorder: _searchBorder(colors.border),
           focusedBorder: _searchBorder(colors.borderStrong),

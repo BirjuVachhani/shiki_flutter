@@ -5,17 +5,20 @@ import 'tokens.dart';
 /// Builds the [ThemeData] for a given [brightness], wiring in the [AppColors]
 /// extension, the Inter UI font, and a neutral, low-chrome Material baseline.
 ThemeData buildTheme(Brightness brightness) {
-  final colors = brightness == Brightness.dark ? AppColors.dark : AppColors.light;
+  final colors = brightness == Brightness.dark
+      ? AppColors.dark
+      : AppColors.light;
 
-  final scheme = ColorScheme.fromSeed(
-    seedColor: colors.foreground,
-    brightness: brightness,
-  ).copyWith(
-    surface: colors.background,
-    onSurface: colors.foreground,
-    primary: colors.primary,
-    onPrimary: colors.onPrimary,
-  );
+  final scheme =
+      ColorScheme.fromSeed(
+        seedColor: colors.foreground,
+        brightness: brightness,
+      ).copyWith(
+        surface: colors.background,
+        onSurface: colors.foreground,
+        primary: colors.primary,
+        onPrimary: colors.onPrimary,
+      );
 
   final base = ThemeData(
     brightness: brightness,
@@ -38,7 +41,8 @@ ThemeData buildTheme(Brightness brightness) {
     ),
     scrollbarTheme: ScrollbarThemeData(
       thumbColor: WidgetStateProperty.resolveWith((states) {
-        final hovered = states.contains(WidgetState.hovered) ||
+        final hovered =
+            states.contains(WidgetState.hovered) ||
             states.contains(WidgetState.dragged);
         return colors.foreground.withValues(alpha: hovered ? 0.45 : 0.28);
       }),
@@ -64,7 +68,9 @@ ThemeData buildTheme(Brightness brightness) {
 TextTheme _textTheme(TextTheme base, Color fg) {
   TextStyle apply(TextStyle? s) =>
       (s ?? const TextStyle()).copyWith(color: fg, fontFamily: AppFonts.sans);
-  return base.apply(fontFamily: AppFonts.sans).copyWith(
+  return base
+      .apply(fontFamily: AppFonts.sans)
+      .copyWith(
         displayLarge: apply(base.displayLarge),
         displayMedium: apply(base.displayMedium),
         headlineLarge: apply(base.headlineLarge),

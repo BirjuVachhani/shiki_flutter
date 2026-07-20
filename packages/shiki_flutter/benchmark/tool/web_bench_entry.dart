@@ -35,18 +35,22 @@ void main() {
   }
 
   print('\n==== WEB (dart2js / V8) tokenize: Dart / GitHub Dark ====');
-  print('size   lines   fast-path ms   interpreter ms   speedup   lines/s(fast)');
+  print(
+    'size   lines   fast-path ms   interpreter ms   speedup   lines/s(fast)',
+  );
   for (final size in CorpusSize.values) {
     final fast = median(size, fastPath: true);
     final doInterp = size != CorpusSize.xl;
     final interp = doInterp ? median(size, fastPath: false) : 0.0;
     final lps = (size.lines / (fast / 1000)).round();
-    print('${size.label.padRight(5)}  '
-        '${size.lines.toString().padLeft(5)}  '
-        '${fast.toStringAsFixed(1).padLeft(11)}  '
-        '${(doInterp ? interp.toStringAsFixed(1) : "-").padLeft(13)}  '
-        '${(doInterp ? "${(interp / fast).toStringAsFixed(1)}x" : "-").padLeft(7)}  '
-        '${lps.toString().padLeft(12)}');
+    print(
+      '${size.label.padRight(5)}  '
+      '${size.lines.toString().padLeft(5)}  '
+      '${fast.toStringAsFixed(1).padLeft(11)}  '
+      '${(doInterp ? interp.toStringAsFixed(1) : "-").padLeft(13)}  '
+      '${(doInterp ? "${(interp / fast).toStringAsFixed(1)}x" : "-").padLeft(7)}  '
+      '${lps.toString().padLeft(12)}',
+    );
   }
   OnigRegex.fastPathEnabled = true;
 }

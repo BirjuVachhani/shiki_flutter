@@ -17,11 +17,15 @@ class BasicScopeAttributes {
 
 class BasicScopeAttributesProvider {
   BasicScopeAttributesProvider(
-      int initialLanguageId, EmbeddedLanguagesMap? embeddedLanguages)
-      : _defaultAttributes =
-            BasicScopeAttributes(initialLanguageId, OptionalStandardTokenType.notSet),
-        _embeddedLanguagesMatcher =
-            _ScopeMatcher((embeddedLanguages ?? {}).entries.toList());
+    int initialLanguageId,
+    EmbeddedLanguagesMap? embeddedLanguages,
+  ) : _defaultAttributes = BasicScopeAttributes(
+        initialLanguageId,
+        OptionalStandardTokenType.notSet,
+      ),
+      _embeddedLanguagesMatcher = _ScopeMatcher(
+        (embeddedLanguages ?? {}).entries.toList(),
+      );
 
   final BasicScopeAttributes _defaultAttributes;
   final _ScopeMatcher _embeddedLanguagesMatcher;
@@ -32,10 +36,10 @@ class BasicScopeAttributesProvider {
 
   late final CachedFn<String, BasicScopeAttributes> _getBasicScopeAttributes =
       CachedFn((scopeName) {
-    final languageId = _scopeToLanguage(scopeName);
-    final standardTokenType = _toStandardTokenType(scopeName);
-    return BasicScopeAttributes(languageId, standardTokenType);
-  });
+        final languageId = _scopeToLanguage(scopeName);
+        final standardTokenType = _toStandardTokenType(scopeName);
+        return BasicScopeAttributes(languageId, standardTokenType);
+      });
 
   BasicScopeAttributes getBasicScopeAttributes(String? scopeName) {
     if (scopeName == null) return _nullScopeMetadata;
@@ -45,8 +49,9 @@ class BasicScopeAttributesProvider {
   int _scopeToLanguage(String scope) =>
       _embeddedLanguagesMatcher.match(scope) ?? 0;
 
-  static final RegExp _standardTokenTypeRegExp =
-      RegExp(r'\b(comment|string|regex|meta\.embedded)\b');
+  static final RegExp _standardTokenTypeRegExp = RegExp(
+    r'\b(comment|string|regex|meta\.embedded)\b',
+  );
 
   int _toStandardTokenType(String scopeName) {
     final m = _standardTokenTypeRegExp.firstMatch(scopeName);
@@ -72,12 +77,12 @@ class _ScopeMatcher {
       _scopesRegExp = null;
     } else {
       _values = {for (final e in values) e.key: e.value};
-      final escapedScopes =
-          values.map((e) => escapeRegExpCharacters(e.key)).toList();
+      final escapedScopes = values
+          .map((e) => escapeRegExpCharacters(e.key))
+          .toList();
       escapedScopes.sort();
       final reversed = escapedScopes.reversed.toList(); // longest scope first
-      _scopesRegExp =
-          RegExp('^((${reversed.join(")|(")}))(\$|\\.)');
+      _scopesRegExp = RegExp('^((${reversed.join(")|(")}))(\$|\\.)');
     }
   }
 

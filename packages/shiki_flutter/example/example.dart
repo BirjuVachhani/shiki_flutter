@@ -17,22 +17,21 @@ void main() {
 
 void main() {
   // Batteries-included: pass bundled languages/themes by symbol.
-  final highlighter = createHighlighter(
-    langs: [dart],
-    themes: [githubDark],
-  );
+  final highlighter = createHighlighter(langs: [dart], themes: [githubDark]);
 
-  runApp(MaterialApp(
-    home: Scaffold(
-      body: Center(
-        child: ShikiCodeView(
-          highlighter: highlighter,
-          code: _code.trim(),
-          lang: dart.id, // 'dart'
-          theme: githubDark.id, // 'github-dark'
-          textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 16),
+  runApp(
+    MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: ShikiCodeView(
+            highlighter: highlighter,
+            code: _code.trim(),
+            lang: dart.id, // 'dart'
+            theme: githubDark.id, // 'github-dark'
+            textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 16),
+          ),
         ),
       ),
     ),
-  ));
+  );
 }

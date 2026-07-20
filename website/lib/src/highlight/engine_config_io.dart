@@ -9,6 +9,6 @@ import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 /// build hook), so there is no flag to set; this variant is never part of the web
 /// build (see [engine_config.dart]).
 ShikiHighlighterConfig siteHighlighterConfig() => const ShikiHighlighterConfig(
-      ioEngine: ShikiHighlighterNativeEngine(),
-      asyncIO: true,
-    );
+  ioEngine: ShikiHighlighterNativeEngine(),
+  asyncIO: true,
+);

@@ -35,13 +35,18 @@ void main() {
             aliases: [],
             embedded: [
               LangDescriptor(
-                  id: 'js', scopeName: 'source.js', json: '{"name":"js"}'),
+                id: 'js',
+                scopeName: 'source.js',
+                json: '{"name":"js"}',
+              ),
             ],
           ),
         ],
       );
 
-      final back = langDescriptorFromJson(_roundTripMap(langDescriptorToJson(d)));
+      final back = langDescriptorFromJson(
+        _roundTripMap(langDescriptorToJson(d)),
+      );
 
       expect(back.id, d.id);
       expect(back.scopeName, d.scopeName);
@@ -64,7 +69,9 @@ void main() {
         colorReplacements: {'#ffffff': '#000000', '#ff0000': '#00ff00'},
       );
 
-      final back = tokenizeOptionsFromJson(_roundTripMap(tokenizeOptionsToJson(o)));
+      final back = tokenizeOptionsFromJson(
+        _roundTripMap(tokenizeOptionsToJson(o)),
+      );
 
       expect(back.lang, 'dart');
       expect(back.theme, 'github-dark');
@@ -76,7 +83,9 @@ void main() {
 
     test('applies defaults for a minimal (null-field) options', () {
       const o = TokenizeOptions();
-      final back = tokenizeOptionsFromJson(_roundTripMap(tokenizeOptionsToJson(o)));
+      final back = tokenizeOptionsFromJson(
+        _roundTripMap(tokenizeOptionsToJson(o)),
+      );
       expect(back.lang, isNull);
       expect(back.theme, isNull);
       expect(back.includeExplanation, isFalse);
@@ -100,9 +109,7 @@ void main() {
           ),
           ThemedToken(content: ' ', offset: 4),
         ],
-        [
-          ThemedToken(content: 'main', offset: 5, color: '#00ff00'),
-        ],
+        [ThemedToken(content: 'main', offset: 5, color: '#00ff00')],
       ];
 
       final back = tokensFromJson(_roundTripList(tokensToJson(tokens)));
@@ -131,13 +138,18 @@ void main() {
       const config = WorkerConfig(
         langs: [
           LangDescriptor(
-              id: 'dart', scopeName: 'source.dart', json: '{"name":"dart"}'),
+            id: 'dart',
+            scopeName: 'source.dart',
+            json: '{"name":"dart"}',
+          ),
         ],
         rawLangJsons: ['{"name":"custom"}'],
         themeJsons: ['{"name":"github-dark"}', '{"name":"nord"}'],
       );
 
-      final back = workerConfigFromJson(_roundTripMap(workerConfigToJson(config)));
+      final back = workerConfigFromJson(
+        _roundTripMap(workerConfigToJson(config)),
+      );
 
       expect(back.langs.single.id, 'dart');
       expect(back.langs.single.scopeName, 'source.dart');
@@ -153,16 +165,21 @@ void main() {
       expect(engineTag(null), isNull);
     });
 
-    test('workerConfigToJson carries the engine tag (drives script selection)', () {
-      // The web transport reads this tag to pick which single-purpose worker
-      // script to load, so it must survive the encode.
-      final json = workerConfigToJson(const WorkerConfig(
-        engine: ShikiHighlighterDartEngine(),
-        langs: [],
-        rawLangJsons: [],
-        themeJsons: [],
-      ));
-      expect(_roundTripMap(json)['engine'], 'dart');
-    });
+    test(
+      'workerConfigToJson carries the engine tag (drives script selection)',
+      () {
+        // The web transport reads this tag to pick which single-purpose worker
+        // script to load, so it must survive the encode.
+        final json = workerConfigToJson(
+          const WorkerConfig(
+            engine: ShikiHighlighterDartEngine(),
+            langs: [],
+            rawLangJsons: [],
+            themeJsons: [],
+          ),
+        );
+        expect(_roundTripMap(json)['engine'], 'dart');
+      },
+    );
   });
 }

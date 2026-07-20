@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter_website/main.dart';
 
 void main() {
-  testWidgets('home renders and Documentation navigates to docs',
-      (tester) async {
+  testWidgets('home renders and Documentation navigates to docs', (
+    tester,
+  ) async {
     // Use a desktop-sized surface so the wide layout (nav links, sidebar) runs.
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1.0;

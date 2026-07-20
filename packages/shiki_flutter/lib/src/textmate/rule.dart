@@ -37,10 +37,10 @@ abstract class GrammarRules implements RuleFactoryHelper, OnigScannerFactory {}
 
 abstract class Rule {
   Rule(this.id, String? name, String? contentName)
-      : _name = name,
-        _nameIsCapturing = RegexSource.hasCaptures(name),
-        _contentName = contentName,
-        _contentNameIsCapturing = RegexSource.hasCaptures(contentName);
+    : _name = name,
+      _nameIsCapturing = RegexSource.hasCaptures(name),
+      _contentName = contentName,
+      _contentNameIsCapturing = RegexSource.hasCaptures(contentName);
 
   final RuleId id;
   final String? _name;
@@ -58,7 +58,10 @@ abstract class Rule {
     return RegexSource.replaceCaptures(_name, lineText, captureIndices);
   }
 
-  String? getContentName(String lineText, List<OnigCaptureIndex> captureIndices) {
+  String? getContentName(
+    String lineText,
+    List<OnigCaptureIndex> captureIndices,
+  ) {
     if (!_contentNameIsCapturing || _contentName == null) {
       return _contentName;
     }
@@ -67,7 +70,11 @@ abstract class Rule {
 
   void collectPatterns(RuleFactoryHelper grammar, RegExpSourceList out);
   CompiledRule compileAG(
-      GrammarRules grammar, String? endRegexSource, bool allowA, bool allowG);
+    GrammarRules grammar,
+    String? endRegexSource,
+    bool allowA,
+    bool allowG,
+  );
 }
 
 class CompilePatternsResult {
@@ -77,8 +84,12 @@ class CompilePatternsResult {
 }
 
 class CaptureRule extends Rule {
-  CaptureRule(super.id, super.name, super.contentName,
-      this.retokenizeCapturedWithRuleId);
+  CaptureRule(
+    super.id,
+    super.name,
+    super.contentName,
+    this.retokenizeCapturedWithRuleId,
+  );
 
   /// 0 means "no retokenization".
   final RuleId retokenizeCapturedWithRuleId;
@@ -90,15 +101,19 @@ class CaptureRule extends Rule {
 
   @override
   CompiledRule compileAG(
-      GrammarRules grammar, String? endRegexSource, bool allowA, bool allowG) {
+    GrammarRules grammar,
+    String? endRegexSource,
+    bool allowA,
+    bool allowG,
+  ) {
     throw StateError('Not supported!');
   }
 }
 
 class MatchRule extends Rule {
   MatchRule(RuleId id, String? name, String match, this.captures)
-      : _match = RegExpSource(match, id),
-        super(id, name, null);
+    : _match = RegExpSource(match, id),
+      super(id, name, null);
 
   final RegExpSource _match;
   final List<CaptureRule?> captures;
@@ -113,8 +128,14 @@ class MatchRule extends Rule {
 
   @override
   CompiledRule compileAG(
-      GrammarRules grammar, String? endRegexSource, bool allowA, bool allowG) {
-    return _getCachedCompiledPatterns(grammar).compileAG(grammar, allowA, allowG);
+    GrammarRules grammar,
+    String? endRegexSource,
+    bool allowA,
+    bool allowG,
+  ) {
+    return _getCachedCompiledPatterns(
+      grammar,
+    ).compileAG(grammar, allowA, allowG);
   }
 
   RegExpSourceList _getCachedCompiledPatterns(RuleFactoryHelper grammar) {
@@ -128,10 +149,13 @@ class MatchRule extends Rule {
 }
 
 class IncludeOnlyRule extends Rule {
-  IncludeOnlyRule(super.id, super.name, super.contentName,
-      CompilePatternsResult patterns)
-      : patterns = patterns.patterns,
-        hasMissingPatterns = patterns.hasMissingPatterns;
+  IncludeOnlyRule(
+    super.id,
+    super.name,
+    super.contentName,
+    CompilePatternsResult patterns,
+  ) : patterns = patterns.patterns,
+      hasMissingPatterns = patterns.hasMissingPatterns;
 
   final List<RuleId> patterns;
   final bool hasMissingPatterns;
@@ -146,8 +170,14 @@ class IncludeOnlyRule extends Rule {
 
   @override
   CompiledRule compileAG(
-      GrammarRules grammar, String? endRegexSource, bool allowA, bool allowG) {
-    return _getCachedCompiledPatterns(grammar).compileAG(grammar, allowA, allowG);
+    GrammarRules grammar,
+    String? endRegexSource,
+    bool allowA,
+    bool allowG,
+  ) {
+    return _getCachedCompiledPatterns(
+      grammar,
+    ).compileAG(grammar, allowA, allowG);
   }
 
   RegExpSourceList _getCachedCompiledPatterns(RuleFactoryHelper grammar) {
@@ -172,14 +202,13 @@ class BeginEndRule extends Rule {
     this.endCaptures,
     bool? applyEndPatternLast,
     CompilePatternsResult patterns,
-  )   : _begin = RegExpSource(begin, id),
-        _end = RegExpSource(end ?? '￿', -1),
-        endHasBackReferences =
-            RegExpSource(end ?? '￿', -1).hasBackReferences,
-        applyEndPatternLast = applyEndPatternLast ?? false,
-        patterns = patterns.patterns,
-        hasMissingPatterns = patterns.hasMissingPatterns,
-        super(id, name, contentName);
+  ) : _begin = RegExpSource(begin, id),
+      _end = RegExpSource(end ?? '￿', -1),
+      endHasBackReferences = RegExpSource(end ?? '￿', -1).hasBackReferences,
+      applyEndPatternLast = applyEndPatternLast ?? false,
+      patterns = patterns.patterns,
+      hasMissingPatterns = patterns.hasMissingPatterns,
+      super(id, name, contentName);
 
   final RegExpSource _begin;
   final List<CaptureRule?> beginCaptures;
@@ -195,8 +224,9 @@ class BeginEndRule extends Rule {
   String get debugEndRegExp => _end.source;
 
   String getEndWithResolvedBackReferences(
-          String lineText, List<OnigCaptureIndex> captureIndices) =>
-      _end.resolveBackReferences(lineText, captureIndices);
+    String lineText,
+    List<OnigCaptureIndex> captureIndices,
+  ) => _end.resolveBackReferences(lineText, captureIndices);
 
   @override
   void collectPatterns(RuleFactoryHelper grammar, RegExpSourceList out) {
@@ -205,13 +235,21 @@ class BeginEndRule extends Rule {
 
   @override
   CompiledRule compileAG(
-      GrammarRules grammar, String? endRegexSource, bool allowA, bool allowG) {
-    return _getCachedCompiledPatterns(grammar, endRegexSource)
-        .compileAG(grammar, allowA, allowG);
+    GrammarRules grammar,
+    String? endRegexSource,
+    bool allowA,
+    bool allowG,
+  ) {
+    return _getCachedCompiledPatterns(
+      grammar,
+      endRegexSource,
+    ).compileAG(grammar, allowA, allowG);
   }
 
   RegExpSourceList _getCachedCompiledPatterns(
-      RuleFactoryHelper grammar, String? endRegexSource) {
+    RuleFactoryHelper grammar,
+    String? endRegexSource,
+  ) {
     if (_cachedCompiledPatterns == null) {
       final list = RegExpSourceList();
       for (final pattern in patterns) {
@@ -226,8 +264,10 @@ class BeginEndRule extends Rule {
     }
     if (_end.hasBackReferences) {
       if (applyEndPatternLast) {
-        _cachedCompiledPatterns!
-            .setSource(_cachedCompiledPatterns!.length - 1, endRegexSource!);
+        _cachedCompiledPatterns!.setSource(
+          _cachedCompiledPatterns!.length - 1,
+          endRegexSource!,
+        );
       } else {
         _cachedCompiledPatterns!.setSource(0, endRegexSource!);
       }
@@ -247,13 +287,15 @@ class BeginWhileRule extends Rule {
     String whilePattern,
     this.whileCaptures,
     CompilePatternsResult patterns,
-  )   : _begin = RegExpSource(begin, id),
-        _while = RegExpSource(whilePattern, whileRuleId),
-        whileHasBackReferences = RegExpSource(whilePattern, whileRuleId)
-            .hasBackReferences,
-        patterns = patterns.patterns,
-        hasMissingPatterns = patterns.hasMissingPatterns,
-        super(id, name, contentName);
+  ) : _begin = RegExpSource(begin, id),
+      _while = RegExpSource(whilePattern, whileRuleId),
+      whileHasBackReferences = RegExpSource(
+        whilePattern,
+        whileRuleId,
+      ).hasBackReferences,
+      patterns = patterns.patterns,
+      hasMissingPatterns = patterns.hasMissingPatterns,
+      super(id, name, contentName);
 
   final RegExpSource _begin;
   final List<CaptureRule?> beginCaptures;
@@ -266,8 +308,9 @@ class BeginWhileRule extends Rule {
   RegExpSourceList? _cachedCompiledWhilePatterns;
 
   String getWhileWithResolvedBackReferences(
-          String lineText, List<OnigCaptureIndex> captureIndices) =>
-      _while.resolveBackReferences(lineText, captureIndices);
+    String lineText,
+    List<OnigCaptureIndex> captureIndices,
+  ) => _while.resolveBackReferences(lineText, captureIndices);
 
   @override
   void collectPatterns(RuleFactoryHelper grammar, RegExpSourceList out) {
@@ -276,8 +319,14 @@ class BeginWhileRule extends Rule {
 
   @override
   CompiledRule compileAG(
-      GrammarRules grammar, String? endRegexSource, bool allowA, bool allowG) {
-    return _getCachedCompiledPatterns(grammar).compileAG(grammar, allowA, allowG);
+    GrammarRules grammar,
+    String? endRegexSource,
+    bool allowA,
+    bool allowG,
+  ) {
+    return _getCachedCompiledPatterns(
+      grammar,
+    ).compileAG(grammar, allowA, allowG);
   }
 
   RegExpSourceList _getCachedCompiledPatterns(RuleFactoryHelper grammar) {
@@ -291,14 +340,22 @@ class BeginWhileRule extends Rule {
     return _cachedCompiledPatterns!;
   }
 
-  CompiledRule compileWhileAG(GrammarRules grammar, String? endRegexSource,
-      bool allowA, bool allowG) {
-    return _getCachedCompiledWhilePatterns(grammar, endRegexSource)
-        .compileAG(grammar, allowA, allowG);
+  CompiledRule compileWhileAG(
+    GrammarRules grammar,
+    String? endRegexSource,
+    bool allowA,
+    bool allowG,
+  ) {
+    return _getCachedCompiledWhilePatterns(
+      grammar,
+      endRegexSource,
+    ).compileAG(grammar, allowA, allowG);
   }
 
   RegExpSourceList _getCachedCompiledWhilePatterns(
-      RuleFactoryHelper grammar, String? endRegexSource) {
+    RuleFactoryHelper grammar,
+    String? endRegexSource,
+  ) {
     _cachedCompiledWhilePatterns ??= () {
       final list = RegExpSourceList();
       list.push(_while.hasBackReferences ? _while.clone() : _while);
@@ -377,14 +434,16 @@ class RegExpSource {
   }
 
   String resolveBackReferences(
-      String lineText, List<OnigCaptureIndex> captureIndices) {
+    String lineText,
+    List<OnigCaptureIndex> captureIndices,
+  ) {
     final capturedValues = [
       for (final capture in captureIndices)
         // Unset groups carry a sentinel start/end beyond the string; treat them
         // as the empty string (matching JavaScript's lenient `substring`).
         (capture.start >= 0 && capture.end <= lineText.length)
             ? lineText.substring(capture.start, capture.end)
-            : ''
+            : '',
     ];
     return source.replaceAllMapped(_backReferencingEnd, (m) {
       final index = int.parse(m[1]!);
@@ -515,7 +574,10 @@ class RegExpSourceList {
   }
 
   CompiledRule _resolveAnchors(
-      OnigScannerFactory factory, bool allowA, bool allowG) {
+    OnigScannerFactory factory,
+    bool allowA,
+    bool allowG,
+  ) {
     return CompiledRule(
       factory,
       [for (final e in _items) e.resolveAnchors(allowA, allowG)],
@@ -532,7 +594,7 @@ class FindNextMatchResult {
 
 class CompiledRule {
   CompiledRule(OnigScannerFactory factory, this.regExps, this.rules)
-      : scanner = factory.createScanner(regExps);
+    : scanner = factory.createScanner(regExps);
 
   final OnigScanner scanner;
   final List<String> regExps;
@@ -608,10 +670,16 @@ class RuleFactory {
             desc.contentName,
             desc.begin!,
             _compileCaptures(
-                desc.beginCaptures ?? desc.captures, helper, repository),
+              desc.beginCaptures ?? desc.captures,
+              helper,
+              repository,
+            ),
             desc.whilePattern!,
             _compileCaptures(
-                desc.whileCaptures ?? desc.captures, helper, repository),
+              desc.whileCaptures ?? desc.captures,
+              helper,
+              repository,
+            ),
             _compilePatterns(desc.patterns, helper, repository),
           );
         }
@@ -622,10 +690,16 @@ class RuleFactory {
           desc.contentName,
           desc.begin!,
           _compileCaptures(
-              desc.beginCaptures ?? desc.captures, helper, repository),
+            desc.beginCaptures ?? desc.captures,
+            helper,
+            repository,
+          ),
           desc.end,
           _compileCaptures(
-              desc.endCaptures ?? desc.captures, helper, repository),
+            desc.endCaptures ?? desc.captures,
+            helper,
+            repository,
+          ),
           desc.applyEndPatternLast,
           _compilePatterns(desc.patterns, helper, repository),
         );
@@ -658,8 +732,11 @@ class RuleFactory {
         if (numericCaptureId == null) return;
         var retokenizeCapturedWithRuleId = 0;
         if (rule.patterns != null) {
-          retokenizeCapturedWithRuleId =
-              getCompiledRuleId(rule, helper, repository);
+          retokenizeCapturedWithRuleId = getCompiledRuleId(
+            rule,
+            helper,
+            repository,
+          );
         }
         result[numericCaptureId] = createCaptureRule(
           helper,
@@ -695,31 +772,43 @@ class RuleFactory {
             case IncludeReferenceKind.relativeReference:
               final localIncludedRule = repository[reference.ruleName!];
               if (localIncludedRule != null) {
-                ruleId =
-                    getCompiledRuleId(localIncludedRule, helper, repository);
+                ruleId = getCompiledRuleId(
+                  localIncludedRule,
+                  helper,
+                  repository,
+                );
               }
             case IncludeReferenceKind.topLevelReference:
             case IncludeReferenceKind.topLevelRepositoryReference:
               final externalGrammarName = reference.scopeName!;
-              final externalGrammarInclude = reference.kind ==
+              final externalGrammarInclude =
+                  reference.kind ==
                       IncludeReferenceKind.topLevelRepositoryReference
                   ? reference.ruleName
                   : null;
 
-              final externalGrammar =
-                  helper.getExternalGrammar(externalGrammarName, repository);
+              final externalGrammar = helper.getExternalGrammar(
+                externalGrammarName,
+                repository,
+              );
 
               if (externalGrammar != null) {
                 if (externalGrammarInclude != null) {
                   final externalIncludedRule =
                       externalGrammar.repository[externalGrammarInclude];
                   if (externalIncludedRule != null) {
-                    ruleId = getCompiledRuleId(externalIncludedRule, helper,
-                        externalGrammar.repository);
+                    ruleId = getCompiledRuleId(
+                      externalIncludedRule,
+                      helper,
+                      externalGrammar.repository,
+                    );
                   }
                 } else {
-                  ruleId = getCompiledRuleId(externalGrammar.repository.self!,
-                      helper, externalGrammar.repository);
+                  ruleId = getCompiledRuleId(
+                    externalGrammar.repository.self!,
+                    helper,
+                    externalGrammar.repository,
+                  );
                 }
               }
           }

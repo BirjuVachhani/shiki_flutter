@@ -122,7 +122,11 @@ class _AppNavSheet extends StatelessWidget {
       for (var gi = 0; gi < docsGroups.length; gi++) {
         sectionBlocks.add(
           Padding(
-            padding: EdgeInsets.only(top: gi == 0 ? 0 : 20, bottom: 8, left: 12),
+            padding: EdgeInsets.only(
+              top: gi == 0 ? 0 : 20,
+              bottom: 8,
+              left: 12,
+            ),
             child: DocsGroupLabel(docsGroups[gi].title),
           ),
         );
@@ -147,7 +151,9 @@ class _AppNavSheet extends StatelessWidget {
           // dropping from the nav rather than floating mid-screen.
           alignment: Alignment.topRight,
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: sectionBlocks.isNotEmpty ? 280 : 220),
+            constraints: BoxConstraints(
+              maxWidth: sectionBlocks.isNotEmpty ? 280 : 220,
+            ),
             // A Material both paints the panel surface and satisfies the
             // InkWell / IconButton descendants (showGeneralDialog inserts none).
             child: Material(
@@ -191,12 +197,18 @@ class _AppNavSheet extends StatelessWidget {
                           ),
                           _SheetNavItem(
                             label: theme.isDark ? 'Light mode' : 'Dark mode',
-                            leading: theme.isDark ? DiffIcon.sun : DiffIcon.moon,
+                            leading: theme.isDark
+                                ? DiffIcon.sun
+                                : DiffIcon.moon,
                             onTap: theme.toggle,
                           ),
                           if (sectionBlocks.isNotEmpty) ...[
                             const SizedBox(height: 12),
-                            Divider(height: 1, thickness: 1, color: colors.border),
+                            Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: colors.border,
+                            ),
                             const SizedBox(height: 12),
                             ...sectionBlocks,
                           ],
@@ -319,7 +331,9 @@ class _DocsSectionTileState extends State<DocsSectionTile> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final active = widget.active;
-    final color = active || _hovered ? colors.foreground : colors.mutedForeground;
+    final color = active || _hovered
+        ? colors.foreground
+        : colors.mutedForeground;
     final Widget item = MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
@@ -332,7 +346,9 @@ class _DocsSectionTileState extends State<DocsSectionTile> {
           decoration: BoxDecoration(
             color: active
                 ? colors.surfaceInset
-                : (_hovered ? colors.foreground.withValues(alpha: 0.05) : Colors.transparent),
+                : (_hovered
+                      ? colors.foreground.withValues(alpha: 0.05)
+                      : Colors.transparent),
             borderRadius: BorderRadius.circular(AppRadii.sm),
           ),
           child: Text(

@@ -38,8 +38,9 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   final theme = githubDark.id;
 
-  testWidgets('engine benchmark: embedded (pure-Dart) vs oniguruma_native',
-      (tester) async {
+  testWidgets('engine benchmark: embedded (pure-Dart) vs oniguruma_native', (
+    tester,
+  ) async {
     // Web instantiates the Oniguruma wasm module asynchronously; it must be
     // loaded before the native engine tokenizes. No-op on IO.
     await loadWasm();
@@ -105,7 +106,8 @@ void main() {
     final parity = <String, dynamic>{};
     for (final size in const [CorpusSize.m, CorpusSize.l]) {
       parity[size.label] = {
-        'identical': report['_fp_embedded_${size.label}'] ==
+        'identical':
+            report['_fp_embedded_${size.label}'] ==
             report['_fp_oniguruma_native_${size.label}'],
         'tokens_embedded': report['_tok_embedded_${size.label}'],
         'tokens_native': report['_tok_oniguruma_native_${size.label}'],

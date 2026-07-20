@@ -38,8 +38,10 @@ const _samples = {
   'javascript': "const f = (a) => `t\${a}`; // c\nlet x = 0x1F, s = 'y';",
   'json': '{"a":1,"b":[true,null,"x"],"c":1.5e3}',
   'python': "def f(x):\n    return f'{x}'  # c\nclass A: pass",
-  'css': ".foo,#bar>.baz:hover{color:#fff;margin:0 auto}\n.qux::before{content:'x'}",
-  'html': '<!DOCTYPE html><div class="a"><style>.x{color:red}</style><p>hi</p></div>',
+  'css':
+      ".foo,#bar>.baz:hover{color:#fff;margin:0 auto}\n.qux::before{content:'x'}",
+  'html':
+      '<!DOCTYPE html><div class="a"><style>.x{color:red}</style><p>hi</p></div>',
 };
 
 void main() {
@@ -47,19 +49,27 @@ void main() {
   final theme = githubDark.id;
   final langs = [dart, javascript, json, python, css, html];
 
-  testWidgets('native (UTF-8) vs dart-port: parity + throughput (IO)',
-      (tester) async {
+  testWidgets('native (UTF-8) vs dart-port: parity + throughput (IO)', (
+    tester,
+  ) async {
     await loadWasm(); // no-op on IO
 
     // Golden oracle: the pure-Dart embedded engine (golden-proven).
     final embedded = createHighlighter(
-        langs: langs, themes: [githubDark],
-        engine: const ShikiHighlighterEmbeddedEngine());
+      langs: langs,
+      themes: [githubDark],
+      engine: const ShikiHighlighterEmbeddedEngine(),
+    );
     // The two async-worker candidates.
-    final port = createHighlighter(langs: langs, themes: [githubDark]); // default = dart-port
+    final port = createHighlighter(
+      langs: langs,
+      themes: [githubDark],
+    ); // default = dart-port
     final native = createHighlighter(
-        langs: langs, themes: [githubDark],
-        engine: const ShikiHighlighterNativeEngine());
+      langs: langs,
+      themes: [githubDark],
+      engine: const ShikiHighlighterNativeEngine(),
+    );
 
     // --- Parity vs the golden embedded engine, per language.
     final parity = <String, dynamic>{};
@@ -84,8 +94,10 @@ void main() {
         // Fresh highlighter so the first call pays the full compile.
         final h = name == 'native'
             ? createHighlighter(
-                langs: [dart], themes: [githubDark],
-                engine: const ShikiHighlighterNativeEngine())
+                langs: [dart],
+                themes: [githubDark],
+                engine: const ShikiHighlighterNativeEngine(),
+              )
             : createHighlighter(langs: [dart], themes: [githubDark]);
 
         final cold = Stopwatch()..start();
@@ -130,16 +142,24 @@ void main() {
 
     binding.reportData ??= <String, dynamic>{};
     binding.reportData!['engine_io_benchmark'] = report;
-    writeLocalJson('../benchmark/results/engine_io_benchmark.json',
-        const JsonEncoder.withIndent('  ').convert(report));
+    writeLocalJson(
+      '../benchmark/results/engine_io_benchmark.json',
+      const JsonEncoder.withIndent('  ').convert(report),
+    );
     // ignore: avoid_print
     print('[engine-io] ${jsonEncode(report)}');
 
     // The point of the exercise: native must now match golden on CSS/HTML.
-    expect(parity['css']['native_matches_golden'], isTrue,
-        reason: 'native engine must match golden on CSS after the UTF-8 fix');
-    expect(parity['html']['native_matches_golden'], isTrue,
-        reason: 'native engine must match golden on HTML after the UTF-8 fix');
+    expect(
+      parity['css']['native_matches_golden'],
+      isTrue,
+      reason: 'native engine must match golden on CSS after the UTF-8 fix',
+    );
+    expect(
+      parity['html']['native_matches_golden'],
+      isTrue,
+      reason: 'native engine must match golden on HTML after the UTF-8 fix',
+    );
   });
 }
 

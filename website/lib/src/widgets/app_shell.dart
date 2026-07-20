@@ -45,8 +45,7 @@ class _AppShellState extends State<AppShell> {
   bool _onScroll(ScrollNotification notification) {
     // Only track the page's own vertical scroll (depth 0), not nested
     // horizontal scrollers inside code blocks.
-    if (notification.depth == 0 &&
-        notification.metrics.axis == Axis.vertical) {
+    if (notification.depth == 0 && notification.metrics.axis == Axis.vertical) {
       final scrolled = notification.metrics.pixels > 0.5;
       if (scrolled != _scrolled.value) _scrolled.value = scrolled;
     }

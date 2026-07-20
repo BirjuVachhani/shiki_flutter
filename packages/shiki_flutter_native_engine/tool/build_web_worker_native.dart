@@ -22,8 +22,10 @@ const _output = 'lib/src/prebuilt/shiki_tokenize_worker_native.js';
 
 Future<void> main() async {
   if (!File(_entry).existsSync()) {
-    stderr.writeln('Run this from the shiki_flutter_native_engine package root '
-        '(cannot find $_entry).');
+    stderr.writeln(
+      'Run this from the shiki_flutter_native_engine package root '
+      '(cannot find $_entry).',
+    );
     exit(1);
   }
   Directory(_output).parent.createSync(recursive: true);

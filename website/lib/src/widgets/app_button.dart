@@ -54,9 +54,7 @@ class _AppButtonState extends State<AppButton> {
 
     switch (widget.variant) {
       case AppButtonVariant.primary:
-        bg = _hovered
-            ? colors.primary.withValues(alpha: 0.88)
-            : colors.primary;
+        bg = _hovered ? colors.primary.withValues(alpha: 0.88) : colors.primary;
         fg = colors.onPrimary;
       case AppButtonVariant.secondary:
         bg = _hovered

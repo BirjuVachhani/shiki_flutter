@@ -39,12 +39,10 @@ class InlineTokenizeWorker implements TokenizeWorker {
       _highlighter.loadBundledLanguage(rebuildBundledLanguage(lang));
 
   @override
-  void loadRawLanguage(String json) =>
-      _highlighter.loadLanguageFromJson(json);
+  void loadRawLanguage(String json) => _highlighter.loadLanguageFromJson(json);
 
   @override
-  void loadTheme(String themeJson) =>
-      _highlighter.loadThemeFromJson(themeJson);
+  void loadTheme(String themeJson) => _highlighter.loadThemeFromJson(themeJson);
 
   @override
   Future<void> dispose() => Future.value();

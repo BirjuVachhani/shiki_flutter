@@ -20,7 +20,5 @@ library;
 import 'package:shiki_flutter/worker_runtime.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
-void main() => runTokenizeWorker(
-      const ShikiHighlighterNativeEngine(),
-      prepare: loadWasm,
-    );
+void main() =>
+    runTokenizeWorker(const ShikiHighlighterNativeEngine(), prepare: loadWasm);

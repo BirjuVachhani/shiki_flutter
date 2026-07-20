@@ -27,11 +27,15 @@ IncludeReference parseInclude(String include) {
 
   final indexOfSharp = include.indexOf('#');
   if (indexOfSharp == -1) {
-    return IncludeReference(IncludeReferenceKind.topLevelReference,
-        scopeName: include);
+    return IncludeReference(
+      IncludeReferenceKind.topLevelReference,
+      scopeName: include,
+    );
   } else if (indexOfSharp == 0) {
-    return IncludeReference(IncludeReferenceKind.relativeReference,
-        ruleName: include.substring(1));
+    return IncludeReference(
+      IncludeReferenceKind.relativeReference,
+      ruleName: include.substring(1),
+    );
   } else {
     return IncludeReference(
       IncludeReferenceKind.topLevelRepositoryReference,

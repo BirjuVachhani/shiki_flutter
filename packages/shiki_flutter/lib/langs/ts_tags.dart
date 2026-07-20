@@ -11,7 +11,16 @@ import 'es_tag_xml.dart';
 final tsTags = BundledLanguage(
   id: 'ts-tags',
   scopeName: 'source.ts.tags',
-  json: _json, embeddedLanguages: () => [typescript, esTagCss, esTagGlsl, esTagHtml, esTagSql, esTagXml],
+  json: _json,
+  embeddedLanguages: () => [
+    typescript,
+    esTagCss,
+    esTagGlsl,
+    esTagHtml,
+    esTagSql,
+    esTagXml,
+  ],
 );
 
-const _json = '{"displayName":"TypeScript with Tags","name":"ts-tags","patterns":[{"include":"source.ts"}],"scopeName":"source.ts.tags","embeddedLangs":["typescript","es-tag-css","es-tag-glsl","es-tag-html","es-tag-sql","es-tag-xml"],"aliases":["lit"]}';
+const _json =
+    '{"displayName":"TypeScript with Tags","name":"ts-tags","patterns":[{"include":"source.ts"}],"scopeName":"source.ts.tags","embeddedLangs":["typescript","es-tag-css","es-tag-glsl","es-tag-html","es-tag-sql","es-tag-xml"],"aliases":["lit"]}';

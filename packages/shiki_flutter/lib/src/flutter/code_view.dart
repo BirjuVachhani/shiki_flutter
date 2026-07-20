@@ -115,8 +115,12 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
     // fallback whose metrics differ. Text relayouts on this signal on its own,
     // but our manual measurement does not, so we listen and rebuild.
     PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
-    _resolver.resolve(widget.highlighter, widget.code, _options,
-        async: _asyncEffective);
+    _resolver.resolve(
+      widget.highlighter,
+      widget.code,
+      _options,
+      async: _asyncEffective,
+    );
   }
 
   void _onSystemFontsChanged() {
@@ -126,8 +130,12 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
   @override
   void didUpdateWidget(ShikiCodeView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _resolver.resolve(widget.highlighter, widget.code, _options,
-        async: _asyncEffective);
+    _resolver.resolve(
+      widget.highlighter,
+      widget.code,
+      _options,
+      async: _asyncEffective,
+    );
   }
 
   @override
@@ -166,11 +174,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
     // Default: the whole document as one Text.rich in a horizontal scroller.
     Widget child = Padding(
       padding: widget.padding,
-      child: Text.rich(
-        span,
-        textScaler: widget.textScaler,
-        softWrap: false,
-      ),
+      child: Text.rich(span, textScaler: widget.textScaler, softWrap: false),
     );
 
     if (bg != null) {
@@ -201,7 +205,10 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
   ) {
     final textDirection = Directionality.of(context);
     final textScaler = widget.textScaler ?? MediaQuery.textScalerOf(context);
-    final strut = StrutStyle.fromTextStyle(effectiveBase, forceStrutHeight: true);
+    final strut = StrutStyle.fromTextStyle(
+      effectiveBase,
+      forceStrutHeight: true,
+    );
     final metrics = _metrics.measure(effectiveBase, strut, textScaler);
     final pad = widget.padding.resolve(textDirection);
 
@@ -225,7 +232,10 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
       context: context,
       codeColumn: codeColumn,
       showLineNumbers: true,
-      lineCount: _lineCount.of(widget.code, () => splitLines(widget.code).length),
+      lineCount: _lineCount.of(
+        widget.code,
+        () => splitLines(widget.code).length,
+      ),
       metrics: metrics,
       effectiveBase: effectiveBase,
       strut: strut,

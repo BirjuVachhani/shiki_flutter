@@ -154,13 +154,12 @@ class ShikiHighlighterConfig {
     ShikiHighlighterEngine? webEngine,
     bool? asyncIO,
     bool? asyncWeb,
-  }) =>
-      ShikiHighlighterConfig(
-        ioEngine: ioEngine ?? this.ioEngine,
-        webEngine: webEngine ?? this.webEngine,
-        asyncIO: asyncIO ?? this.asyncIO,
-        asyncWeb: asyncWeb ?? this.asyncWeb,
-      );
+  }) => ShikiHighlighterConfig(
+    ioEngine: ioEngine ?? this.ioEngine,
+    webEngine: webEngine ?? this.webEngine,
+    asyncIO: asyncIO ?? this.asyncIO,
+    asyncWeb: asyncWeb ?? this.asyncWeb,
+  );
 }
 
 /// A synchronous, TextMate-grammar based syntax highlighter.
@@ -195,13 +194,13 @@ class ShikiHighlighter {
   /// this instance only; when null [ShikiHighlighter.engineDefault] is used.
   /// [cache] overrides the token cache used for async highlighting.
   ShikiHighlighter({ShikiHighlighterEngine? engine, TokenCache? cache})
-      : this._(engine ?? ShikiHighlighter.engineDefault, cache ?? TokenCache());
+    : this._(engine ?? ShikiHighlighter.engineDefault, cache ?? TokenCache());
 
   ShikiHighlighter._(this._engine, this._tokenCache)
-      : _registry = SyncRegistry(
-          Theme.createFromRawTheme(RawTheme(settings: [])),
-          _engine,
-        );
+    : _registry = SyncRegistry(
+        Theme.createFromRawTheme(RawTheme(settings: [])),
+        _engine,
+      );
 
   final ShikiHighlighterEngine _engine;
   final SyncRegistry _registry;
@@ -307,7 +306,9 @@ class ShikiHighlighter {
     _themeLoadDepth++;
     try {
       if (outermost) _captureTheme(jsonEncode(themeJson));
-      final registration = normalizeTheme(ThemeRegistration.fromJson(themeJson));
+      final registration = normalizeTheme(
+        ThemeRegistration.fromJson(themeJson),
+      );
       _themes[registration.name] = registration;
       _lastLoadedTheme = registration.name;
       return registration.name;
@@ -355,7 +356,9 @@ class ShikiHighlighter {
     if (registration == null) {
       throw ShikiError('Theme "$themeName" is not loaded');
     }
-    final textmateTheme = Theme.createFromRawTheme(RawTheme(name: registration.name, settings: registration.settings));
+    final textmateTheme = Theme.createFromRawTheme(
+      RawTheme(name: registration.name, settings: registration.settings),
+    );
     final colorMap = textmateTheme.getColorMap();
     final resolved = _ResolvedTheme(registration, textmateTheme, colorMap);
     _resolvedThemes[themeName] = resolved;
@@ -372,7 +375,8 @@ class ShikiHighlighter {
   }
 
   /// The resolved theme registration (for background/foreground defaults).
-  ThemeRegistration getThemeRegistration(String themeName) => _resolveTheme(themeName).registration;
+  ThemeRegistration getThemeRegistration(String themeName) =>
+      _resolveTheme(themeName).registration;
 
   /// Tokenizes [code] and returns a list of lines, each a list of themed
   /// tokens.
@@ -382,7 +386,8 @@ class ShikiHighlighter {
 
     if (isPlainLang(lang) || isNoneTheme(themeName)) {
       return [
-        for (final line in splitLines(code)) [ThemedToken(content: line.content, offset: line.offset)],
+        for (final line in splitLines(code))
+          [ThemedToken(content: line.content, offset: line.offset)],
       ];
     }
 
@@ -414,7 +419,8 @@ class ShikiHighlighter {
   /// A widget uses this to render highlighted output on the very first frame when
   /// the result is cached (no placeholder flash).
   List<List<ThemedToken>>? peekTokens(String code, TokenizeOptions options) {
-    if (_isTrivial(options.lang, options.theme)) return codeToTokens(code, options);
+    if (_isTrivial(options.lang, options.theme))
+      return codeToTokens(code, options);
     return _tokenCache.get(TokenCache.keyFor(code, options));
   }
 
@@ -464,7 +470,8 @@ class ShikiHighlighter {
     }
   }
 
-  Future<TokenizeWorker> _ensureWorker() => _workerFuture ??= spawnTokenizeWorker(
+  Future<TokenizeWorker> _ensureWorker() =>
+      _workerFuture ??= spawnTokenizeWorker(
         WorkerConfig(
           engine: _engine,
           langs: List.of(_asyncLangDescriptors),
@@ -531,28 +538,49 @@ class ShikiHighlighter {
         continue;
       }
 
-      if (options.tokenizeMaxLineLength > 0 && line.length >= options.tokenizeMaxLineLength) {
-        result.add([ThemedToken(content: line, offset: lineOffset, color: '', fontStyle: 0)]);
+      if (options.tokenizeMaxLineLength > 0 &&
+          line.length >= options.tokenizeMaxLineLength) {
+        result.add([
+          ThemedToken(
+            content: line,
+            offset: lineOffset,
+            color: '',
+            fontStyle: 0,
+          ),
+        ]);
         continue;
       }
 
       TokenizeLineResult? withScopes;
       var scopeTokenIndex = 0;
       if (options.includeExplanation) {
-        withScopes = grammar.tokenizeLine(line, stateStack, options.tokenizeTimeLimit);
+        withScopes = grammar.tokenizeLine(
+          line,
+          stateStack,
+          options.tokenizeTimeLimit,
+        );
       }
 
-      final tokenized = grammar.tokenizeLine2(line, stateStack, options.tokenizeTimeLimit);
+      final tokenized = grammar.tokenizeLine2(
+        line,
+        stateStack,
+        options.tokenizeTimeLimit,
+      );
       final tokensLength = tokenized.tokens.length ~/ 2;
       final actual = <ThemedToken>[];
 
       for (var j = 0; j < tokensLength; j++) {
         final startIndex = tokenized.tokens[2 * j];
-        final nextStartIndex = j + 1 < tokensLength ? tokenized.tokens[2 * j + 2] : line.length;
+        final nextStartIndex = j + 1 < tokensLength
+            ? tokenized.tokens[2 * j + 2]
+            : line.length;
         if (startIndex == nextStartIndex) continue;
 
         final metadata = tokenized.tokens[2 * j + 1];
-        final color = applyColorReplacements(colorMap[EncodedTokenMetadata.getForeground(metadata)], colorReplacements);
+        final color = applyColorReplacements(
+          colorMap[EncodedTokenMetadata.getForeground(metadata)],
+          colorReplacements,
+        );
         // Deliberately no per-token background. Shiki's base tokenizer only
         // emits a foreground/fontStyle per token; the theme's background is
         // painted once on the container, never behind each token. Deriving a
@@ -566,7 +594,8 @@ class ShikiHighlighter {
         if (withScopes != null) {
           scopes = [];
           var offset = 0;
-          while (startIndex + offset < nextStartIndex && scopeTokenIndex < withScopes.tokens.length) {
+          while (startIndex + offset < nextStartIndex &&
+              scopeTokenIndex < withScopes.tokens.length) {
             final scopeToken = withScopes.tokens[scopeTokenIndex];
             offset += scopeToken.endIndex - scopeToken.startIndex;
             scopes.addAll(scopeToken.scopes);

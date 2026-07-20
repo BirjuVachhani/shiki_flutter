@@ -42,10 +42,12 @@ export 'package:oniguruma_native/oniguruma_native.dart' show loadWasm;
 // engine relies on GC), so we free the native buffers when the Dart wrappers
 // are collected. Best-effort, which is the right trade-off here: steady-state
 // tokenization reclaims memory, and process exit frees the rest.
-final Finalizer<ffi.OnigString> _stringFinalizer =
-    Finalizer<ffi.OnigString>((s) => s.dispose());
-final Finalizer<ffi.OnigScanner> _scannerFinalizer =
-    Finalizer<ffi.OnigScanner>((s) => s.dispose());
+final Finalizer<ffi.OnigString> _stringFinalizer = Finalizer<ffi.OnigString>(
+  (s) => s.dispose(),
+);
+final Finalizer<ffi.OnigScanner> _scannerFinalizer = Finalizer<ffi.OnigScanner>(
+  (s) => s.dispose(),
+);
 
 /// A [ShikiHighlighterEngine] that runs the real Oniguruma C engine through
 /// `oniguruma_native`: `dart:ffi` on IO and WebAssembly on web.

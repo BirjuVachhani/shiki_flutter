@@ -41,24 +41,28 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   final theme = githubDark.id;
 
-  testWidgets('web worker: remote, parity, and no main-thread freeze',
-      (tester) async {
+  testWidgets('web worker: remote, parity, and no main-thread freeze', (
+    tester,
+  ) async {
     final opts = TokenizeOptions(lang: _lang, theme: theme);
     final src = corpusFor(CorpusSize.l); // 2,000 lines - the freeze case
 
     // Reference: the synchronous embedded engine (the engine the worker uses).
     final ref = createHighlighter(
-        langs: [dart],
-        themes: [githubDark],
-        engine: const ShikiHighlighterEmbeddedEngine());
+      langs: [dart],
+      themes: [githubDark],
+      engine: const ShikiHighlighterEmbeddedEngine(),
+    );
     final refFp = _fp(ref.codeToTokens(src, opts));
 
     // --- Spawn the browser Web Worker directly. isRemote == true proves a real
     // Worker (not the inline fallback), i.e. the script was found and handshook.
-    final worker = await spawnTokenizeWorker(WorkerConfig(
-      langs: [flattenBundledLanguage(dart)],
-      themeJsons: [githubDark.json],
-    ));
+    final worker = await spawnTokenizeWorker(
+      WorkerConfig(
+        langs: [flattenBundledLanguage(dart)],
+        themeJsons: [githubDark.json],
+      ),
+    );
     await worker.ready;
     final workerTokens = await worker.tokenize(src, opts);
     final report = <String, dynamic>{
@@ -81,23 +85,25 @@ void main() {
     binding.addTimingsCallback(cb);
 
     final firstFrame = Stopwatch()..start();
-    await tester.pumpWidget(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: bg,
-        body: SafeArea(
-          child: ShikiCodeListView(
-            key: const Key('scroller'),
-            highlighter: jankH,
-            code: src,
-            lang: _lang,
-            theme: theme,
-            textStyle: _base.copyWith(color: fg),
-            async: true,
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: bg,
+          body: SafeArea(
+            child: ShikiCodeListView(
+              key: const Key('scroller'),
+              highlighter: jankH,
+              code: src,
+              lang: _lang,
+              theme: theme,
+              textStyle: _base.copyWith(color: fg),
+              async: true,
+            ),
           ),
         ),
       ),
-    ));
+    );
     firstFrame.stop();
     await tester.pumpAndSettle();
     // Let the worker's cold compile + tokenize land and the highlight swap in.
@@ -115,8 +121,8 @@ void main() {
     await tester.pump();
     binding.removeTimingsCallback(cb);
 
-    final totals = timings.map((t) => t.totalSpan.inMicroseconds / 1000).toList()
-      ..sort();
+    final totals =
+        timings.map((t) => t.totalSpan.inMicroseconds / 1000).toList()..sort();
     report['jank'] = {
       'frame_count': totals.length,
       'first_frame_ms': _r(firstFrame.elapsedMicroseconds / 1000),
@@ -128,18 +134,30 @@ void main() {
 
     binding.reportData ??= <String, dynamic>{};
     binding.reportData!['web_worker'] = report;
-    writeLocalJson('../benchmark/results/web_worker.json',
-        const JsonEncoder.withIndent('  ').convert(report));
+    writeLocalJson(
+      '../benchmark/results/web_worker.json',
+      const JsonEncoder.withIndent('  ').convert(report),
+    );
     // ignore: avoid_print
     print('[web-worker] ${jsonEncode(report)}');
 
-    expect(report['worker_is_remote'], isTrue,
-        reason: 'a real browser Web Worker must spawn; run '
-            '`dart run shiki_flutter:install_web_worker` first');
-    expect(report['parity_worker_vs_sync_embedded'], isTrue,
-        reason: 'worker tokens must equal the synchronous embedded engine');
-    expect(report['worker_token_count'], greaterThan(5000),
-        reason: 'the worker should tokenize the l corpus (~11k tokens)');
+    expect(
+      report['worker_is_remote'],
+      isTrue,
+      reason:
+          'a real browser Web Worker must spawn; run '
+          '`dart run shiki_flutter:install_web_worker` first',
+    );
+    expect(
+      report['parity_worker_vs_sync_embedded'],
+      isTrue,
+      reason: 'worker tokens must equal the synchronous embedded engine',
+    );
+    expect(
+      report['worker_token_count'],
+      greaterThan(5000),
+      reason: 'the worker should tokenize the l corpus (~11k tokens)',
+    );
   });
 }
 

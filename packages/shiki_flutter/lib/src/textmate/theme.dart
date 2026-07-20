@@ -107,7 +107,9 @@ class ScopeStack {
 }
 
 bool _scopePathMatchesParentScopes(
-    ScopeStack? scopePath, List<String> parentScopes) {
+  ScopeStack? scopePath,
+  List<String> parentScopes,
+) {
   if (parentScopes.isEmpty) return true;
 
   for (var index = 0; index < parentScopes.length; index++) {
@@ -216,14 +218,16 @@ List<ParsedThemeRule> parseTheme(RawTheme? source) {
         parentScopes = segments.sublist(0, segments.length - 1);
         parentScopes = parentScopes.reversed.toList();
       }
-      result.add(ParsedThemeRule(
-        scopeName,
-        parentScopes,
-        i,
-        fontStyle,
-        foreground,
-        background,
-      ));
+      result.add(
+        ParsedThemeRule(
+          scopeName,
+          parentScopes,
+          i,
+          fontStyle,
+          foreground,
+          background,
+        ),
+      );
     }
   }
   return result;
@@ -288,13 +292,22 @@ class ThemeTrieElementRule {
   int background;
 
   ThemeTrieElementRule clone() => ThemeTrieElementRule(
-      scopeDepth, parentScopes, fontStyle, foreground, background);
+    scopeDepth,
+    parentScopes,
+    fontStyle,
+    foreground,
+    background,
+  );
 
   static List<ThemeTrieElementRule> cloneArr(List<ThemeTrieElementRule> arr) =>
       [for (final r in arr) r.clone()];
 
   void acceptOverwrite(
-      int scopeDepth, int fontStyle, int foreground, int background) {
+    int scopeDepth,
+    int fontStyle,
+    int foreground,
+    int background,
+  ) {
     if (this.scopeDepth <= scopeDepth) {
       this.scopeDepth = scopeDepth;
     }
@@ -309,8 +322,8 @@ class ThemeTrieElement {
     this._mainRule, [
     List<ThemeTrieElementRule>? rulesWithParentScopes,
     Map<String, ThemeTrieElement>? children,
-  ])  : _rulesWithParentScopes = rulesWithParentScopes ?? [],
-        _children = children ?? {};
+  ]) : _rulesWithParentScopes = rulesWithParentScopes ?? [],
+       _children = children ?? {};
 
   final ThemeTrieElementRule _mainRule;
   final List<ThemeTrieElementRule> _rulesWithParentScopes;
@@ -335,7 +348,8 @@ class ThemeTrieElement {
           bParentIndex >= b.parentScopes.length) {
         break;
       }
-      final diff = b.parentScopes[bParentIndex].length -
+      final diff =
+          b.parentScopes[bParentIndex].length -
           a.parentScopes[aParentIndex].length;
       if (diff != 0) return diff;
       aParentIndex++;
@@ -366,10 +380,22 @@ class ThemeTrieElement {
     return rules;
   }
 
-  void insert(int scopeDepth, String scope, List<String>? parentScopes,
-      int fontStyle, int foreground, int background) {
+  void insert(
+    int scopeDepth,
+    String scope,
+    List<String>? parentScopes,
+    int fontStyle,
+    int foreground,
+    int background,
+  ) {
     if (scope == '') {
-      _doInsertHere(scopeDepth, parentScopes, fontStyle, foreground, background);
+      _doInsertHere(
+        scopeDepth,
+        parentScopes,
+        fontStyle,
+        foreground,
+        background,
+      );
       return;
     }
 
@@ -394,11 +420,22 @@ class ThemeTrieElement {
     }
 
     child.insert(
-        scopeDepth + 1, tail, parentScopes, fontStyle, foreground, background);
+      scopeDepth + 1,
+      tail,
+      parentScopes,
+      fontStyle,
+      foreground,
+      background,
+    );
   }
 
-  void _doInsertHere(int scopeDepth, List<String>? parentScopes, int fontStyle,
-      int foreground, int background) {
+  void _doInsertHere(
+    int scopeDepth,
+    List<String>? parentScopes,
+    int fontStyle,
+    int foreground,
+    int background,
+  ) {
     if (parentScopes == null) {
       _mainRule.acceptOverwrite(scopeDepth, fontStyle, foreground, background);
       return;
@@ -415,8 +452,15 @@ class ThemeTrieElement {
     if (foreground == 0) foreground = _mainRule.foreground;
     if (background == 0) background = _mainRule.background;
 
-    _rulesWithParentScopes.add(ThemeTrieElementRule(
-        scopeDepth, parentScopes, fontStyle, foreground, background));
+    _rulesWithParentScopes.add(
+      ThemeTrieElementRule(
+        scopeDepth,
+        parentScopes,
+        fontStyle,
+        foreground,
+        background,
+      ),
+    );
   }
 }
 
@@ -435,8 +479,10 @@ class Theme {
     return createFromParsedTheme(parseTheme(source), colorMap);
   }
 
-  static Theme createFromParsedTheme(List<ParsedThemeRule> source,
-      [List<String>? colorMap]) {
+  static Theme createFromParsedTheme(
+    List<ParsedThemeRule> source, [
+    List<String>? colorMap,
+  ]) {
     return _resolveParsedThemeRules(source, colorMap);
   }
 
@@ -452,7 +498,10 @@ class Theme {
     for (final rule in matchingTrieElements) {
       if (_scopePathMatchesParentScopes(scopePath.parent, rule.parentScopes)) {
         return StyleAttributes(
-            rule.fontStyle, rule.foreground, rule.background);
+          rule.fontStyle,
+          rule.foreground,
+          rule.background,
+        );
       }
     }
     return null;
@@ -460,7 +509,9 @@ class Theme {
 }
 
 Theme _resolveParsedThemeRules(
-    List<ParsedThemeRule> parsedThemeRules, List<String>? colorMapArg) {
+  List<ParsedThemeRule> parsedThemeRules,
+  List<String>? colorMapArg,
+) {
   parsedThemeRules.sort((a, b) {
     var r = strcmp(a.scope, b.scope);
     if (r != 0) return r;
@@ -482,14 +533,25 @@ Theme _resolveParsedThemeRules(
   }
 
   final colorMap = ColorMap(colorMapArg);
-  final defaults = StyleAttributes(defaultFontStyle,
-      colorMap.getId(defaultForeground), colorMap.getId(defaultBackground));
+  final defaults = StyleAttributes(
+    defaultFontStyle,
+    colorMap.getId(defaultForeground),
+    colorMap.getId(defaultBackground),
+  );
 
   final root = ThemeTrieElement(
-      ThemeTrieElementRule(0, null, FontStyle.notSet, 0, 0), []);
+    ThemeTrieElementRule(0, null, FontStyle.notSet, 0, 0),
+    [],
+  );
   for (final rule in parsedThemeRules) {
-    root.insert(0, rule.scope, rule.parentScopes, rule.fontStyle,
-        colorMap.getId(rule.foreground), colorMap.getId(rule.background));
+    root.insert(
+      0,
+      rule.scope,
+      rule.parentScopes,
+      rule.fontStyle,
+      colorMap.getId(rule.foreground),
+      colorMap.getId(rule.background),
+    );
   }
 
   return Theme(colorMap, defaults, root);

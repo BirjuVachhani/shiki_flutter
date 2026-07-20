@@ -7,11 +7,14 @@ import 'package:shiki_flutter/shiki_flutter.dart';
 ShikiHighlighter buildHighlighter() {
   final hl = ShikiHighlighter();
   hl.loadLanguageFromJson(
-      File('test/fixtures/langs/javascript.json').readAsStringSync());
+    File('test/fixtures/langs/javascript.json').readAsStringSync(),
+  );
   hl.loadLanguageFromJson(
-      File('test/fixtures/langs/json.json').readAsStringSync());
+    File('test/fixtures/langs/json.json').readAsStringSync(),
+  );
   hl.loadThemeFromJson(
-      File('test/fixtures/themes/github-dark.json').readAsStringSync());
+    File('test/fixtures/themes/github-dark.json').readAsStringSync(),
+  );
   hl.addLanguageAlias('js', 'javascript');
   return hl;
 }
@@ -54,8 +57,9 @@ void main() {
       );
       for (final token in tokens.first) {
         expect(
-            code.substring(token.offset, token.offset + token.content.length),
-            token.content);
+          code.substring(token.offset, token.offset + token.content.length),
+          token.content,
+        );
       }
     });
 
@@ -72,12 +76,18 @@ void main() {
 
     test('language alias resolves', () {
       final hl = buildHighlighter();
-      final viaAlias = hl.codeToTokens('const x = 1;',
-          const TokenizeOptions(lang: 'js', theme: 'github-dark'));
-      final viaName = hl.codeToTokens('const x = 1;',
-          const TokenizeOptions(lang: 'javascript', theme: 'github-dark'));
-      expect(viaAlias.first.map((t) => t.content).toList(),
-          viaName.first.map((t) => t.content).toList());
+      final viaAlias = hl.codeToTokens(
+        'const x = 1;',
+        const TokenizeOptions(lang: 'js', theme: 'github-dark'),
+      );
+      final viaName = hl.codeToTokens(
+        'const x = 1;',
+        const TokenizeOptions(lang: 'javascript', theme: 'github-dark'),
+      );
+      expect(
+        viaAlias.first.map((t) => t.content).toList(),
+        viaName.first.map((t) => t.content).toList(),
+      );
     });
 
     test('includeExplanation attaches scopes', () {
@@ -85,9 +95,10 @@ void main() {
       final tokens = hl.codeToTokens(
         'const x = 1;',
         const TokenizeOptions(
-            lang: 'javascript',
-            theme: 'github-dark',
-            includeExplanation: true),
+          lang: 'javascript',
+          theme: 'github-dark',
+          includeExplanation: true,
+        ),
       );
       final constToken = tokens.first.firstWhere((t) => t.content == 'const');
       expect(constToken.scopes, isNotNull);
@@ -113,7 +124,9 @@ void main() {
       final hl = buildHighlighter();
       expect(
         () => hl.codeToTokens(
-            'x', const TokenizeOptions(lang: 'nope', theme: 'github-dark')),
+          'x',
+          const TokenizeOptions(lang: 'nope', theme: 'github-dark'),
+        ),
         throwsA(isA<ShikiError>()),
       );
     });
@@ -121,8 +134,10 @@ void main() {
     test('unknown theme throws ShikiError', () {
       final hl = buildHighlighter();
       expect(
-        () => hl.codeToTokens('const x = 1;',
-            const TokenizeOptions(lang: 'javascript', theme: 'nope')),
+        () => hl.codeToTokens(
+          'const x = 1;',
+          const TokenizeOptions(lang: 'javascript', theme: 'nope'),
+        ),
         throwsA(isA<ShikiError>()),
       );
     });
@@ -140,12 +155,20 @@ void main() {
 
   group('custom theme serialization', () {
     test('ThemeRegistration.toJson round-trips through fromJson', () {
-      final original = normalizeTheme(ThemeRegistration.fromJson(jsonDecode(
-              File('test/fixtures/themes/github-dark.json').readAsStringSync())
-          as Map<String, dynamic>));
+      final original = normalizeTheme(
+        ThemeRegistration.fromJson(
+          jsonDecode(
+                File(
+                  'test/fixtures/themes/github-dark.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>,
+        ),
+      );
 
-      final roundTripped =
-          normalizeTheme(ThemeRegistration.fromJson(original.toJson()));
+      final roundTripped = normalizeTheme(
+        ThemeRegistration.fromJson(original.toJson()),
+      );
 
       expect(roundTripped.name, original.name);
       expect(roundTripped.type, original.type);

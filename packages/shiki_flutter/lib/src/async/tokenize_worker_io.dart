@@ -64,8 +64,9 @@ void _workerMain(_Bootstrap bootstrap) {
         final tokens = highlighter.codeToTokens(message.code, message.options);
         bootstrap.mainSendPort.send(TokenizeResponse(message.id, tokens));
       } catch (e, st) {
-        bootstrap.mainSendPort
-            .send(TokenizeError(message.id, e.toString(), st.toString()));
+        bootstrap.mainSendPort.send(
+          TokenizeError(message.id, e.toString(), st.toString()),
+        );
       }
     } else if (message is LoadLangMessage) {
       highlighter.loadBundledLanguage(rebuildBundledLanguage(message.lang));
@@ -112,12 +113,12 @@ class IsolateTokenizeWorker implements TokenizeWorker {
   Future<void> get ready => _ready.future;
 
   WorkerConfig get _config => WorkerConfig(
-        engine: _engine,
-        langs: _langs,
-        rawLangJsons: _rawLangJsons,
-        themeJsons: _themeJsons,
-        warmups: _warmups,
-      );
+    engine: _engine,
+    langs: _langs,
+    rawLangJsons: _rawLangJsons,
+    themeJsons: _themeJsons,
+    warmups: _warmups,
+  );
 
   static Future<TokenizeWorker> spawn(WorkerConfig config) async {
     final worker = IsolateTokenizeWorker._(

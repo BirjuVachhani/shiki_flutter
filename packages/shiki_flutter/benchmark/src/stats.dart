@@ -46,15 +46,15 @@ class Sample {
   double get meanMs => meanMicros / 1000;
 
   Map<String, dynamic> toJson() => {
-        'label': label,
-        'count': count,
-        'min_ms': _round(minMs),
-        'mean_ms': _round(meanMs),
-        'median_ms': _round(medianMs),
-        'p90_ms': _round(p90Ms),
-        'p99_ms': _round(p99Ms),
-        'max_ms': _round(maxMs),
-      };
+    'label': label,
+    'count': count,
+    'min_ms': _round(minMs),
+    'mean_ms': _round(meanMs),
+    'median_ms': _round(medianMs),
+    'p90_ms': _round(p90Ms),
+    'p99_ms': _round(p99Ms),
+    'max_ms': _round(maxMs),
+  };
 }
 
 /// Runs [body] [warmup] times untimed, then [iters] times timed, returning a
@@ -113,16 +113,17 @@ class ConsoleTable {
       final parts = <String>[];
       for (var i = 0; i < cells.length; i++) {
         // First column left-aligned, the rest right-aligned (numbers).
-        parts.add(i == 0
-            ? cells[i].padRight(widths[i])
-            : cells[i].padLeft(widths[i]));
+        parts.add(
+          i == 0 ? cells[i].padRight(widths[i]) : cells[i].padLeft(widths[i]),
+        );
       }
       return parts.join('  ');
     }
 
-    final sep = List<int>.generate(headers.length, (i) => widths[i])
-        .map((w) => '-' * w)
-        .join('  ');
+    final sep = List<int>.generate(
+      headers.length,
+      (i) => widths[i],
+    ).map((w) => '-' * w).join('  ');
     final buffer = StringBuffer()
       ..writeln(fmtRow(headers))
       ..writeln(sep);

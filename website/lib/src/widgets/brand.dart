@@ -55,7 +55,9 @@ class _BrandState extends State<Brand> {
             height: 20 / 18,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.2,
-            color: _wordHovered ? colors.foreground.withValues(alpha: 0.8) : colors.foreground,
+            color: _wordHovered
+                ? colors.foreground.withValues(alpha: 0.8)
+                : colors.foreground,
           ),
         ),
       ),
@@ -86,7 +88,9 @@ class _BrandState extends State<Brand> {
                   onExit: (_) => setState(() => _authorHovered = false),
                   mouseCursor: SystemMouseCursors.click,
                   style: TextStyle(
-                    color: _authorHovered ? colors.foreground.withValues(alpha: 0.8) : colors.mutedForeground,
+                    color: _authorHovered
+                        ? colors.foreground.withValues(alpha: 0.8)
+                        : colors.mutedForeground,
                   ),
                 ),
               ],
@@ -146,7 +150,9 @@ class _FooterBrandState extends State<FooterBrand> {
             height: 20 / 18,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.2,
-            color: _wordHovered ? colors.foreground.withValues(alpha: 0.8) : colors.foreground,
+            color: _wordHovered
+                ? colors.foreground.withValues(alpha: 0.8)
+                : colors.foreground,
           ),
         ),
       ),
@@ -176,7 +182,9 @@ class _FooterBrandState extends State<FooterBrand> {
                 onExit: (_) => setState(() => _authorHovered = false),
                 mouseCursor: SystemMouseCursors.click,
                 style: TextStyle(
-                  color: _authorHovered ? colors.foreground.withValues(alpha: 0.8) : colors.mutedForeground,
+                  color: _authorHovered
+                      ? colors.foreground.withValues(alpha: 0.8)
+                      : colors.mutedForeground,
                 ),
               ),
             ],

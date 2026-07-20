@@ -102,20 +102,23 @@ class AsyncTokenResolver {
     }
 
     _tokens = null; // show the placeholder until the async result arrives
-    highlighter.codeToTokensAsync(code, options).then((result) {
-      // Ignore the result if the widget is gone, the inputs/highlighter changed,
-      // or we flipped to the sync path (which fills tokens itself) in the meantime.
-      if (_disposed ||
-          !_async ||
-          key != _key ||
-          !identical(highlighter, _highlighter)) {
-        return;
-      }
-      _tokens = result;
-      _onChanged();
-    }).catchError((_) {
-      // Leave the placeholder; a later rebuild (new key) retries.
-    });
+    highlighter
+        .codeToTokensAsync(code, options)
+        .then((result) {
+          // Ignore the result if the widget is gone, the inputs/highlighter changed,
+          // or we flipped to the sync path (which fills tokens itself) in the meantime.
+          if (_disposed ||
+              !_async ||
+              key != _key ||
+              !identical(highlighter, _highlighter)) {
+            return;
+          }
+          _tokens = result;
+          _onChanged();
+        })
+        .catchError((_) {
+          // Leave the placeholder; a later rebuild (new key) retries.
+        });
   }
 
   void dispose() => _disposed = true;

@@ -36,8 +36,9 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   final theme = githubDark.id;
 
-  testWidgets('native engine via async worker: parity + no freeze',
-      (tester) async {
+  testWidgets('native engine via async worker: parity + no freeze', (
+    tester,
+  ) async {
     await loadWasm(); // no-op on IO; keeps startup portable
 
     final opts = TokenizeOptions(lang: _lang, theme: theme);
@@ -86,23 +87,25 @@ void main() {
     binding.addTimingsCallback(cb);
 
     final firstFrame = Stopwatch()..start();
-    await tester.pumpWidget(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: bg,
-        body: SafeArea(
-          child: ShikiCodeListView(
-            key: const Key('scroller'),
-            highlighter: jankH,
-            code: src,
-            lang: _lang,
-            theme: theme,
-            textStyle: _base.copyWith(color: fg),
-            async: true,
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: bg,
+          body: SafeArea(
+            child: ShikiCodeListView(
+              key: const Key('scroller'),
+              highlighter: jankH,
+              code: src,
+              lang: _lang,
+              theme: theme,
+              textStyle: _base.copyWith(color: fg),
+              async: true,
+            ),
           ),
         ),
       ),
-    ));
+    );
     firstFrame.stop();
     await tester.pumpAndSettle();
     // Let the worker's cold compile + tokenize land and the highlight swap in
@@ -121,29 +124,41 @@ void main() {
     await tester.pump();
     binding.removeTimingsCallback(cb);
 
-    final totals = timings.map((t) => t.totalSpan.inMicroseconds / 1000).toList()
-      ..sort();
+    final totals =
+        timings.map((t) => t.totalSpan.inMicroseconds / 1000).toList()..sort();
     report['jank'] = {
       'frame_count': totals.length,
       'first_frame_ms': _r(firstFrame.elapsedMicroseconds / 1000),
       'worst_ms': totals.isEmpty ? 0 : _r(totals.last),
-      'p99_ms': totals.isEmpty ? 0 : _r(totals[(0.99 * totals.length).ceil().clamp(1, totals.length) - 1]),
+      'p99_ms': totals.isEmpty
+          ? 0
+          : _r(
+              totals[(0.99 * totals.length).ceil().clamp(1, totals.length) - 1],
+            ),
       'missed_60fps': totals.where((v) => v > _budget60).length,
       'missed_120fps': totals.where((v) => v > _budget120).length,
     };
 
     binding.reportData ??= <String, dynamic>{};
     binding.reportData!['native_async'] = report;
-    writeLocalJson('../benchmark/results/native_async_io.json',
-        const JsonEncoder.withIndent('  ').convert(report));
+    writeLocalJson(
+      '../benchmark/results/native_async_io.json',
+      const JsonEncoder.withIndent('  ').convert(report),
+    );
     // ignore: avoid_print
     print('[native-async] ${jsonEncode(report)}');
 
     // Hard proof it actually ran on the worker and produced real tokens.
-    expect(asyncCount, greaterThan(5000),
-        reason: 'native async should tokenize the l corpus (~11k tokens)');
-    expect(report['parity_workerNative_vs_mainNative'], isTrue,
-        reason: 'worker-native tokens must equal main-isolate-native tokens');
+    expect(
+      asyncCount,
+      greaterThan(5000),
+      reason: 'native async should tokenize the l corpus (~11k tokens)',
+    );
+    expect(
+      report['parity_workerNative_vs_mainNative'],
+      isTrue,
+      reason: 'worker-native tokens must equal main-isolate-native tokens',
+    );
   });
 }
 

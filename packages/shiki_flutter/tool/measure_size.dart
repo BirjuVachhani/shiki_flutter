@@ -84,8 +84,10 @@ Future<void> main(List<String> args) async {
   final pubspec = File('$pkgRoot/pubspec.yaml');
   if (!pubspec.existsSync() ||
       !pubspec.readAsStringSync().contains('name: shiki_flutter')) {
-    stderr.writeln('Run this from the shiki_flutter package root '
-        '(could not find its pubspec.yaml in ${Directory.current.path}).');
+    stderr.writeln(
+      'Run this from the shiki_flutter package root '
+      '(could not find its pubspec.yaml in ${Directory.current.path}).',
+    );
     exit(1);
   }
 
@@ -105,9 +107,9 @@ Future<void> main(List<String> args) async {
     final probePubspec = File('$appDir/pubspec.yaml');
     probePubspec.writeAsStringSync(
       probePubspec.readAsStringSync().replaceFirst(
-            RegExp(r'^dependencies:\s*$', multiLine: true),
-            'dependencies:\n  shiki_flutter:\n    path: $pkgRoot',
-          ),
+        RegExp(r'^dependencies:\s*$', multiLine: true),
+        'dependencies:\n  shiki_flutter:\n    path: $pkgRoot',
+      ),
     );
     await _run('flutter', ['pub', 'get'], cwd: appDir);
 
@@ -118,11 +120,13 @@ Future<void> main(List<String> args) async {
       final name = entry.key;
       File('$appDir/lib/main_$name.dart').writeAsStringSync(entry.value);
       stdout.writeln('› building "$name" (flutter build web --release) …');
-      await _run(
-        'flutter',
-        ['build', 'web', '--release', '-t', 'lib/main_$name.dart'],
-        cwd: appDir,
-      );
+      await _run('flutter', [
+        'build',
+        'web',
+        '--release',
+        '-t',
+        'lib/main_$name.dart',
+      ], cwd: appDir);
       final bytes = File('$appDir/build/web/main.dart.js').readAsBytesSync();
       raw[name] = bytes.length;
       gz[name] = GZipCodec(level: 9).encode(bytes).length;
@@ -145,27 +149,37 @@ void _report(Map<String, int> raw, Map<String, int> gz) {
   stdout.writeln('\n${'=' * 72}');
   stdout.writeln('Absolute main.dart.js size (release web build)');
   stdout.writeln('=' * 72);
-  stdout.writeln('${'variant'.padRight(38)}'
-      '${'uncompressed'.padLeft(16)}${'gzip -9'.padLeft(18)}');
+  stdout.writeln(
+    '${'variant'.padRight(38)}'
+    '${'uncompressed'.padLeft(16)}${'gzip -9'.padLeft(18)}',
+  );
   for (final name in _variants.keys) {
-    stdout.writeln('${name.padRight(38)}'
-        '${_bytes(raw[name]!).padLeft(16)}${_bytes(gz[name]!).padLeft(18)}');
+    stdout.writeln(
+      '${name.padRight(38)}'
+      '${_bytes(raw[name]!).padLeft(16)}${_bytes(gz[name]!).padLeft(18)}',
+    );
   }
 
   stdout.writeln('\n${'=' * 72}');
   stdout.writeln('Isolated package impact (delta over the no-Shiki baseline)');
   stdout.writeln('=' * 72);
-  stdout.writeln('${'what you add'.padRight(50)}'
-      '${'uncompressed'.padLeft(14)}${'gzip'.padLeft(8)}');
+  stdout.writeln(
+    '${'what you add'.padRight(50)}'
+    '${'uncompressed'.padLeft(14)}${'gzip'.padLeft(8)}',
+  );
   _deltaLabels.forEach((name, label) {
     final dRaw = raw[name]! - base;
     final dGz = gz[name]! - baseGz;
-    stdout.writeln('${label.padRight(50)}'
-        '${_bytes(dRaw).padLeft(14)}${_bytes(dGz).padLeft(8)}');
+    stdout.writeln(
+      '${label.padRight(50)}'
+      '${_bytes(dRaw).padLeft(14)}${_bytes(dGz).padLeft(8)}',
+    );
   });
-  stdout.writeln('\nBaseline (Flutter app with no Shiki): '
-      '${_bytes(base)} uncompressed / ${_bytes(baseGz)} gzip, not counted '
-      'above.');
+  stdout.writeln(
+    '\nBaseline (Flutter app with no Shiki): '
+    '${_bytes(base)} uncompressed / ${_bytes(baseGz)} gzip, not counted '
+    'above.',
+  );
 }
 
 String _bytes(int n) {

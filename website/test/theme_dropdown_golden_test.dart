@@ -38,8 +38,9 @@ Future<void> _loadFonts() async {
   final iconsPath = _materialIconsPath();
   if (iconsPath != null) {
     final loader = FontLoader('MaterialIcons')
-      ..addFont(Future.value(
-          ByteData.sublistView(File(iconsPath).readAsBytesSync())));
+      ..addFont(
+        Future.value(ByteData.sublistView(File(iconsPath).readAsBytesSync())),
+      );
     await loader.load();
   }
 }

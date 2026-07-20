@@ -78,7 +78,8 @@ class NavBar extends StatelessWidget {
     if (listenable == null) return _bar(context, row, false);
     return ValueListenableBuilder<bool>(
       valueListenable: listenable,
-      builder: (context, isScrolled, child) => _bar(context, child!, isScrolled),
+      builder: (context, isScrolled, child) =>
+          _bar(context, child!, isScrolled),
       child: row,
     );
   }
@@ -157,8 +158,7 @@ class _NavLinkState extends State<_NavLink> {
                 style: TextStyle(
                   color: textColor,
                   fontSize: 14,
-                  fontWeight:
-                      widget.active ? FontWeight.w500 : FontWeight.w400,
+                  fontWeight: widget.active ? FontWeight.w500 : FontWeight.w400,
                   height: 1.0,
                 ),
               ),

@@ -36,7 +36,11 @@ import 'support/local_writer.dart';
 const double _budget60 = 1000 / 60; // 16.67 ms - one 60Hz frame
 const double _budget120 = 1000 / 120; // 8.33 ms - one 120Hz frame
 
-const _baseStyle = TextStyle(fontFamily: 'monospace', fontSize: 14, height: 1.4);
+const _baseStyle = TextStyle(
+  fontFamily: 'monospace',
+  fontSize: 14,
+  height: 1.4,
+);
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -126,8 +130,10 @@ void main() {
     // one-time grammar/regex compile (off-thread), which is the case the isolate
     // is meant to fix; scroll jank is then measured after the swap settles.
     testWidgets('frames · isolate · ${size.label}', (tester) async {
-      final asyncHighlighter =
-          createHighlighter(langs: [dart], themes: [githubDark]);
+      final asyncHighlighter = createHighlighter(
+        langs: [dart],
+        themes: [githubDark],
+      );
       addTearDown(asyncHighlighter.dispose);
       await _runCase(
         tester,
@@ -155,12 +161,12 @@ void main() {
 }
 
 Widget _scaffold(Color? bg, Widget child) => MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: bg ?? const Color(0xFF24292E),
-        body: SafeArea(child: child),
-      ),
-    );
+  debugShowCheckedModeBanner: false,
+  home: Scaffold(
+    backgroundColor: bg ?? const Color(0xFF24292E),
+    body: SafeArea(child: child),
+  ),
+);
 
 /// Pumps [widget], scripts a scroll, and records the frames produced.
 Future<void> _runCase(
@@ -201,8 +207,9 @@ Future<void> _runCase(
   await tester.pump();
   collector.stop(binding);
 
-  final metrics =
-      collector.summarize(firstFrameMs: firstFrame.elapsedMicroseconds / 1000);
+  final metrics = collector.summarize(
+    firstFrameMs: firstFrame.elapsedMicroseconds / 1000,
+  );
   binding.reportData ??= <String, dynamic>{};
   binding.reportData![label] = metrics;
   _tryWriteLocal(label, metrics);
@@ -232,7 +239,8 @@ class _FrameCollector {
       'missed_frames_60fps': total.where((v) => v > _budget60).length,
       'missed_frames_120fps': total.where((v) => v > _budget120).length,
       if (_timings.isEmpty)
-        'note': 'No FrameTimings captured - run via flutter drive on a device '
+        'note':
+            'No FrameTimings captured - run via flutter drive on a device '
             '(-d macos --profile) for real build/raster numbers.',
     };
   }

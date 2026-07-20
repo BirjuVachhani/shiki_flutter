@@ -23,10 +23,17 @@ double _medianMs(List<int> micros) {
   return micros[micros.length ~/ 2] / 1000.0;
 }
 
-double _bench(ShikiHighlighterEngine engine, String src,
-    {required int warmup, required int iters}) {
-  final hl =
-      createHighlighter(langs: [dart], themes: [githubDark], engine: engine);
+double _bench(
+  ShikiHighlighterEngine engine,
+  String src, {
+  required int warmup,
+  required int iters,
+}) {
+  final hl = createHighlighter(
+    langs: [dart],
+    themes: [githubDark],
+    engine: engine,
+  );
   for (var i = 0; i < warmup; i++) {
     hl.codeToTokens(src, _opts);
   }
@@ -60,9 +67,11 @@ void main() {
       final med = _bench(engine, src, warmup: 2, iters: iters);
       base ??= med;
       final rel = med / base!;
-      print('  ${label.padRight(44)}'
-          ' ${med.toStringAsFixed(1).padLeft(9)} ms'
-          '   ${rel.toStringAsFixed(2)}x bundled');
+      print(
+        '  ${label.padRight(44)}'
+        ' ${med.toStringAsFixed(1).padLeft(9)} ms'
+        '   ${rel.toStringAsFixed(2)}x bundled',
+      );
     });
   }
 }

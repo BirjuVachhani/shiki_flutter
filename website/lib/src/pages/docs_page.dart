@@ -32,8 +32,10 @@ class DocsPage extends StatefulWidget {
 
 class _DocsPageState extends State<DocsPage> implements DocsSectionNavigator {
   final ScrollController _controller = ScrollController();
-  final List<GlobalKey> _keys =
-      List.generate(docsSections.length, (_) => GlobalKey());
+  final List<GlobalKey> _keys = List.generate(
+    docsSections.length,
+    (_) => GlobalKey(),
+  );
   int _active = 0;
 
   /// The app-wide nav popup bridge; we register with it so its section list and
@@ -111,7 +113,10 @@ class _DocsPageState extends State<DocsPage> implements DocsSectionNavigator {
     final gap = context.isCompact
         ? AppLayout.navHeight + _kCompactBarHeight + 16
         : _anchorGap;
-    final target = (_controller.offset + dy - gap).clamp(0.0, _controller.position.maxScrollExtent);
+    final target = (_controller.offset + dy - gap).clamp(
+      0.0,
+      _controller.position.maxScrollExtent,
+    );
     setState(() => _active = index);
     _controller.animateTo(
       target,
@@ -973,12 +978,32 @@ List<Widget> _content(BuildContext context, String id) {
             ['`code`', '`String`', 'Source to render.'],
             ['`lang`', '`String`', 'Language id, e.g. `dart`.'],
             ['`theme`', '`String`', 'Theme id, e.g. `github-dark`.'],
-            ['`textStyle`', '`TextStyle?`', 'Base style; use a monospace font.'],
-            ['`padding`', '`EdgeInsetsGeometry`', 'Defaults to `16` all round.'],
+            [
+              '`textStyle`',
+              '`TextStyle?`',
+              'Base style; use a monospace font.',
+            ],
+            [
+              '`padding`',
+              '`EdgeInsetsGeometry`',
+              'Defaults to `16` all round.',
+            ],
             ['`paintBackground`', '`bool`', "Paint the theme's background."],
-            ['`selectable`', '`bool`', 'Wrap in a `SelectionArea` (default off).'],
-            ['`showLineNumbers`', '`bool`', 'Show a line-number gutter (default off).'],
-            ['`gutterStyle`', '`GutterStyle`', 'Gutter numbers, gap, and divider.'],
+            [
+              '`selectable`',
+              '`bool`',
+              'Wrap in a `SelectionArea` (default off).',
+            ],
+            [
+              '`showLineNumbers`',
+              '`bool`',
+              'Show a line-number gutter (default off).',
+            ],
+            [
+              '`gutterStyle`',
+              '`GutterStyle`',
+              'Gutter numbers, gap, and divider.',
+            ],
             ['`async`', '`bool?`', 'Override the global async default.'],
             ['`textScaler`', '`TextScaler?`', 'Optional text scaling.'],
           ],
@@ -990,11 +1015,27 @@ List<Widget> _content(BuildContext context, String id) {
           headers: ['Property', 'Type', 'Description'],
           rows: [
             ['`softWrap`', '`bool`', 'Wrap long lines instead of scrolling.'],
-            ['`shrinkWrap`', '`bool`', 'Grow to fit instead of filling its parent.'],
+            [
+              '`shrinkWrap`',
+              '`bool`',
+              'Grow to fit instead of filling its parent.',
+            ],
             ['`physics`', '`ScrollPhysics?`', 'Physics for the vertical list.'],
-            ['`controller`', '`ScrollController?`', 'External vertical scroll controller.'],
-            ['`selectionColor`', '`Color?`', 'Highlight color for selected code.'],
-            ['`lines`', '`List<List<TextSpan>>?`', 'Pre-highlighted spans to skip tokenizing.'],
+            [
+              '`controller`',
+              '`ScrollController?`',
+              'External vertical scroll controller.',
+            ],
+            [
+              '`selectionColor`',
+              '`Color?`',
+              'Highlight color for selected code.',
+            ],
+            [
+              '`lines`',
+              '`List<List<TextSpan>>?`',
+              'Pre-highlighted spans to skip tokenizing.',
+            ],
           ],
         ),
         DocNote(

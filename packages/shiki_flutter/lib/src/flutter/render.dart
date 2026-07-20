@@ -152,9 +152,9 @@ TextStyle themedTokenStyle(ThemedToken token, {TextStyle? baseStyle}) {
 
 /// A single token's [TextSpan], its style layered over [baseStyle].
 TextSpan _tokenSpan(ThemedToken token, TextStyle? baseStyle) => TextSpan(
-      text: token.content,
-      style: themedTokenStyle(token, baseStyle: baseStyle),
-    );
+  text: token.content,
+  style: themedTokenStyle(token, baseStyle: baseStyle),
+);
 
 /// Tokenizes [code] and bakes the theme's foreground into the base style, the
 /// shared front half of [codeToTextSpan] and [codeToLineSpans].

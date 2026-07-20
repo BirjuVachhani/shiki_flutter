@@ -22,7 +22,7 @@ export 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.da
 /// pattern with the left-most match wins (ties broken by pattern order).
 class DartOnigScanner implements OnigScanner {
   DartOnigScanner(List<String> sources, {this.forgiving = true})
-      : _regexes = List<OnigRegex?>.filled(sources.length, null) {
+    : _regexes = List<OnigRegex?>.filled(sources.length, null) {
     for (var i = 0; i < sources.length; i++) {
       try {
         _regexes[i] = OnigRegex(sources[i]);
@@ -80,8 +80,9 @@ class DartOnigScanner implements OnigScanner {
       final s = m.start[g];
       final e = m.end[g];
       if (s < 0 || e < 0) {
-        captures
-            .add(const OnigCaptureIndex(kUnmatchedOffset, kUnmatchedOffset, 0));
+        captures.add(
+          const OnigCaptureIndex(kUnmatchedOffset, kUnmatchedOffset, 0),
+        );
       } else {
         captures.add(OnigCaptureIndex(s, e, e - s));
       }

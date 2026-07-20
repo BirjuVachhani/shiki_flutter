@@ -100,12 +100,21 @@ class _ThemeGalleryState extends State<ThemeGallery> {
           isDense: true,
           hintText: 'Search ${_all.length} themes…',
           hintStyle: TextStyle(color: colors.mutedForeground, fontSize: 13.5),
-          prefixIcon: Icon(Icons.search, size: 18, color: colors.mutedForeground),
-          prefixIconConstraints:
-              const BoxConstraints(minWidth: 38, minHeight: 38),
+          prefixIcon: Icon(
+            Icons.search,
+            size: 18,
+            color: colors.mutedForeground,
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 38,
+            minHeight: 38,
+          ),
           filled: true,
           fillColor: colors.surface,
-          contentPadding: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 11,
+            horizontal: 4,
+          ),
           border: _searchBorder(colors.border),
           enabledBorder: _searchBorder(colors.border),
           focusedBorder: _searchBorder(colors.borderStrong),
@@ -115,9 +124,9 @@ class _ThemeGalleryState extends State<ThemeGallery> {
   }
 
   OutlineInputBorder _searchBorder(Color color) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        borderSide: BorderSide(color: color),
-      );
+    borderRadius: BorderRadius.circular(AppRadii.md),
+    borderSide: BorderSide(color: color),
+  );
 }
 
 /// The left rail: search field pinned on top, then a scrollable dark/light
@@ -188,11 +197,11 @@ class _ThemeList extends StatelessWidget {
   }
 
   Widget _empty(AppColors colors) => Center(
-        child: Text(
-          'No themes match',
-          style: TextStyle(color: colors.mutedForeground, fontSize: 13),
-        ),
-      );
+    child: Text(
+      'No themes match',
+      style: TextStyle(color: colors.mutedForeground, fontSize: 13),
+    ),
+  );
 }
 
 class _GroupHeader extends StatelessWidget {
@@ -249,8 +258,8 @@ class _ThemeRowState extends State<_ThemeRow> {
     final bg = selected
         ? colors.surfaceInset
         : (_hovered
-            ? colors.foreground.withValues(alpha: 0.04)
-            : Colors.transparent);
+              ? colors.foreground.withValues(alpha: 0.04)
+              : Colors.transparent);
     final fg = selected ? colors.foreground : colors.mutedForeground;
 
     return SelectionContainer.disabled(
@@ -280,8 +289,7 @@ class _ThemeRowState extends State<_ThemeRow> {
                       color: fg,
                       fontSize: 13,
                       fontFamily: AppFonts.mono,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                 ),

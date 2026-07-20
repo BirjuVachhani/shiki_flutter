@@ -36,14 +36,18 @@ const _nativeDest = 'shiki_tokenize_worker_native.js';
 Future<void> main(List<String> args) async {
   final engines = _parseEngines(args);
   if (engines == null) {
-    stderr.writeln('Usage: dart run shiki_flutter:install '
-        '[--default] [--dart] [--native]');
+    stderr.writeln(
+      'Usage: dart run shiki_flutter:install '
+      '[--default] [--dart] [--native]',
+    );
     exit(64);
   }
 
   if (!Directory('web').existsSync()) {
-    stderr.writeln('No "web/" directory here. Run this from your Flutter app '
-        'root (a web-enabled project).');
+    stderr.writeln(
+      'No "web/" directory here. Run this from your Flutter app '
+      'root (a web-enabled project).',
+    );
     exit(1);
   }
 
@@ -62,8 +66,10 @@ Future<void> _installCore(String engine) async {
   final (asset, destName) = _coreWorkers[engine]!;
   final resolved = await Isolate.resolvePackageUri(Uri.parse(asset));
   if (resolved == null || !File.fromUri(resolved).existsSync()) {
-    stderr.writeln('Could not find the prebuilt "$engine" worker inside the '
-        'shiki_flutter package. Is shiki_flutter a dependency of this project?');
+    stderr.writeln(
+      'Could not find the prebuilt "$engine" worker inside the '
+      'shiki_flutter package. Is shiki_flutter a dependency of this project?',
+    );
     exit(1);
   }
   final dest = File('web/$destName');
@@ -75,8 +81,10 @@ Future<void> _installCore(String engine) async {
 Future<void> _installNative() async {
   final resolved = await Isolate.resolvePackageUri(Uri.parse(_nativeAsset));
   if (resolved == null || !File.fromUri(resolved).existsSync()) {
-    stderr.writeln('Could not find the native worker. Add '
-        '`shiki_flutter_native_engine` to your dependencies to use --native.');
+    stderr.writeln(
+      'Could not find the native worker. Add '
+      '`shiki_flutter_native_engine` to your dependencies to use --native.',
+    );
     exit(1);
   }
   final dest = File('web/$_nativeDest');
@@ -85,17 +93,25 @@ Future<void> _installNative() async {
   stdout.writeln('✓ Installed ${dest.path} ($kb KB), native engine.');
 
   // Fetch the Oniguruma wasm module into web/ (verified download, with retries).
-  stdout.writeln('Fetching the Oniguruma WebAssembly module '
-      '(oniguruma_native:setup)...');
-  final setup = await Process.run(
-      'dart', ['run', 'oniguruma_native:setup'], runInShell: true);
+  stdout.writeln(
+    'Fetching the Oniguruma WebAssembly module '
+    '(oniguruma_native:setup)...',
+  );
+  final setup = await Process.run('dart', [
+    'run',
+    'oniguruma_native:setup',
+  ], runInShell: true);
   stdout.write(setup.stdout);
   stderr.write(setup.stderr);
   if (setup.exitCode != 0) {
-    stderr.writeln('! Could not fetch the wasm automatically. Run it yourself:');
+    stderr.writeln(
+      '! Could not fetch the wasm automatically. Run it yourself:',
+    );
     stderr.writeln('    dart run oniguruma_native:setup');
-    stderr.writeln('  (loadWasm() also falls back to the GitHub Release at '
-        'runtime, so the app still works online without it.)');
+    stderr.writeln(
+      '  (loadWasm() also falls back to the GitHub Release at '
+      'runtime, so the app still works online without it.)',
+    );
   }
 }
 
@@ -103,7 +119,11 @@ Future<void> _installNative() async {
 /// and de-duplicated, or null on an unknown flag. No flags → just the default
 /// (embedded) worker, so `dart run shiki_flutter:install` stays zero-config.
 List<String>? _parseEngines(List<String> args) {
-  const known = {'--default': 'default', '--dart': 'dart', '--native': 'native'};
+  const known = {
+    '--default': 'default',
+    '--dart': 'dart',
+    '--native': 'native',
+  };
   if (args.isEmpty) return ['default'];
   final out = <String>[];
   for (final a in args) {
@@ -118,8 +138,12 @@ void _printEnableHint(List<String> engines) {
   stdout.writeln('');
   stdout.writeln('Enable off-main-thread highlighting on web in main():');
   if (engines.contains('native')) {
-    stdout.writeln('    await loadWasm(); // instantiate the wasm before highlighting');
-    stdout.writeln('    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(');
+    stdout.writeln(
+      '    await loadWasm(); // instantiate the wasm before highlighting',
+    );
+    stdout.writeln(
+      '    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(',
+    );
     stdout.writeln('      webEngine: const ShikiHighlighterNativeEngine(),');
     stdout.writeln('      asyncWeb: true,');
     stdout.writeln('    );');
@@ -127,5 +151,7 @@ void _printEnableHint(List<String> engines) {
     stdout.writeln('    ShikiHighlighter.config =');
     stdout.writeln('        ShikiHighlighter.config.copyWith(asyncWeb: true);');
   }
-  stdout.writeln('(or pass async: true to a ShikiCodeView / ShikiCodeListView).');
+  stdout.writeln(
+    '(or pass async: true to a ShikiCodeView / ShikiCodeListView).',
+  );
 }

@@ -238,7 +238,7 @@ class _Parser {
     while (true) {
       _skipExtended();
       final c = _peek();
-      if (c == null || c == 0x7c /* | */ || c == 0x29 /* ) */) {
+      if (c == null || c == 0x7c /* | */ || c == 0x29 /* ) */ ) {
         break;
       }
       final atom = _parseQuantified();
@@ -812,9 +812,7 @@ class _Parser {
         }
         break;
       }
-      if (c == 0x26 &&
-          pos + 1 < _len &&
-          src.codeUnitAt(pos + 1) == 0x26) {
+      if (c == 0x26 && pos + 1 < _len && src.codeUnitAt(pos + 1) == 0x26) {
         break; // && -> intersection handled by caller
       }
       first = false;
@@ -974,22 +972,22 @@ bool _isHexDigit(int c) =>
     (c >= 0x61 && c <= 0x66);
 
 List<_Range> _wordRanges() => [
-      _Range(0x41, 0x5a), // A-Z
-      _Range(0x61, 0x7a), // a-z
-      _Range(0x30, 0x39), // 0-9
-      _Range(0x5f, 0x5f), // _
-    ];
+  _Range(0x41, 0x5a), // A-Z
+  _Range(0x61, 0x7a), // a-z
+  _Range(0x30, 0x39), // 0-9
+  _Range(0x5f, 0x5f), // _
+];
 
 List<_Range> _spaceRanges() => [
-      _Range(0x09, 0x0d), // \t \n \v \f \r
-      _Range(0x20, 0x20), // space
-    ];
+  _Range(0x09, 0x0d), // \t \n \v \f \r
+  _Range(0x20, 0x20), // space
+];
 
 List<_Range> _hexRanges() => [
-      _Range(0x30, 0x39),
-      _Range(0x41, 0x46),
-      _Range(0x61, 0x66),
-    ];
+  _Range(0x30, 0x39),
+  _Range(0x41, 0x46),
+  _Range(0x61, 0x66),
+];
 
 List<_Range>? _posixRanges(String name) {
   switch (name) {
@@ -1079,7 +1077,7 @@ List<_Range> _unicodePropertyRanges(String prop) {
       return const [
         _Range(0x30, 0x39),
         _Range(0x0660, 0x0669),
-        _Range(0xff10, 0xff19)
+        _Range(0xff10, 0xff19),
       ];
     case 'p':
     case 'punct':
@@ -1097,14 +1095,10 @@ List<_Range> _unicodePropertyRanges(String prop) {
       return const [
         _Range(0x09, 0x0d),
         _Range(0x20, 0x20),
-        _Range(0x00a0, 0x00a0)
+        _Range(0x00a0, 0x00a0),
       ];
     case 'alnum':
-      return const [
-        _Range(0x30, 0x39),
-        _Range(0x41, 0x5a),
-        _Range(0x61, 0x7a),
-      ];
+      return const [_Range(0x30, 0x39), _Range(0x41, 0x5a), _Range(0x61, 0x7a)];
     case 'word':
       // Oniguruma `\p{word}` = alphanumeric + underscore + Unicode letters.
       return const [
@@ -1194,7 +1188,8 @@ class _Matcher {
   bool matchNode(_Node node, int pos, _Cont k) {
     if (!_budgetOk()) return false;
     if (node is _CharNode) {
-      if (pos < len && _charEquals(input.codeUnitAt(pos), node.ch, node.ignoreCase)) {
+      if (pos < len &&
+          _charEquals(input.codeUnitAt(pos), node.ch, node.ignoreCase)) {
         return k(pos + 1);
       }
       return false;
@@ -1443,8 +1438,11 @@ class _Matcher {
     final length = e - s;
     if (pos + length > len) return false;
     for (var i = 0; i < length; i++) {
-      if (!_charEquals(input.codeUnitAt(pos + i), input.codeUnitAt(s + i),
-          node.ignoreCase)) {
+      if (!_charEquals(
+        input.codeUnitAt(pos + i),
+        input.codeUnitAt(s + i),
+        node.ignoreCase,
+      )) {
         return false;
       }
     }
@@ -1567,7 +1565,13 @@ class OnigRegex {
       }
     }
     return OnigRegex._(
-        source, root, parser.groupCount, filter, gAnchored, fast);
+      source,
+      root,
+      parser.groupCount,
+      filter,
+      gAnchored,
+      fast,
+    );
   }
 
   /// Global kill-switch for the RegExp fast path (used by the differential
@@ -1641,7 +1645,11 @@ class OnigRegex {
   }
 
   OnigEngineMatch? _interpretSearch(
-      _Matcher matcher, String input, int from, int end) {
+    _Matcher matcher,
+    String input,
+    int from,
+    int end,
+  ) {
     final filter = _firstFilter;
     for (var pos = from; pos <= end; pos++) {
       if (filter != null) {
@@ -1698,10 +1706,16 @@ class _FirstInfo {
   /// Possible first code units (valid only when [unknown] is false).
   final List<_Range> ranges;
 
-  static final _FirstInfo zeroWidth =
-      _FirstInfo(nullable: true, unknown: false, ranges: const []);
-  static final _FirstInfo any =
-      _FirstInfo(nullable: false, unknown: true, ranges: const []);
+  static final _FirstInfo zeroWidth = _FirstInfo(
+    nullable: true,
+    unknown: false,
+    ranges: const [],
+  );
+  static final _FirstInfo any = _FirstInfo(
+    nullable: false,
+    unknown: true,
+    ranges: const [],
+  );
 }
 
 /// Fast membership test for the first-character filter.
@@ -1744,7 +1758,10 @@ _FirstInfo _computeFirst(_Node node) {
       return _FirstInfo(nullable: false, unknown: false, ranges: ranges);
     }
     return _FirstInfo(
-        nullable: false, unknown: false, ranges: [_Range(node.ch, node.ch)]);
+      nullable: false,
+      unknown: false,
+      ranges: [_Range(node.ch, node.ch)],
+    );
   }
   if (node is _ClassNode) {
     if (node.negated || node.ignoreCase) return _FirstInfo.any;
@@ -1781,9 +1798,10 @@ _FirstInfo _computeFirst(_Node node) {
     final cf = _computeFirst(node.child);
     if (cf.unknown) return _FirstInfo.any;
     return _FirstInfo(
-        nullable: node.min == 0 || cf.nullable,
-        unknown: false,
-        ranges: cf.ranges);
+      nullable: node.min == 0 || cf.nullable,
+      unknown: false,
+      ranges: cf.ranges,
+    );
   }
   return _FirstInfo.any; // unknown node kind -> safe
 }
@@ -1876,12 +1894,16 @@ String? _emitDart(_Node node, _EmitCtx ctx) {
     final sb = StringBuffer('[');
     if (node.negated) sb.write('^');
     for (final r in node.ranges) {
-      if (r.lo > 0xffff || r.hi > 0xffff) return null; // BMP only (UTF-16 units)
+      if (r.lo > 0xffff || r.hi > 0xffff)
+        return null; // BMP only (UTF-16 units)
       if (node.ignoreCase && r.hi > 0x7f) return null; // ASCII folding only
       if (r.lo == r.hi) {
         sb.write(_uEsc(r.lo));
       } else {
-        sb..write(_uEsc(r.lo))..write('-')..write(_uEsc(r.hi));
+        sb
+          ..write(_uEsc(r.lo))
+          ..write('-')
+          ..write(_uEsc(r.hi));
       }
     }
     sb.write(']');
@@ -1907,7 +1929,8 @@ String? _emitDart(_Node node, _EmitCtx ctx) {
   }
   if (node is _GroupNode) {
     if (node.atomic) {
-      if (!ctx.emulate) return null; // can't add helper groups when back-refs exist
+      if (!ctx.emulate)
+        return null; // can't add helper groups when back-refs exist
       final n = ++ctx.groups; // helper is the next capturing group
       final child = _emitDart(node.child, ctx);
       if (child == null) return null;

@@ -81,9 +81,9 @@ class _ThemeDropdownState extends State<ThemeDropdown>
   bool _open = false;
 
   ThemeChoice get _selected => widget.choices.firstWhere(
-        (c) => c.id == widget.selectedId,
-        orElse: () => widget.choices.first,
-      );
+    (c) => c.id == widget.selectedId,
+    orElse: () => widget.choices.first,
+  );
 
   @override
   void initState() {
@@ -399,7 +399,10 @@ class _ChevronDown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Natural SVG size: 10 x 16.
-    return CustomPaint(size: const Size(10, 16), painter: _ChevronPainter(color));
+    return CustomPaint(
+      size: const Size(10, 16),
+      painter: _ChevronPainter(color),
+    );
   }
 }
 

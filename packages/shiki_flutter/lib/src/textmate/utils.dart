@@ -74,8 +74,9 @@ class CachedFn<K, V> {
   }
 }
 
-final RegExp _capturingRegexSource =
-    RegExp(r'\$(\d+)|\$\{(\d+):/(downcase|upcase)\}');
+final RegExp _capturingRegexSource = RegExp(
+  r'\$(\d+)|\$\{(\d+):/(downcase|upcase)\}',
+);
 
 /// Helpers for grammar `name`/`contentName`/`end` templates that reference
 /// captured text via `$1`, `${1:/downcase}`, etc.
@@ -96,8 +97,7 @@ class RegexSource {
       final index = int.parse(indexStr!);
       if (index < captureIndices.length) {
         final capture = captureIndices[index];
-        var result =
-            captureSource.substring(capture.start, capture.end);
+        var result = captureSource.substring(capture.start, capture.end);
         // Remove leading dots that would make the selector invalid.
         while (result.isNotEmpty && result[0] == '.') {
           result = result.substring(1);

@@ -23,10 +23,14 @@ const _themes = ['github-dark', 'github-light', 'nord', 'min-light'];
 
 /// Serializes every field the tokenizer produces, so the comparison is exact.
 String _encode(List<List<ThemedToken>> lines) => lines
-    .map((line) => line
-        .map((t) =>
-            '${t.offset}|${t.content}|${t.color}|${t.bgColor}|${t.fontStyle}')
-        .join(''))
+    .map(
+      (line) => line
+          .map(
+            (t) =>
+                '${t.offset}|${t.content}|${t.color}|${t.bgColor}|${t.fontStyle}',
+          )
+          .join(''),
+    )
     .join('\n');
 
 ShikiHighlighter _build(ShikiHighlighterEngine engine) {
@@ -45,8 +49,11 @@ ShikiHighlighter _build(ShikiHighlighterEngine engine) {
 void main() {
   final goldenFile = File('$_fixtures/golden.json');
   if (!goldenFile.existsSync()) {
-    test('parity', () {},
-        skip: 'golden fixtures not found (run from the package dir)');
+    test(
+      'parity',
+      () {},
+      skip: 'golden fixtures not found (run from the package dir)',
+    );
     return;
   }
 
@@ -62,8 +69,10 @@ void main() {
     final opts = TokenizeOptions(lang: lang, theme: theme);
 
     test('oniguruma_dart == pure-Dart · $lang/$theme', () {
-      expect(_encode(portHl.codeToTokens(code, opts)),
-          _encode(dartHl.codeToTokens(code, opts)));
+      expect(
+        _encode(portHl.codeToTokens(code, opts)),
+        _encode(dartHl.codeToTokens(code, opts)),
+      );
     });
   }
 }

@@ -26,8 +26,8 @@ class InlineLinkText extends StatefulWidget {
 }
 
 class _InlineLinkTextState extends State<InlineLinkText> {
-  late final TapGestureRecognizer _recognizer =
-      TapGestureRecognizer()..onTap = () => Links.open(widget.url);
+  late final TapGestureRecognizer _recognizer = TapGestureRecognizer()
+    ..onTap = () => Links.open(widget.url);
 
   @override
   void dispose() {

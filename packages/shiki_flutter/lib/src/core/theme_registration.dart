@@ -19,8 +19,8 @@ class ThemeRegistration {
     this.bg,
     Map<String, String>? colorReplacements,
     Map<String, String>? colors,
-  })  : colorReplacements = colorReplacements ?? {},
-        colors = colors ?? {};
+  }) : colorReplacements = colorReplacements ?? {},
+       colors = colors ?? {};
 
   final String name;
   String type; // 'light' | 'dark'
@@ -85,25 +85,25 @@ class ThemeRegistration {
   /// [fromJson]. Used to replicate an object-built theme to the async worker,
   /// which only accepts JSON strings. Round-trips through [fromJson] losslessly.
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'type': type,
-        if (fg != null) 'fg': fg,
-        if (bg != null) 'bg': bg,
-        if (colors.isNotEmpty) 'colors': colors,
-        if (colorReplacements.isNotEmpty) 'colorReplacements': colorReplacements,
-        'settings': [for (final s in settings) _settingToJson(s)],
-      };
+    'name': name,
+    'type': type,
+    if (fg != null) 'fg': fg,
+    if (bg != null) 'bg': bg,
+    if (colors.isNotEmpty) 'colors': colors,
+    if (colorReplacements.isNotEmpty) 'colorReplacements': colorReplacements,
+    'settings': [for (final s in settings) _settingToJson(s)],
+  };
 
   static Map<String, dynamic> _settingToJson(RawThemeSetting s) => {
-        if (s.name != null) 'name': s.name,
-        // `scope` is a String or List<String>; both are JSON-encodable as-is.
-        if (s.scope != null) 'scope': s.scope,
-        'settings': {
-          if (s.settings.fontStyle != null) 'fontStyle': s.settings.fontStyle,
-          if (s.settings.foreground != null) 'foreground': s.settings.foreground,
-          if (s.settings.background != null) 'background': s.settings.background,
-        },
-      };
+    if (s.name != null) 'name': s.name,
+    // `scope` is a String or List<String>; both are JSON-encodable as-is.
+    if (s.scope != null) 'scope': s.scope,
+    'settings': {
+      if (s.settings.fontStyle != null) 'fontStyle': s.settings.fontStyle,
+      if (s.settings.foreground != null) 'foreground': s.settings.foreground,
+      if (s.settings.background != null) 'background': s.settings.background,
+    },
+  };
 }
 
 /// Normalizes a raw theme: fills in defaults, guesses fg/bg, and moves non-hex
@@ -141,7 +141,8 @@ ThemeRegistration normalizeTheme(ThemeRegistration theme) {
   }
 
   // Ensure the first setting is a no-scope default with fallback colors.
-  final hasLeadingDefault = settings.isNotEmpty &&
+  final hasLeadingDefault =
+      settings.isNotEmpty &&
       settings.first.scope == null &&
       settings.first.name == null;
   if (!hasLeadingDefault) {
@@ -188,15 +189,17 @@ ThemeRegistration normalizeTheme(ThemeRegistration theme) {
       theme.colorReplacements[replacement] = rawBg;
       newBg = replacement;
     }
-    newSettings.add(RawThemeSetting(
-      name: setting.name,
-      scope: setting.scope,
-      settings: ThemeSettingStyle(
-        fontStyle: setting.settings.fontStyle,
-        foreground: newFg,
-        background: newBg,
+    newSettings.add(
+      RawThemeSetting(
+        name: setting.name,
+        scope: setting.scope,
+        settings: ThemeSettingStyle(
+          fontStyle: setting.settings.fontStyle,
+          foreground: newFg,
+          background: newBg,
+        ),
       ),
-    ));
+    );
   }
 
   theme.settings = newSettings;

@@ -84,11 +84,11 @@ class WebTokenizeWorker implements TokenizeWorker {
   Future<void> get ready => _ready.future;
 
   WorkerConfig get _config => WorkerConfig(
-        engine: _engine,
-        langs: _langs,
-        rawLangJsons: _rawLangJsons,
-        themeJsons: _themeJsons,
-      );
+    engine: _engine,
+    langs: _langs,
+    rawLangJsons: _rawLangJsons,
+    themeJsons: _themeJsons,
+  );
 
   static Future<TokenizeWorker> spawn(
     String url,
@@ -113,9 +113,12 @@ class WebTokenizeWorker implements TokenizeWorker {
     w.onmessage = _onMessage.toJS;
     w.onerror = _onError.toJS;
     // Ship the config; the worker builds a warm highlighter and replies 'ready'.
-    w.postMessage(jsonEncode(
-            {'type': 'config', 'config': workerConfigToJson(_config)})
-        .toJS);
+    w.postMessage(
+      jsonEncode({
+        'type': 'config',
+        'config': workerConfigToJson(_config),
+      }).toJS,
+    );
     await _ready.future.timeout(
       _handshakeTimeout,
       onTimeout: () => throw ShikiError('web worker handshake timed out'),
@@ -125,8 +128,8 @@ class WebTokenizeWorker implements TokenizeWorker {
   void _onMessage(web.MessageEvent event) {
     final data = event.data;
     if (data == null || !data.isA<JSString>()) return;
-    final msg =
-        (jsonDecode((data as JSString).toDart) as Map).cast<String, dynamic>();
+    final msg = (jsonDecode((data as JSString).toDart) as Map)
+        .cast<String, dynamic>();
     switch (msg['type']) {
       case 'ready':
         _alive = true;
@@ -136,8 +139,11 @@ class WebTokenizeWorker implements TokenizeWorker {
             .remove(msg['id'] as int)
             ?.complete(tokensFromJson(msg['tokens'] as List));
       case 'error':
-        _pending.remove(msg['id'] as int)?.completeError(
-            ShikiError(msg['message'] as String? ?? 'web worker error'));
+        _pending
+            .remove(msg['id'] as int)
+            ?.completeError(
+              ShikiError(msg['message'] as String? ?? 'web worker error'),
+            );
     }
   }
 
@@ -172,12 +178,14 @@ class WebTokenizeWorker implements TokenizeWorker {
     final id = _nextId++;
     final completer = Completer<List<List<ThemedToken>>>();
     _pending[id] = completer;
-    _worker!.postMessage(jsonEncode({
-      'type': 'tokenize',
-      'id': id,
-      'code': code,
-      'options': tokenizeOptionsToJson(options),
-    }).toJS);
+    _worker!.postMessage(
+      jsonEncode({
+        'type': 'tokenize',
+        'id': id,
+        'code': code,
+        'options': tokenizeOptionsToJson(options),
+      }).toJS,
+    );
     return completer.future;
   }
 
@@ -185,22 +193,24 @@ class WebTokenizeWorker implements TokenizeWorker {
   void loadLanguage(LangDescriptor lang) {
     _langs.add(lang);
     _worker?.postMessage(
-        jsonEncode({'type': 'loadLang', 'lang': langDescriptorToJson(lang)})
-            .toJS);
+      jsonEncode({'type': 'loadLang', 'lang': langDescriptorToJson(lang)}).toJS,
+    );
   }
 
   @override
   void loadRawLanguage(String json) {
     _rawLangJsons.add(json);
     _worker?.postMessage(
-        jsonEncode({'type': 'loadRawLang', 'json': json}).toJS);
+      jsonEncode({'type': 'loadRawLang', 'json': json}).toJS,
+    );
   }
 
   @override
   void loadTheme(String themeJson) {
     _themeJsons.add(themeJson);
     _worker?.postMessage(
-        jsonEncode({'type': 'loadTheme', 'themeJson': themeJson}).toJS);
+      jsonEncode({'type': 'loadTheme', 'themeJson': themeJson}).toJS,
+    );
   }
 
   @override
@@ -235,7 +245,10 @@ Future<TokenizeWorker> spawnTokenizeWorker(WorkerConfig config) async {
   };
   try {
     return await WebTokenizeWorker.spawn(
-        _resolveWorkerUrl(script), timeout, config);
+      _resolveWorkerUrl(script),
+      timeout,
+      config,
+    );
   } catch (_) {
     return inline.spawnTokenizeWorker(config);
   }

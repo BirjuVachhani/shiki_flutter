@@ -29,8 +29,7 @@ Widget _harness(NavSheetController controller, {required String route}) {
           body: Center(
             child: Builder(
               builder: (context) => TextButton(
-                onPressed: () =>
-                    showAppNavSheet(context, currentRoute: route),
+                onPressed: () => showAppNavSheet(context, currentRoute: route),
                 child: const Text('open'),
               ),
             ),
@@ -52,8 +51,9 @@ Widget _harness(NavSheetController controller, {required String route}) {
 }
 
 void main() {
-  testWidgets('shows site links only when no docs page is registered',
-      (tester) async {
+  testWidgets('shows site links only when no docs page is registered', (
+    tester,
+  ) async {
     await tester.pumpWidget(_harness(NavSheetController(), route: '/'));
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
@@ -68,8 +68,9 @@ void main() {
     expect(find.text('Introduction'), findsNothing);
   });
 
-  testWidgets('appends the section list and scrolls when docs is registered',
-      (tester) async {
+  testWidgets('appends the section list and scrolls when docs is registered', (
+    tester,
+  ) async {
     // A compact width (the sheet only opens below the compact breakpoint), tall
     // enough that the whole section list fits without scrolling so the last
     // section stays on-screen for the tap.

@@ -52,7 +52,8 @@ class _Hero extends StatefulWidget {
 }
 
 class _HeroState extends State<_Hero> {
-  late final TapGestureRecognizer _shikiTap = TapGestureRecognizer()..onTap = () => Links.open(Links.shiki);
+  late final TapGestureRecognizer _shikiTap = TapGestureRecognizer()
+    ..onTap = () => Links.open(Links.shiki);
 
   @override
   void dispose() {
@@ -82,7 +83,11 @@ class _HeroState extends State<_Hero> {
     if (!compact) {
       // Keep the headline on a single line on wide viewports, scaling it down
       // only if the window is too narrow to fit it at full size.
-      headline = FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: headline);
+      headline = FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: headline,
+      );
     }
 
     return Padding(
@@ -105,7 +110,11 @@ class _HeroState extends State<_Hero> {
               constraints: const BoxConstraints(maxWidth: 740),
               child: Text.rich(
                 TextSpan(
-                  style: TextStyle(color: colors.mutedForeground, fontSize: compact ? 16 : 20, height: 1.5),
+                  style: TextStyle(
+                    color: colors.mutedForeground,
+                    fontSize: compact ? 16 : 20,
+                    height: 1.5,
+                  ),
                   children: [
                     TextSpan(
                       text: 'shiki_flutter',
@@ -153,7 +162,10 @@ class _HeroState extends State<_Hero> {
               ],
             ),
             const SizedBox(height: 20),
-            Text('Currently v1.0.0', style: TextStyle(color: colors.mutedForeground, fontSize: 14)),
+            Text(
+              'Currently v1.0.0',
+              style: TextStyle(color: colors.mutedForeground, fontSize: 14),
+            ),
           ],
         ),
       ),
@@ -188,7 +200,9 @@ class _HeroMark extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.7),
                 fontWeight: .w200,
               ),
             ),
@@ -226,7 +240,12 @@ class _HeroMark extends StatelessWidget {
 
 /// Shared layout for a feature section: heading then content.
 class _FeatureBlock extends StatelessWidget {
-  const _FeatureBlock({required this.title, required this.subtitle, required this.child, this.subtitleLink});
+  const _FeatureBlock({
+    required this.title,
+    required this.subtitle,
+    required this.child,
+    this.subtitleLink,
+  });
 
   final String title;
   final String subtitle;
@@ -244,7 +263,11 @@ class _FeatureBlock extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionHeading(title: title, subtitle: subtitle, subtitleLink: subtitleLink),
+            SectionHeading(
+              title: title,
+              subtitle: subtitle,
+              subtitleLink: subtitleLink,
+            ),
             SizedBox(height: compact ? 28 : 40),
             child,
           ],
@@ -271,7 +294,10 @@ class _ThemesFeature extends StatelessWidget {
         children: [
           const ThemeSwitcherDemo(),
           const SizedBox(height: 18),
-          _InlineLink(label: 'Browse all 65 themes in the docs', onTap: () => context.go('/docs?section=themes')),
+          _InlineLink(
+            label: 'Browse all 65 themes in the docs',
+            onTap: () => context.go('/docs?section=themes'),
+          ),
         ],
       ),
     );
@@ -347,7 +373,11 @@ class _TreeShakeFeature extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final compact = context.isCompact;
-    final code = const CodeBlock(code: Snippets.treeShakeGood, lang: 'dart', filename: 'import.dart');
+    final code = const CodeBlock(
+      code: Snippets.treeShakeGood,
+      lang: 'dart',
+      filename: 'import.dart',
+    );
     final bars = const _SizeComparison();
 
     return _FeatureBlock(
@@ -393,17 +423,35 @@ class _SizeComparison extends StatelessWidget {
         children: [
           Text(
             'Size added to your app',
-            style: TextStyle(color: colors.foreground, fontSize: 15, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: colors.foreground,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 20),
-          _SizeBar(label: '1 language + 1 theme', value: '~55 KB', fraction: 0.055 / 1.35, color: colors.accent),
+          _SizeBar(
+            label: '1 language + 1 theme',
+            value: '~55 KB',
+            fraction: 0.055 / 1.35,
+            color: colors.accent,
+          ),
           const SizedBox(height: 16),
-          _SizeBar(label: 'Entire catalog imported', value: '~1.35 MB', fraction: 1, color: colors.mutedForeground),
+          _SizeBar(
+            label: 'Entire catalog imported',
+            value: '~1.35 MB',
+            fraction: 1,
+            color: colors.mutedForeground,
+          ),
           const SizedBox(height: 18),
           Text(
             "Gzipped download the package adds (~180 KB to 8.6 MB uncompressed). "
             "Everything you don't import is tree-shaken away.",
-            style: TextStyle(color: colors.mutedForeground, fontSize: 13, height: 1.5),
+            style: TextStyle(
+              color: colors.mutedForeground,
+              fontSize: 13,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -412,7 +460,12 @@ class _SizeComparison extends StatelessWidget {
 }
 
 class _SizeBar extends StatelessWidget {
-  const _SizeBar({required this.label, required this.value, required this.fraction, required this.color});
+  const _SizeBar({
+    required this.label,
+    required this.value,
+    required this.fraction,
+    required this.color,
+  });
 
   final String label;
   final String value;
@@ -428,7 +481,10 @@ class _SizeBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: TextStyle(color: colors.foreground, fontSize: 13.5)),
+            Text(
+              label,
+              style: TextStyle(color: colors.foreground, fontSize: 13.5),
+            ),
             Text(
               value,
               style: TextStyle(
@@ -461,7 +517,11 @@ class _WidgetFeature extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final compact = context.isCompact;
-    final code = const CodeBlock(code: Snippets.renderWidget, lang: 'dart', filename: 'code_card.dart');
+    final code = const CodeBlock(
+      code: Snippets.renderWidget,
+      lang: 'dart',
+      filename: 'code_card.dart',
+    );
     final preview = const _WidgetPreview();
 
     return _FeatureBlock(
@@ -491,11 +551,16 @@ class _WidgetPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final themeId = HighlighterService.themeForBrightness(Theme.of(context).brightness);
+    final themeId = HighlighterService.themeForBrightness(
+      Theme.of(context).brightness,
+    );
     // Fill the whole card with the theme background and let ShikiCodeView paint
     // only the text - otherwise its background spans just the text width and
     // leaves a mismatched strip on the right.
-    final bg = HighlighterService.instance.displayBackground(themeId, colors.surface);
+    final bg = HighlighterService.instance.displayBackground(
+      themeId,
+      colors.surface,
+    );
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -509,7 +574,11 @@ class _WidgetPreview extends StatelessWidget {
         lang: 'dart',
         theme: themeId,
         paintBackground: false,
-        textStyle: const TextStyle(fontFamily: AppFonts.mono, fontSize: 13.5, height: 1.55),
+        textStyle: const TextStyle(
+          fontFamily: AppFonts.mono,
+          fontSize: 13.5,
+          height: 1.55,
+        ),
         padding: const EdgeInsets.all(20),
       ),
     );
@@ -554,7 +623,10 @@ class _EngineFeature extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [for (final (label, icon) in _platforms) AppBadge(label, icon: icon)],
+            children: [
+              for (final (label, icon) in _platforms)
+                AppBadge(label, icon: icon),
+            ],
           ),
           const SizedBox(height: 28),
           Wrap(
@@ -569,7 +641,11 @@ class _EngineFeature extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(
                       f,
-                      style: TextStyle(color: colors.foreground, fontSize: 14.5, fontFamily: AppFonts.mono),
+                      style: TextStyle(
+                        color: colors.foreground,
+                        fontSize: 14.5,
+                        fontFamily: AppFonts.mono,
+                      ),
                     ),
                   ],
                 ),
@@ -628,7 +704,11 @@ class _CtaBand extends StatelessWidget {
                 'use. Star the repo, open an issue, or pull it in from pub.dev. '
                 'Every contribution and bug report makes the highlighter '
                 'better.',
-                style: TextStyle(color: colors.mutedForeground, fontSize: 16, height: 1.5),
+                style: TextStyle(
+                  color: colors.mutedForeground,
+                  fontSize: 16,
+                  height: 1.5,
+                ),
               ),
             ),
             // space-y-6 (24px) between the text group and the buttons.

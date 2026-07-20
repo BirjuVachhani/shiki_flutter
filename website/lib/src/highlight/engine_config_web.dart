@@ -7,6 +7,6 @@ import 'package:shiki_flutter/shiki_flutter.dart';
 /// Web has no isolates, so `asyncWeb` + that worker are what keep the UI thread
 /// free during the cold grammar/regex compile.
 ShikiHighlighterConfig siteHighlighterConfig() => const ShikiHighlighterConfig(
-      // webEngine defaults to ShikiHighlighterEmbeddedEngine (no WASM).
-      asyncWeb: true,
-    );
+  // webEngine defaults to ShikiHighlighterEmbeddedEngine (no WASM).
+  asyncWeb: true,
+);

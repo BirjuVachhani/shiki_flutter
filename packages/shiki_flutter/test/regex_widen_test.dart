@@ -18,8 +18,11 @@ void _diff(String pattern, String input, {int from = 0}) {
   final interp = _desc(sc.findNextMatch(input, from));
   OnigRegex.fastPathEnabled = true;
   final fast = _desc(sc.findNextMatch(input, from));
-  expect(fast, interp,
-      reason: 'fast vs interpreter for /$pattern/ @$from on "$input"');
+  expect(
+    fast,
+    interp,
+    reason: 'fast vs interpreter for /$pattern/ @$from on "$input"',
+  );
 }
 
 void main() {

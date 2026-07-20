@@ -14,15 +14,72 @@ import 'dart:convert';
 import 'dart:io';
 
 const _reserved = {
-  'abstract', 'as', 'assert', 'async', 'await', 'base', 'break', 'case',
-  'catch', 'class', 'const', 'continue', 'covariant', 'default', 'deferred',
-  'do', 'dynamic', 'else', 'enum', 'export', 'extends', 'extension', 'external',
-  'factory', 'false', 'final', 'finally', 'for', 'Function', 'get', 'hide',
-  'if', 'implements', 'import', 'in', 'interface', 'is', 'late', 'library',
-  'mixin', 'new', 'null', 'on', 'operator', 'part', 'required', 'rethrow',
-  'return', 'sealed', 'set', 'show', 'static', 'super', 'switch', 'sync',
-  'this', 'throw', 'true', 'try', 'typedef', 'var', 'void', 'when', 'while',
-  'with', 'yield',
+  'abstract',
+  'as',
+  'assert',
+  'async',
+  'await',
+  'base',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'continue',
+  'covariant',
+  'default',
+  'deferred',
+  'do',
+  'dynamic',
+  'else',
+  'enum',
+  'export',
+  'extends',
+  'extension',
+  'external',
+  'factory',
+  'false',
+  'final',
+  'finally',
+  'for',
+  'Function',
+  'get',
+  'hide',
+  'if',
+  'implements',
+  'import',
+  'in',
+  'interface',
+  'is',
+  'late',
+  'library',
+  'mixin',
+  'new',
+  'null',
+  'on',
+  'operator',
+  'part',
+  'required',
+  'rethrow',
+  'return',
+  'sealed',
+  'set',
+  'show',
+  'static',
+  'super',
+  'switch',
+  'sync',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'typedef',
+  'var',
+  'void',
+  'when',
+  'while',
+  'with',
+  'yield',
 };
 
 // Common aliases (Shiki's installed data doesn't carry them). id -> aliases.
@@ -145,12 +202,15 @@ void main(List<String> args) {
 
   final langIdents = <String>{};
   final langInfo = <String, ({String ident, String file})>{};
-  final langFiles = Directory('$shikiDir/langs/dist')
-      .listSync()
-      .whereType<File>()
-      .where((f) => f.path.endsWith('.mjs') && !f.path.endsWith('index.mjs'))
-      .toList()
-    ..sort((a, b) => a.path.compareTo(b.path));
+  final langFiles =
+      Directory('$shikiDir/langs/dist')
+          .listSync()
+          .whereType<File>()
+          .where(
+            (f) => f.path.endsWith('.mjs') && !f.path.endsWith('index.mjs'),
+          )
+          .toList()
+        ..sort((a, b) => a.path.compareTo(b.path));
 
   // First pass: assign idents/files for every language id.
   for (final f in langFiles) {
@@ -172,21 +232,25 @@ void main(List<String> args) {
     generatedLangIds.add(id);
     final obj = jsonDecode(jsonText) as Map<String, dynamic>;
     final scopeName = obj['scopeName'] as String? ?? 'source.$id';
-    final embedded = (obj['embeddedLangs'] as List?)?.cast<String>() ?? const [];
+    final embedded =
+        (obj['embeddedLangs'] as List?)?.cast<String>() ?? const [];
     final info = langInfo[id]!;
 
     final deps = embedded
         .where((e) => langInfo.containsKey(e) && e != id)
         .toList();
 
-    final imports = StringBuffer("import '../src/bundled/bundled_language.dart';");
+    final imports = StringBuffer(
+      "import '../src/bundled/bundled_language.dart';",
+    );
     for (final dep in deps) {
       imports.write("\nimport '${langInfo[dep]!.file}.dart';");
     }
 
     final aliases = _aliases[id] ?? const [];
-    final aliasStr =
-        aliases.isEmpty ? '' : ', aliases: [${aliases.map((a) => "'$a'").join(', ')}]';
+    final aliasStr = aliases.isEmpty
+        ? ''
+        : ', aliases: [${aliases.map((a) => "'$a'").join(', ')}]';
     final embeddedStr = deps.isEmpty
         ? ''
         : ', embeddedLanguages: () => [${deps.map((d) => langInfo[d]!.ident).join(', ')}]';
@@ -204,19 +268,24 @@ void main(List<String> args) {
       ..writeln()
       ..writeln('const _json = ${_dartString(jsonText)};');
 
-    File('${langsOut.path}/${info.file}.dart').writeAsStringSync(out.toString());
+    File(
+      '${langsOut.path}/${info.file}.dart',
+    ).writeAsStringSync(out.toString());
     langCount++;
   }
 
   // Themes.
   final themeIdents = <String>{};
   final themeEntries = <({String id, String ident, String file})>[];
-  final themeFiles = Directory('$shikiDir/themes/dist')
-      .listSync()
-      .whereType<File>()
-      .where((f) => f.path.endsWith('.mjs') && !f.path.endsWith('index.mjs'))
-      .toList()
-    ..sort((a, b) => a.path.compareTo(b.path));
+  final themeFiles =
+      Directory('$shikiDir/themes/dist')
+          .listSync()
+          .whereType<File>()
+          .where(
+            (f) => f.path.endsWith('.mjs') && !f.path.endsWith('index.mjs'),
+          )
+          .toList()
+        ..sort((a, b) => a.path.compareTo(b.path));
 
   var themeCount = 0;
   for (final f in themeFiles) {
@@ -258,8 +327,11 @@ void main(List<String> args) {
   stdout.writeln('Generated $langCount languages and $themeCount themes.');
 }
 
-void _writeLangBarrel(Directory dir, List<String> ids,
-    Map<String, ({String ident, String file})> langInfo) {
+void _writeLangBarrel(
+  Directory dir,
+  List<String> ids,
+  Map<String, ({String ident, String file})> langInfo,
+) {
   final b = StringBuffer()
     ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
     ..writeln('//')
@@ -282,11 +354,15 @@ void _writeLangBarrel(Directory dir, List<String> ids,
 }
 
 void _writeThemeBarrel(
-    Directory dir, List<({String id, String ident, String file})> themes) {
+  Directory dir,
+  List<({String id, String ident, String file})> themes,
+) {
   final b = StringBuffer()
     ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
     ..writeln('//')
-    ..writeln('// Importing this file pulls EVERY bundled theme into your build.')
+    ..writeln(
+      '// Importing this file pulls EVERY bundled theme into your build.',
+    )
     ..writeln("import '../src/bundled/bundled_theme.dart';");
   for (final t in themes) {
     b.writeln("import '${t.file}.dart';");

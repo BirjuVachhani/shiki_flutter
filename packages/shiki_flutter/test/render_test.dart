@@ -9,8 +9,12 @@ import 'package:shiki_flutter/themes/github_dark.dart';
 
 ShikiHighlighter buildHighlighter() {
   final hl = ShikiHighlighter();
-  hl.loadLanguageFromJson(File('test/fixtures/langs/javascript.json').readAsStringSync());
-  hl.loadThemeFromJson(File('test/fixtures/themes/github-dark.json').readAsStringSync());
+  hl.loadLanguageFromJson(
+    File('test/fixtures/langs/javascript.json').readAsStringSync(),
+  );
+  hl.loadThemeFromJson(
+    File('test/fixtures/themes/github-dark.json').readAsStringSync(),
+  );
   return hl;
 }
 
@@ -119,8 +123,11 @@ void main() {
       expect(children, isNotEmpty);
       // Every leaf span should carry a color from the theme.
       final colored = children.whereType<TextSpan>().where(
-            (s) => s.text != null && s.text!.trim().isNotEmpty && s.style?.color != null,
-          );
+        (s) =>
+            s.text != null &&
+            s.text!.trim().isNotEmpty &&
+            s.style?.color != null,
+      );
       expect(colored, isNotEmpty);
     });
 
@@ -203,8 +210,9 @@ void main() {
       expect(find.text('4'), findsNothing);
     });
 
-    testWidgets('keeps the code one Text.rich, aligned row-for-row',
-        (tester) async {
+    testWidgets('keeps the code one Text.rich, aligned row-for-row', (
+      tester,
+    ) async {
       await pump(tester);
 
       // Still a single blob: one RichText holds all three lines.
@@ -224,8 +232,11 @@ void main() {
 
       // The first number's top lines up with the code's top (same padding).
       final codeTop = tester
-          .getTopLeft(find.byWidgetPredicate(
-              (w) => w is RichText && w.text.toPlainText().contains('alpha')))
+          .getTopLeft(
+            find.byWidgetPredicate(
+              (w) => w is RichText && w.text.toPlainText().contains('alpha'),
+            ),
+          )
           .dy;
       expect(y1, moreOrLessEquals(codeTop, epsilon: 1.0));
     });
@@ -244,14 +255,20 @@ void main() {
       final dividerRect = tester.getRect(find.byWidget(box));
       final widgetRect = tester.getRect(find.byType(ShikiCodeView));
       expect(dividerRect.top, moreOrLessEquals(widgetRect.top, epsilon: 0.5));
-      expect(dividerRect.bottom, moreOrLessEquals(widgetRect.bottom, epsilon: 0.5));
+      expect(
+        dividerRect.bottom,
+        moreOrLessEquals(widgetRect.bottom, epsilon: 0.5),
+      );
       // Numbers stay inset by the top padding.
-      expect(tester.getRect(find.text('1')).top,
-          greaterThan(dividerRect.top + 15));
+      expect(
+        tester.getRect(find.text('1')).top,
+        greaterThan(dividerRect.top + 15),
+      );
     });
 
-    testWidgets('no numbers and a single Text.rich when disabled',
-        (tester) async {
+    testWidgets('no numbers and a single Text.rich when disabled', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       await tester.pumpWidget(
         Directionality(
@@ -319,8 +336,9 @@ void main() {
         lang: 'javascript',
         theme: 'github-dark',
       );
-      final spans =
-          lines.expand((l) => l).where((s) => (s.text ?? '').isNotEmpty);
+      final spans = lines
+          .expand((l) => l)
+          .where((s) => (s.text ?? '').isNotEmpty);
       expect(spans, isNotEmpty);
       expect(spans.every((s) => s.style?.color != null), isTrue);
     });
@@ -334,8 +352,9 @@ void main() {
         lang: 'javascript',
         theme: 'github-dark',
       );
-      final text =
-          lines.map((l) => l.map((s) => s.text ?? '').join()).join('\n');
+      final text = lines
+          .map((l) => l.map((s) => s.text ?? '').join())
+          .join('\n');
       expect(text, code);
     });
   });
@@ -397,8 +416,9 @@ void main() {
       expect(find.text('3'), findsOneWidget);
     });
 
-    testWidgets('gutter is wider than multi-digit numbers so none are clipped',
-        (tester) async {
+    testWidgets('gutter is wider than multi-digit numbers so none are clipped', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       // 12 digit-free lines: the only "12" in the tree is the line number, and
       // its two digits must both fit the gutter.
@@ -436,8 +456,9 @@ void main() {
       expect(boxWidth, greaterThan(labelWidth));
     });
 
-    testWidgets('GutterStyle.textScale shrinks the gutter font vs the code',
-        (tester) async {
+    testWidgets('GutterStyle.textScale shrinks the gutter font vs the code', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       final code = List.filled(12, 'const x = y;').join('\n');
       await tester.pumpWidget(
@@ -451,7 +472,10 @@ void main() {
                 code: code,
                 lang: 'javascript',
                 theme: 'github-dark',
-                textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 20),
+                textStyle: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 20,
+                ),
                 showLineNumbers: true,
                 gutterStyle: const GutterStyle(textScale: 0.5),
                 shrinkWrap: true,
@@ -469,8 +493,9 @@ void main() {
       expect(label.style?.fontSize, 10.0);
     });
 
-    testWidgets('GutterStyle.spacing sets the gap between gutter and code',
-        (tester) async {
+    testWidgets('GutterStyle.spacing sets the gap between gutter and code', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       await tester.pumpWidget(
         Directionality(
@@ -500,37 +525,43 @@ void main() {
       expect(gap, findsOneWidget);
     });
 
-    testWidgets('GutterStyle renders a divider only when dividerColor is set',
-        (tester) async {
+    testWidgets('GutterStyle renders a divider only when dividerColor is set', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       const dividerColor = Color(0xFFABCDEF);
 
       Future<void> pump(GutterStyle style) => tester.pumpWidget(
-            Directionality(
-              textDirection: TextDirection.ltr,
-              child: Center(
-                child: SizedBox(
-                  width: 400,
-                  child: ShikiCodeListView(
-                    highlighter: hl,
-                    code: 'const a = x;\nconst b = y;\nconst c = z;',
-                    lang: 'javascript',
-                    theme: 'github-dark',
-                    showLineNumbers: true,
-                    paintBackground: false,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                    gutterStyle: style,
-                    shrinkWrap: true,
-                    async: false,
-                    physics: const NeverScrollableScrollPhysics(),
-                  ),
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              child: ShikiCodeListView(
+                highlighter: hl,
+                code: 'const a = x;\nconst b = y;\nconst c = z;',
+                lang: 'javascript',
+                theme: 'github-dark',
+                showLineNumbers: true,
+                paintBackground: false,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
                 ),
+                gutterStyle: style,
+                shrinkWrap: true,
+                async: false,
+                physics: const NeverScrollableScrollPhysics(),
               ),
             ),
-          );
+          ),
+        ),
+      );
 
       ColoredBox? dividerBox() {
-        for (final w in tester.widgetList<ColoredBox>(find.byType(ColoredBox))) {
+        for (final w in tester.widgetList<ColoredBox>(
+          find.byType(ColoredBox),
+        )) {
           if (w.color == dividerColor) return w;
         }
         return null;
@@ -542,7 +573,9 @@ void main() {
 
       // dividerColor set: a divider of the requested thickness that runs edge
       // to edge, into the vertical padding, while the numbers stay inset.
-      await pump(const GutterStyle(dividerColor: dividerColor, dividerThickness: 2));
+      await pump(
+        const GutterStyle(dividerColor: dividerColor, dividerThickness: 2),
+      );
       final box = dividerBox();
       expect(box, isNotNull);
       final dividerRect = tester.getRect(find.byWidget(box!));
@@ -552,7 +585,10 @@ void main() {
       // padding included).
       final widgetRect = tester.getRect(find.byType(ShikiCodeListView));
       expect(dividerRect.top, moreOrLessEquals(widgetRect.top, epsilon: 0.5));
-      expect(dividerRect.bottom, moreOrLessEquals(widgetRect.bottom, epsilon: 0.5));
+      expect(
+        dividerRect.bottom,
+        moreOrLessEquals(widgetRect.bottom, epsilon: 0.5),
+      );
 
       // The first line number is inset by the top padding, so it sits well
       // below the divider's top.
@@ -560,8 +596,9 @@ void main() {
       expect(firstNumberTop, greaterThan(dividerRect.top + 15));
     });
 
-    testWidgets('GutterStyle divider fills height in scrollable mode',
-        (tester) async {
+    testWidgets('GutterStyle divider fills height in scrollable mode', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       const dividerColor = Color(0xFF00CC99);
       await tester.pumpWidget(
@@ -593,8 +630,9 @@ void main() {
       expect(tester.getSize(find.byWidget(box)).height, greaterThan(50));
     });
 
-    testWidgets('selectionColor is exposed via DefaultSelectionStyle',
-        (tester) async {
+    testWidgets('selectionColor is exposed via DefaultSelectionStyle', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       const color = Color(0xFF00FF88);
       await tester.pumpWidget(
@@ -618,13 +656,15 @@ void main() {
         ),
       );
 
-      final styles =
-          tester.widgetList<DefaultSelectionStyle>(find.byType(DefaultSelectionStyle));
+      final styles = tester.widgetList<DefaultSelectionStyle>(
+        find.byType(DefaultSelectionStyle),
+      );
       expect(styles.any((s) => s.selectionColor == color), isTrue);
     });
 
-    testWidgets('shrink-wraps inside an unbounded parent without error',
-        (tester) async {
+    testWidgets('shrink-wraps inside an unbounded parent without error', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       await tester.pumpWidget(
         Directionality(
@@ -665,8 +705,9 @@ void main() {
   });
 
   group('selectable flag', () {
-    testWidgets('ShikiCodeView wraps in a SelectionArea when selectable',
-        (tester) async {
+    testWidgets('ShikiCodeView wraps in a SelectionArea when selectable', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       await tester.pumpWidget(
         MaterialApp(
@@ -683,8 +724,9 @@ void main() {
       expect(find.byType(SelectionArea), findsOneWidget);
     });
 
-    testWidgets('ShikiCodeView adds no SelectionArea by default',
-        (tester) async {
+    testWidgets('ShikiCodeView adds no SelectionArea by default', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       await tester.pumpWidget(
         MaterialApp(
@@ -700,29 +742,32 @@ void main() {
       expect(find.byType(SelectionArea), findsNothing);
     });
 
-    testWidgets('ShikiCodeView does not nest inside an ancestor SelectionArea',
-        (tester) async {
-      final hl = buildHighlighter();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: SelectionArea(
-            child: ShikiCodeView(
-              highlighter: hl,
-              code: 'const answer = x;',
-              lang: 'javascript',
-              theme: 'github-dark',
-              selectable: true,
+    testWidgets(
+      'ShikiCodeView does not nest inside an ancestor SelectionArea',
+      (tester) async {
+        final hl = buildHighlighter();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: SelectionArea(
+              child: ShikiCodeView(
+                highlighter: hl,
+                code: 'const answer = x;',
+                lang: 'javascript',
+                theme: 'github-dark',
+                selectable: true,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Only the ancestor's. The widget must not add a second, nested one.
-      expect(find.byType(SelectionArea), findsOneWidget);
-    });
+        // Only the ancestor's. The widget must not add a second, nested one.
+        expect(find.byType(SelectionArea), findsOneWidget);
+      },
+    );
 
-    testWidgets('ShikiCodeListView wraps in a SelectionArea when selectable',
-        (tester) async {
+    testWidgets('ShikiCodeListView wraps in a SelectionArea when selectable', (
+      tester,
+    ) async {
       final hl = buildHighlighter();
       await tester.pumpWidget(
         MaterialApp(
@@ -744,29 +789,30 @@ void main() {
     });
 
     testWidgets(
-        'ShikiCodeListView does not nest inside an ancestor SelectionArea',
-        (tester) async {
-      final hl = buildHighlighter();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: SelectionArea(
-            child: SizedBox(
-              width: 400,
-              height: 300,
-              child: ShikiCodeListView(
-                highlighter: hl,
-                code: 'const a = x;\nconst b = y;',
-                lang: 'javascript',
-                theme: 'github-dark',
-                selectable: true,
+      'ShikiCodeListView does not nest inside an ancestor SelectionArea',
+      (tester) async {
+        final hl = buildHighlighter();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: SelectionArea(
+              child: SizedBox(
+                width: 400,
+                height: 300,
+                child: ShikiCodeListView(
+                  highlighter: hl,
+                  code: 'const a = x;\nconst b = y;',
+                  lang: 'javascript',
+                  theme: 'github-dark',
+                  selectable: true,
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byType(SelectionArea), findsOneWidget);
-    });
+        expect(find.byType(SelectionArea), findsOneWidget);
+      },
+    );
   });
 
   group('span memoization', () {
@@ -780,117 +826,140 @@ void main() {
       return ((rt.text as TextSpan).children!.single as TextSpan).children!;
     }
 
-    testWidgets('ShikiCodeView reuses spans on a no-op rebuild, rebuilds on change',
-        (tester) async {
-      final hl = buildHighlighter();
-      var fontSize = 14.0;
-      var code = 'const x = 1;';
-      late StateSetter setOuter;
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: StatefulBuilder(builder: (context, setState) {
-          setOuter = setState;
-          return ShikiCodeView(
-            highlighter: hl,
-            code: code,
-            lang: 'javascript',
-            theme: 'github-dark',
-            textStyle: TextStyle(fontFamily: 'monospace', fontSize: fontSize),
-            async: false,
-          );
-        }),
-      ));
-
-      final first = rowChildren(tester);
-
-      // No-op rebuild (new widget, equal inputs): same span objects reused.
-      setOuter(() {});
-      await tester.pump();
-      expect(identical(rowChildren(tester), first), isTrue);
-
-      // Style change invalidates (base style is part of the key).
-      setOuter(() => fontSize = 20.0);
-      await tester.pump();
-      final afterStyle = rowChildren(tester);
-      expect(identical(afterStyle, first), isFalse);
-
-      // Content change invalidates (new tokens).
-      setOuter(() => code = 'const y = 2;');
-      await tester.pump();
-      expect(identical(rowChildren(tester), afterStyle), isFalse);
-    });
-
-    testWidgets('ShikiCodeListView reuses spans on a no-op rebuild, rebuilds on change',
-        (tester) async {
-      final hl = buildHighlighter();
-      var fontSize = 14.0;
-      var code = 'const x = 1;';
-      late StateSetter setOuter;
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: StatefulBuilder(builder: (context, setState) {
-          setOuter = setState;
-          return SizedBox(
-            width: 400,
-            height: 300,
-            child: ShikiCodeListView(
-              highlighter: hl,
-              code: code,
-              lang: 'javascript',
-              theme: 'github-dark',
-              textStyle: TextStyle(fontFamily: 'monospace', fontSize: fontSize),
-              async: false,
+    testWidgets(
+      'ShikiCodeView reuses spans on a no-op rebuild, rebuilds on change',
+      (tester) async {
+        final hl = buildHighlighter();
+        var fontSize = 14.0;
+        var code = 'const x = 1;';
+        late StateSetter setOuter;
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                setOuter = setState;
+                return ShikiCodeView(
+                  highlighter: hl,
+                  code: code,
+                  lang: 'javascript',
+                  theme: 'github-dark',
+                  textStyle: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: fontSize,
+                  ),
+                  async: false,
+                );
+              },
             ),
-          );
-        }),
-      ));
+          ),
+        );
 
-      final first = rowChildren(tester);
+        final first = rowChildren(tester);
 
-      setOuter(() {});
-      await tester.pump();
-      expect(identical(rowChildren(tester), first), isTrue);
+        // No-op rebuild (new widget, equal inputs): same span objects reused.
+        setOuter(() {});
+        await tester.pump();
+        expect(identical(rowChildren(tester), first), isTrue);
 
-      setOuter(() => fontSize = 20.0);
-      await tester.pump();
-      final afterStyle = rowChildren(tester);
-      expect(identical(afterStyle, first), isFalse);
+        // Style change invalidates (base style is part of the key).
+        setOuter(() => fontSize = 20.0);
+        await tester.pump();
+        final afterStyle = rowChildren(tester);
+        expect(identical(afterStyle, first), isFalse);
 
-      setOuter(() => code = 'const y = 2;');
-      await tester.pump();
-      expect(identical(rowChildren(tester), afterStyle), isFalse);
-    });
+        // Content change invalidates (new tokens).
+        setOuter(() => code = 'const y = 2;');
+        await tester.pump();
+        expect(identical(rowChildren(tester), afterStyle), isFalse);
+      },
+    );
+
+    testWidgets(
+      'ShikiCodeListView reuses spans on a no-op rebuild, rebuilds on change',
+      (tester) async {
+        final hl = buildHighlighter();
+        var fontSize = 14.0;
+        var code = 'const x = 1;';
+        late StateSetter setOuter;
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                setOuter = setState;
+                return SizedBox(
+                  width: 400,
+                  height: 300,
+                  child: ShikiCodeListView(
+                    highlighter: hl,
+                    code: code,
+                    lang: 'javascript',
+                    theme: 'github-dark',
+                    textStyle: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: fontSize,
+                    ),
+                    async: false,
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+
+        final first = rowChildren(tester);
+
+        setOuter(() {});
+        await tester.pump();
+        expect(identical(rowChildren(tester), first), isTrue);
+
+        setOuter(() => fontSize = 20.0);
+        await tester.pump();
+        final afterStyle = rowChildren(tester);
+        expect(identical(afterStyle, first), isFalse);
+
+        setOuter(() => code = 'const y = 2;');
+        await tester.pump();
+        expect(identical(rowChildren(tester), afterStyle), isFalse);
+      },
+    );
   });
 
   group('async lifecycle', () {
-    testWidgets('disposing while an async tokenize is in flight does not throw',
-        (tester) async {
+    testWidgets('disposing while an async tokenize is in flight does not throw', (
+      tester,
+    ) async {
       final hl = createHighlighter(langs: [dart], themes: [githubDark]);
       addTearDown(hl.dispose);
 
       // Pump the async widget: first frame is the plain placeholder, an off-thread
       // tokenize is now in flight.
-      await tester.pumpWidget(Directionality(
-        textDirection: TextDirection.ltr,
-        child: SizedBox(
-          width: 400,
-          height: 300,
-          child: ShikiCodeView(
-            highlighter: hl,
-            code: 'void main() {}',
-            lang: 'dart',
-            theme: 'github-dark',
-            async: true,
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: SizedBox(
+            width: 400,
+            height: 300,
+            child: ShikiCodeView(
+              highlighter: hl,
+              code: 'void main() {}',
+              lang: 'dart',
+              theme: 'github-dark',
+              async: true,
+            ),
           ),
         ),
-      ));
+      );
 
       // Dispose the widget's State by swapping the tree before the result lands.
       await tester.pumpWidget(const SizedBox());
 
       // Let the in-flight isolate result arrive; the resolver's _disposed guard
       // must drop it rather than calling setState on the dead State.
-      await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 1)));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(seconds: 1)),
+      );
       await tester.pump();
       expect(tester.takeException(), isNull);
     });

@@ -55,8 +55,14 @@ TokenizeStringResult tokenizeString(
     }
 
     // scanNext, potentially modifying currentLinePos & anchorPosition.
-    final r = _matchRuleOrInjections(grammar, lineText, currentIsFirstLine,
-        currentLinePos, currentStack, anchorPosition);
+    final r = _matchRuleOrInjections(
+      grammar,
+      lineText,
+      currentIsFirstLine,
+      currentLinePos,
+      currentStack,
+      anchorPosition,
+    );
 
     if (r == null) {
       lineTokens.produce(currentStack, lineLength);
@@ -75,10 +81,18 @@ TokenizeStringResult tokenizeString(
       final poppedRule = currentStack.getRule(grammar) as BeginEndRule;
 
       lineTokens.produce(currentStack, captureIndices[0].start);
-      currentStack =
-          currentStack.withContentNameScopesList(currentStack.nameScopesList!);
-      _handleCaptures(grammar, lineText, currentIsFirstLine, currentStack,
-          lineTokens, poppedRule.endCaptures, captureIndices);
+      currentStack = currentStack.withContentNameScopesList(
+        currentStack.nameScopesList!,
+      );
+      _handleCaptures(
+        grammar,
+        lineText,
+        currentIsFirstLine,
+        currentStack,
+        lineTokens,
+        poppedRule.endCaptures,
+        captureIndices,
+      );
       lineTokens.produce(currentStack, captureIndices[0].end);
 
       final popped = currentStack;
@@ -100,8 +114,10 @@ TokenizeStringResult tokenizeString(
 
       final beforePush = currentStack;
       final scopeName = rule.getName(lineText.content, captureIndices);
-      final nameScopesList =
-          currentStack.contentNameScopesList!.pushAttributed(scopeName, grammar);
+      final nameScopesList = currentStack.contentNameScopesList!.pushAttributed(
+        scopeName,
+        grammar,
+      );
       currentStack = currentStack.push(
         matchedRuleId,
         currentLinePos,
@@ -114,22 +130,36 @@ TokenizeStringResult tokenizeString(
 
       if (rule is BeginEndRule) {
         final pushedRule = rule;
-        _handleCaptures(grammar, lineText, currentIsFirstLine, currentStack,
-            lineTokens, pushedRule.beginCaptures, captureIndices);
+        _handleCaptures(
+          grammar,
+          lineText,
+          currentIsFirstLine,
+          currentStack,
+          lineTokens,
+          pushedRule.beginCaptures,
+          captureIndices,
+        );
         lineTokens.produce(currentStack, captureIndices[0].end);
         anchorPosition = captureIndices[0].end;
 
-        final contentName =
-            pushedRule.getContentName(lineText.content, captureIndices);
-        final contentNameScopesList =
-            nameScopesList.pushAttributed(contentName, grammar);
-        currentStack =
-            currentStack.withContentNameScopesList(contentNameScopesList);
+        final contentName = pushedRule.getContentName(
+          lineText.content,
+          captureIndices,
+        );
+        final contentNameScopesList = nameScopesList.pushAttributed(
+          contentName,
+          grammar,
+        );
+        currentStack = currentStack.withContentNameScopesList(
+          contentNameScopesList,
+        );
 
         if (pushedRule.endHasBackReferences) {
           currentStack = currentStack.withEndRule(
             pushedRule.getEndWithResolvedBackReferences(
-                lineText.content, captureIndices),
+              lineText.content,
+              captureIndices,
+            ),
           );
         }
 
@@ -141,22 +171,36 @@ TokenizeStringResult tokenizeString(
         }
       } else if (rule is BeginWhileRule) {
         final pushedRule = rule;
-        _handleCaptures(grammar, lineText, currentIsFirstLine, currentStack,
-            lineTokens, pushedRule.beginCaptures, captureIndices);
+        _handleCaptures(
+          grammar,
+          lineText,
+          currentIsFirstLine,
+          currentStack,
+          lineTokens,
+          pushedRule.beginCaptures,
+          captureIndices,
+        );
         lineTokens.produce(currentStack, captureIndices[0].end);
         anchorPosition = captureIndices[0].end;
 
-        final contentName =
-            pushedRule.getContentName(lineText.content, captureIndices);
-        final contentNameScopesList =
-            nameScopesList.pushAttributed(contentName, grammar);
-        currentStack =
-            currentStack.withContentNameScopesList(contentNameScopesList);
+        final contentName = pushedRule.getContentName(
+          lineText.content,
+          captureIndices,
+        );
+        final contentNameScopesList = nameScopesList.pushAttributed(
+          contentName,
+          grammar,
+        );
+        currentStack = currentStack.withContentNameScopesList(
+          contentNameScopesList,
+        );
 
         if (pushedRule.whileHasBackReferences) {
           currentStack = currentStack.withEndRule(
             pushedRule.getWhileWithResolvedBackReferences(
-                lineText.content, captureIndices),
+              lineText.content,
+              captureIndices,
+            ),
           );
         }
 
@@ -168,8 +212,15 @@ TokenizeStringResult tokenizeString(
         }
       } else {
         final matchingRule = rule as MatchRule;
-        _handleCaptures(grammar, lineText, currentIsFirstLine, currentStack,
-            lineTokens, matchingRule.captures, captureIndices);
+        _handleCaptures(
+          grammar,
+          lineText,
+          currentIsFirstLine,
+          currentStack,
+          lineTokens,
+          matchingRule.captures,
+          captureIndices,
+        );
         lineTokens.produce(currentStack, captureIndices[0].end);
 
         currentStack = currentStack.pop()!;
@@ -194,7 +245,11 @@ TokenizeStringResult tokenizeString(
 
 class _WhileCheckResult {
   _WhileCheckResult(
-      this.stack, this.linePos, this.anchorPosition, this.isFirstLine);
+    this.stack,
+    this.linePos,
+    this.anchorPosition,
+    this.isFirstLine,
+  );
   final StateStack stack;
   final int linePos;
   final int anchorPosition;
@@ -240,8 +295,15 @@ _WhileCheckResult _checkWhileConditions(
       }
       if (r.captureIndices.isNotEmpty) {
         lineTokens.produce(whileRule.stack, r.captureIndices[0].start);
-        _handleCaptures(grammar, lineText, currentIsFirstLine, whileRule.stack,
-            lineTokens, whileRule.rule.whileCaptures, r.captureIndices);
+        _handleCaptures(
+          grammar,
+          lineText,
+          currentIsFirstLine,
+          whileRule.stack,
+          lineTokens,
+          whileRule.rule.whileCaptures,
+          r.captureIndices,
+        );
         lineTokens.produce(whileRule.stack, r.captureIndices[0].end);
         anchorPosition = r.captureIndices[0].end;
         if (r.captureIndices[0].end > currentLinePos) {
@@ -256,7 +318,11 @@ _WhileCheckResult _checkWhileConditions(
   }
 
   return _WhileCheckResult(
-      currentStack, currentLinePos, anchorPosition, currentIsFirstLine);
+    currentStack,
+    currentLinePos,
+    anchorPosition,
+    currentIsFirstLine,
+  );
 }
 
 class _WhileStack {
@@ -273,7 +339,10 @@ class _MatchResult {
 
 class _MatchInjectionsResult {
   _MatchInjectionsResult(
-      this.priorityMatch, this.captureIndices, this.matchedRuleId);
+    this.priorityMatch,
+    this.captureIndices,
+    this.matchedRuleId,
+  );
   final bool priorityMatch;
   final List<OnigCaptureIndex> captureIndices;
   final RuleId matchedRuleId;
@@ -287,19 +356,34 @@ _MatchResult? _matchRuleOrInjections(
   StateStack stack,
   int anchorPosition,
 ) {
-  final matchResult =
-      _matchRule(grammar, lineText, isFirstLine, linePos, stack, anchorPosition);
+  final matchResult = _matchRule(
+    grammar,
+    lineText,
+    isFirstLine,
+    linePos,
+    stack,
+    anchorPosition,
+  );
 
   final injections = grammar.getInjections();
   if (injections.isEmpty) return matchResult;
 
-  final injectionResult = _matchInjections(injections, grammar, lineText,
-      isFirstLine, linePos, stack, anchorPosition);
+  final injectionResult = _matchInjections(
+    injections,
+    grammar,
+    lineText,
+    isFirstLine,
+    linePos,
+    stack,
+    anchorPosition,
+  );
   if (injectionResult == null) return matchResult;
 
   if (matchResult == null) {
     return _MatchResult(
-        injectionResult.captureIndices, injectionResult.matchedRuleId);
+      injectionResult.captureIndices,
+      injectionResult.matchedRuleId,
+    );
   }
 
   final matchResultScore = matchResult.captureIndices[0].start;
@@ -309,7 +393,9 @@ _MatchResult? _matchRuleOrInjections(
       (injectionResult.priorityMatch &&
           injectionResultScore == matchResultScore)) {
     return _MatchResult(
-        injectionResult.captureIndices, injectionResult.matchedRuleId);
+      injectionResult.captureIndices,
+      injectionResult.matchedRuleId,
+    );
   }
   return matchResult;
 }
@@ -324,7 +410,11 @@ _MatchResult? _matchRule(
 ) {
   final rule = stack.getRule(grammar);
   final ruleScanner = rule.compileAG(
-      grammar, stack.endRule, isFirstLine, linePos == anchorPosition);
+    grammar,
+    stack.endRule,
+    isFirstLine,
+    linePos == anchorPosition,
+  );
   final r = ruleScanner.findNextMatch(lineText, linePos);
 
   if (r != null) {
@@ -357,7 +447,11 @@ _MatchInjectionsResult? _matchInjections(
     if (!injection.matcher(scopes)) continue;
     final rule = grammar.getRule(injection.ruleId);
     final ruleScanner = rule.compileAG(
-        grammar, null, isFirstLine, linePos == anchorPosition);
+      grammar,
+      null,
+      isFirstLine,
+      linePos == anchorPosition,
+    );
     final matchResult = ruleScanner.findNextMatch(lineText, linePos);
     if (matchResult == null) continue;
 
@@ -401,8 +495,9 @@ void _handleCaptures(
 
   final lineTextContent = lineText.content;
 
-  final len =
-      captures.length < captureIndices.length ? captures.length : captureIndices.length;
+  final len = captures.length < captureIndices.length
+      ? captures.length
+      : captureIndices.length;
   final localStack = <_LocalStackElement>[];
   final maxEnd = captureIndices[0].end;
 
@@ -416,7 +511,10 @@ void _handleCaptures(
 
     while (localStack.isNotEmpty &&
         localStack.last.endPos <= captureIndex.start) {
-      lineTokens.produceFromScopes(localStack.last.scopes, localStack.last.endPos);
+      lineTokens.produceFromScopes(
+        localStack.last.scopes,
+        localStack.last.endPos,
+      );
       localStack.removeLast();
     }
 
@@ -428,12 +526,18 @@ void _handleCaptures(
 
     if (captureRule.retokenizeCapturedWithRuleId != 0) {
       final scopeName = captureRule.getName(lineTextContent, captureIndices);
-      final nameScopesList =
-          stack.contentNameScopesList!.pushAttributed(scopeName, grammar);
-      final contentName =
-          captureRule.getContentName(lineTextContent, captureIndices);
-      final contentNameScopesList =
-          nameScopesList.pushAttributed(contentName, grammar);
+      final nameScopesList = stack.contentNameScopesList!.pushAttributed(
+        scopeName,
+        grammar,
+      );
+      final contentName = captureRule.getContentName(
+        lineTextContent,
+        captureIndices,
+      );
+      final contentNameScopesList = nameScopesList.pushAttributed(
+        contentName,
+        grammar,
+      );
 
       final stackClone = stack.push(
         captureRule.retokenizeCapturedWithRuleId,
@@ -444,8 +548,9 @@ void _handleCaptures(
         nameScopesList,
         contentNameScopesList,
       );
-      final onigSubStr = grammar
-          .createString(lineTextContent.substring(0, captureIndex.end));
+      final onigSubStr = grammar.createString(
+        lineTextContent.substring(0, captureIndex.end),
+      );
       tokenizeString(
         grammar,
         onigSubStr,
@@ -459,21 +564,29 @@ void _handleCaptures(
       continue;
     }
 
-    final captureRuleScopeName =
-        captureRule.getName(lineTextContent, captureIndices);
+    final captureRuleScopeName = captureRule.getName(
+      lineTextContent,
+      captureIndices,
+    );
     if (captureRuleScopeName != null) {
       final base = localStack.isNotEmpty
           ? localStack.last.scopes
           : stack.contentNameScopesList!;
-      final captureRuleScopesList =
-          base.pushAttributed(captureRuleScopeName, grammar);
-      localStack
-          .add(_LocalStackElement(captureRuleScopesList, captureIndex.end));
+      final captureRuleScopesList = base.pushAttributed(
+        captureRuleScopeName,
+        grammar,
+      );
+      localStack.add(
+        _LocalStackElement(captureRuleScopesList, captureIndex.end),
+      );
     }
   }
 
   while (localStack.isNotEmpty) {
-    lineTokens.produceFromScopes(localStack.last.scopes, localStack.last.endPos);
+    lineTokens.produceFromScopes(
+      localStack.last.scopes,
+      localStack.last.endPos,
+    );
     localStack.removeLast();
   }
 }

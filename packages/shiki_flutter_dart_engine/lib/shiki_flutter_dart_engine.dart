@@ -50,7 +50,7 @@ class ShikiHighlighterDartEngine implements ShikiHighlighterEngine {
 /// (never match), matching the tokenizer's forgiving behavior.
 class _OnigDartScanner implements OnigScanner {
   _OnigDartScanner(List<String> sources)
-      : _regexes = List<onig.OnigRegex?>.filled(sources.length, null) {
+    : _regexes = List<onig.OnigRegex?>.filled(sources.length, null) {
     for (var i = 0; i < sources.length; i++) {
       try {
         _regexes[i] = onig.OnigRegex.compile(sources[i]);

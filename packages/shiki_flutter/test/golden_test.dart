@@ -25,8 +25,9 @@ ShikiHighlighter buildHighlighter() {
 void main() {
   test('matches real Shiki golden output', () {
     final hl = buildHighlighter();
-    final golden = jsonDecode(
-            File('test/fixtures/golden.json').readAsStringSync()) as List;
+    final golden =
+        jsonDecode(File('test/fixtures/golden.json').readAsStringSync())
+            as List;
 
     var totalTokens = 0;
     var colorMatches = 0;
@@ -39,11 +40,16 @@ void main() {
       final code = caseData['code'] as String;
       final expectedLines = (caseData['tokens'] as List).cast<List>();
 
-      final actualLines =
-          hl.codeToTokens(code, TokenizeOptions(lang: lang, theme: theme));
+      final actualLines = hl.codeToTokens(
+        code,
+        TokenizeOptions(lang: lang, theme: theme),
+      );
 
-      expect(actualLines.length, expectedLines.length,
-          reason: 'line count mismatch for $lang/$theme');
+      expect(
+        actualLines.length,
+        expectedLines.length,
+        reason: 'line count mismatch for $lang/$theme',
+      );
 
       for (var i = 0; i < expectedLines.length; i++) {
         final expected = expectedLines[i].cast<Map<String, dynamic>>();
@@ -52,23 +58,30 @@ void main() {
         // Compare the concatenated content first (must be identical).
         final expectedContent = expected.map((t) => t['content']).join();
         final actualContent = actual.map((t) => t.content).join();
-        expect(actualContent, expectedContent,
-            reason: 'content mismatch on $lang/$theme line $i');
+        expect(
+          actualContent,
+          expectedContent,
+          reason: 'content mismatch on $lang/$theme line $i',
+        );
 
         // Compare token boundaries.
         if (actual.length != expected.length) {
           failures.add(
-              '$lang/$theme line $i: token count ${actual.length} != ${expected.length}\n'
-              '  expected: ${expected.map((t) => t['content']).toList()}\n'
-              '  actual:   ${actual.map((t) => t.content).toList()}');
+            '$lang/$theme line $i: token count ${actual.length} != ${expected.length}\n'
+            '  expected: ${expected.map((t) => t['content']).toList()}\n'
+            '  actual:   ${actual.map((t) => t.content).toList()}',
+          );
           continue;
         }
 
         for (var j = 0; j < expected.length; j++) {
           final e = expected[j];
           final a = actual[j];
-          expect(a.content, e['content'],
-              reason: 'content mismatch $lang/$theme line $i token $j');
+          expect(
+            a.content,
+            e['content'],
+            reason: 'content mismatch $lang/$theme line $i token $j',
+          );
 
           totalTokens++;
           final expColor = (e['color'] as String?)?.toLowerCase();
@@ -78,7 +91,8 @@ void main() {
             colorMatches++;
           } else {
             failures.add(
-                '$lang/$theme line $i token $j "${a.content}": color $actColor != $expColor');
+              '$lang/$theme line $i token $j "${a.content}": color $actColor != $expColor',
+            );
           }
 
           final expFont = e['fontStyle'] as int? ?? 0;
@@ -86,7 +100,8 @@ void main() {
             fontStyleMatches++;
           } else {
             failures.add(
-                '$lang/$theme line $i token $j "${a.content}": fontStyle ${a.fontStyle} != $expFont');
+              '$lang/$theme line $i token $j "${a.content}": fontStyle ${a.fontStyle} != $expFont',
+            );
           }
         }
       }
@@ -94,14 +109,19 @@ void main() {
 
     // Print a summary for visibility.
     // ignore: avoid_print
-    print('Golden comparison: $colorMatches/$totalTokens colors match, '
-        '$fontStyleMatches/$totalTokens font styles match');
+    print(
+      'Golden comparison: $colorMatches/$totalTokens colors match, '
+      '$fontStyleMatches/$totalTokens font styles match',
+    );
     if (failures.isNotEmpty) {
       // ignore: avoid_print
       print('First failures:\n${failures.take(25).join('\n')}');
     }
 
-    expect(failures, isEmpty,
-        reason: '${failures.length} token mismatches vs real Shiki');
+    expect(
+      failures,
+      isEmpty,
+      reason: '${failures.length} token mismatches vs real Shiki',
+    );
   });
 }

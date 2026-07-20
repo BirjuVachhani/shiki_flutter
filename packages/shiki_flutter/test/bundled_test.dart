@@ -15,8 +15,14 @@ void main() {
       );
       expect(tokens, isNotEmpty);
       // Content round-trips and at least one token is themed.
-      expect(tokens.first.map((t) => t.content).join(), 'void main() => print("hi");');
-      expect(tokens.first.any((t) => t.color != null && t.color!.isNotEmpty), isTrue);
+      expect(
+        tokens.first.map((t) => t.content).join(),
+        'void main() => print("hi");',
+      );
+      expect(
+        tokens.first.any((t) => t.color != null && t.color!.isNotEmpty),
+        isTrue,
+      );
     });
 
     test('embedded languages are loaded automatically (html -> css + js)', () {
@@ -28,12 +34,17 @@ void main() {
       final lines = hl.codeToTokens(
         '<style>.a{color:red}</style>',
         TokenizeOptions(
-            lang: html.id, theme: githubDark.id, includeExplanation: true),
+          lang: html.id,
+          theme: githubDark.id,
+          includeExplanation: true,
+        ),
       );
       final tokens = lines.expand((l) => l);
       // The CSS inside <style> should be tokenized by the embedded CSS grammar.
       expect(
-        tokens.any((t) => (t.scopes ?? const []).any((s) => s.contains('source.css'))),
+        tokens.any(
+          (t) => (t.scopes ?? const []).any((s) => s.contains('source.css')),
+        ),
         isTrue,
       );
     });
@@ -60,7 +71,10 @@ void main() {
       expect(dart.scopeName, 'source.dart');
       expect(githubDark.id, 'github-dark');
       expect(githubDark.type, anyOf('dark', 'light'));
-      expect(html.embeddedLanguages().map((l) => l.id), containsAll(['css', 'javascript']));
+      expect(
+        html.embeddedLanguages().map((l) => l.id),
+        containsAll(['css', 'javascript']),
+      );
     });
   });
 }

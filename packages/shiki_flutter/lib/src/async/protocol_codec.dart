@@ -23,42 +23,43 @@ import 'protocol.dart';
 // --- LangDescriptor ---------------------------------------------------------
 
 Map<String, dynamic> langDescriptorToJson(LangDescriptor d) => {
-      'id': d.id,
-      'scopeName': d.scopeName,
-      'json': d.json,
-      'aliases': d.aliases,
-      'embedded': d.embedded.map(langDescriptorToJson).toList(),
-    };
+  'id': d.id,
+  'scopeName': d.scopeName,
+  'json': d.json,
+  'aliases': d.aliases,
+  'embedded': d.embedded.map(langDescriptorToJson).toList(),
+};
 
 LangDescriptor langDescriptorFromJson(Map<String, dynamic> j) => LangDescriptor(
-      id: j['id'] as String,
-      scopeName: j['scopeName'] as String,
-      json: j['json'] as String,
-      aliases: (j['aliases'] as List).cast<String>(),
-      embedded: (j['embedded'] as List)
-          .map((e) => langDescriptorFromJson((e as Map).cast<String, dynamic>()))
-          .toList(),
-    );
+  id: j['id'] as String,
+  scopeName: j['scopeName'] as String,
+  json: j['json'] as String,
+  aliases: (j['aliases'] as List).cast<String>(),
+  embedded: (j['embedded'] as List)
+      .map((e) => langDescriptorFromJson((e as Map).cast<String, dynamic>()))
+      .toList(),
+);
 
 // --- TokenizeOptions --------------------------------------------------------
 
 Map<String, dynamic> tokenizeOptionsToJson(TokenizeOptions o) => {
-      'lang': o.lang,
-      'theme': o.theme,
-      'includeExplanation': o.includeExplanation,
-      'tokenizeMaxLineLength': o.tokenizeMaxLineLength,
-      'tokenizeTimeLimit': o.tokenizeTimeLimit,
-      'colorReplacements': o.colorReplacements,
-    };
+  'lang': o.lang,
+  'theme': o.theme,
+  'includeExplanation': o.includeExplanation,
+  'tokenizeMaxLineLength': o.tokenizeMaxLineLength,
+  'tokenizeTimeLimit': o.tokenizeTimeLimit,
+  'colorReplacements': o.colorReplacements,
+};
 
-TokenizeOptions tokenizeOptionsFromJson(Map<String, dynamic> j) => TokenizeOptions(
+TokenizeOptions tokenizeOptionsFromJson(Map<String, dynamic> j) =>
+    TokenizeOptions(
       lang: j['lang'] as String?,
       theme: j['theme'] as String?,
       includeExplanation: (j['includeExplanation'] as bool?) ?? false,
       tokenizeMaxLineLength: (j['tokenizeMaxLineLength'] as int?) ?? 0,
       tokenizeTimeLimit: (j['tokenizeTimeLimit'] as int?) ?? 500,
-      colorReplacements:
-          (j['colorReplacements'] as Map?)?.cast<String, dynamic>(),
+      colorReplacements: (j['colorReplacements'] as Map?)
+          ?.cast<String, dynamic>(),
     );
 
 // --- ThemedToken ------------------------------------------------------------
@@ -75,21 +76,23 @@ Map<String, dynamic> themedTokenToJson(ThemedToken t) {
 }
 
 ThemedToken themedTokenFromJson(Map<String, dynamic> j) => ThemedToken(
-      content: j['c'] as String,
-      offset: j['o'] as int,
-      color: j['fg'] as String?,
-      bgColor: j['bg'] as String?,
-      fontStyle: (j['fs'] as int?) ?? 0,
-      scopes: (j['s'] as List?)?.cast<String>(),
-    );
+  content: j['c'] as String,
+  offset: j['o'] as int,
+  color: j['fg'] as String?,
+  bgColor: j['bg'] as String?,
+  fontStyle: (j['fs'] as int?) ?? 0,
+  scopes: (j['s'] as List?)?.cast<String>(),
+);
 
 List<dynamic> tokensToJson(List<List<ThemedToken>> lines) =>
     lines.map((line) => line.map(themedTokenToJson).toList()).toList();
 
 List<List<ThemedToken>> tokensFromJson(List<dynamic> j) => j
-    .map((line) => (line as List)
-        .map((t) => themedTokenFromJson((t as Map).cast<String, dynamic>()))
-        .toList())
+    .map(
+      (line) => (line as List)
+          .map((t) => themedTokenFromJson((t as Map).cast<String, dynamic>()))
+          .toList(),
+    )
     .toList();
 
 // --- WorkerConfig -----------------------------------------------------------
@@ -102,20 +105,20 @@ List<List<ThemedToken>> tokensFromJson(List<dynamic> j) => j
 String? engineTag(ShikiHighlighterEngine? engine) => engine?.id;
 
 Map<String, dynamic> workerConfigToJson(WorkerConfig c) => {
-      'engine': engineTag(c.engine),
-      'langs': c.langs.map(langDescriptorToJson).toList(),
-      'rawLangJsons': c.rawLangJsons,
-      'themeJsons': c.themeJsons,
-    };
+  'engine': engineTag(c.engine),
+  'langs': c.langs.map(langDescriptorToJson).toList(),
+  'rawLangJsons': c.rawLangJsons,
+  'themeJsons': c.themeJsons,
+};
 
 /// Rebuilds a [WorkerConfig] from JSON. [engine] is intentionally left null: each
 /// prebuilt worker is compiled for one engine (the main isolate picks which
 /// worker script to load from [engineTag]), so no engine backend needs to be
 /// reconstructed (or depended on) here.
 WorkerConfig workerConfigFromJson(Map<String, dynamic> j) => WorkerConfig(
-      langs: (j['langs'] as List)
-          .map((e) => langDescriptorFromJson((e as Map).cast<String, dynamic>()))
-          .toList(),
-      rawLangJsons: (j['rawLangJsons'] as List).cast<String>(),
-      themeJsons: (j['themeJsons'] as List).cast<String>(),
-    );
+  langs: (j['langs'] as List)
+      .map((e) => langDescriptorFromJson((e as Map).cast<String, dynamic>()))
+      .toList(),
+  rawLangJsons: (j['rawLangJsons'] as List).cast<String>(),
+  themeJsons: (j['themeJsons'] as List).cast<String>(),
+);

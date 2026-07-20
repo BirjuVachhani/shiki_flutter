@@ -30,7 +30,11 @@ class Footer extends StatelessWidget {
             'ported from Shiki in pure Dart.',
             linkLabel: 'Shiki',
             url: Links.shiki,
-            style: TextStyle(color: colors.mutedForeground, fontSize: 14, height: 1.6),
+            style: TextStyle(
+              color: colors.mutedForeground,
+              fontSize: 14,
+              height: 1.6,
+            ),
           ),
         ],
       ),
@@ -58,7 +62,10 @@ class Footer extends StatelessWidget {
           title: 'Credits',
           links: [
             _FooterLink('Shiki', onTap: () => Links.open(Links.shiki)),
-            _FooterLink('vscode-textmate', onTap: () => Links.open(Links.vscodeTextmate)),
+            _FooterLink(
+              'vscode-textmate',
+              onTap: () => Links.open(Links.vscodeTextmate),
+            ),
           ],
         ),
       ],
@@ -120,7 +127,10 @@ class SimpleFooter extends StatelessWidget {
             child: Column(
               // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox.square(dimension: 48, child: SvgPicture.asset('assets/shiki_logo_with_bg.svg')),
+                SizedBox.square(
+                  dimension: 48,
+                  child: SvgPicture.asset('assets/shiki_logo_with_bg.svg'),
+                ),
                 const SizedBox(height: 12),
                 const FooterBrand(),
                 const SizedBox(height: 12),
@@ -130,8 +140,14 @@ class SimpleFooter extends StatelessWidget {
                   children: [
                     _FooterLink('Home', onTap: () => context.go('/')),
                     _FooterLink('Docs', onTap: () => context.go('/docs')),
-                    _FooterLink('GitHub', onTap: () => Links.open(Links.github)),
-                    _FooterLink('pub.dev', onTap: () => Links.open(Links.pubDev)),
+                    _FooterLink(
+                      'GitHub',
+                      onTap: () => Links.open(Links.github),
+                    ),
+                    _FooterLink(
+                      'pub.dev',
+                      onTap: () => Links.open(Links.pubDev),
+                    ),
                     _FooterLink('Shiki', onTap: () => Links.open(Links.shiki)),
                   ],
                 ),
@@ -169,7 +185,11 @@ class _FooterColumn extends StatelessWidget {
       children: [
         Text(
           title,
-          style: TextStyle(color: context.colors.foreground, fontSize: 13, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: context.colors.foreground,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 14),
         ...links,
@@ -207,7 +227,9 @@ class _FooterLinkState extends State<_FooterLink> {
             style: TextStyle(
               color: _hovered ? colors.foreground : colors.mutedForeground,
               fontSize: 14,
-              decoration: _hovered ? TextDecoration.underline : TextDecoration.none,
+              decoration: _hovered
+                  ? TextDecoration.underline
+                  : TextDecoration.none,
               decorationColor: colors.foreground,
             ),
           ),

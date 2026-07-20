@@ -114,9 +114,9 @@ class Repository$I<T extends Comparable<T>> implements Disposable {
 /// numbers can be normalized (per-line, per-char) by whoever reads them.
 class WorkloadStats {
   WorkloadStats(String source)
-      : lines = '\n'.allMatches(source).length + 1,
-        chars = source.length,
-        bytes = _utf8Length(source);
+    : lines = '\n'.allMatches(source).length + 1,
+      chars = source.length,
+      bytes = _utf8Length(source);
 
   final int lines;
   final int chars;

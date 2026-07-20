@@ -158,13 +158,16 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
   final MetricsCache _metrics = MetricsCache();
   final Memoized<String, int> _maxLen = Memoized();
 
-  ScrollController get _controller => widget.controller ?? (_internalController ??= ScrollController());
+  ScrollController get _controller =>
+      widget.controller ?? (_internalController ??= ScrollController());
 
   /// Async is active only when enabled and the caller hasn't already supplied
   /// pre-highlighted [lines].
-  bool get _asyncEffective => widget.lines == null && (widget.async ?? ShikiHighlighter.asyncDefault);
+  bool get _asyncEffective =>
+      widget.lines == null && (widget.async ?? ShikiHighlighter.asyncDefault);
 
-  TokenizeOptions get _options => TokenizeOptions(lang: widget.lang, theme: widget.theme);
+  TokenizeOptions get _options =>
+      TokenizeOptions(lang: widget.lang, theme: widget.theme);
 
   @override
   void initState() {
@@ -177,8 +180,12 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
     // Skip tokenization entirely when the caller supplied pre-highlighted lines.
     if (widget.lines == null) {
-      _resolver.resolve(widget.highlighter, widget.code, _options,
-          async: _asyncEffective);
+      _resolver.resolve(
+        widget.highlighter,
+        widget.code,
+        _options,
+        async: _asyncEffective,
+      );
     }
   }
 
@@ -196,8 +203,12 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       _internalController = null;
     }
     if (widget.lines == null) {
-      _resolver.resolve(widget.highlighter, widget.code, _options,
-          async: _asyncEffective);
+      _resolver.resolve(
+        widget.highlighter,
+        widget.code,
+        _options,
+        async: _asyncEffective,
+      );
     }
   }
 
@@ -228,7 +239,8 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     // tokens come from the shared resolver (sync-memoized or async-resolved) and the
     // spans are memoized on (tokens identity, effectiveBase), so an unchanged
     // rebuild reuses them and neither re-tokenizes nor rebuilds any TextSpan.
-    final List<List<TextSpan>> lines = widget.lines ??
+    final List<List<TextSpan>> lines =
+        widget.lines ??
         _spanMemo.resolve(
           tokens: _resolver.tokens,
           code: widget.code,
@@ -238,11 +250,15 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
           // preserving the line count (and thus height) so nothing jumps when
           // the highlighted result swaps in.
           placeholder: (code, b) => [
-            for (final line in splitLines(code)) [TextSpan(text: line.content, style: b)],
+            for (final line in splitLines(code))
+              [TextSpan(text: line.content, style: b)],
           ],
         );
 
-    final strut = StrutStyle.fromTextStyle(effectiveBase, forceStrutHeight: true);
+    final strut = StrutStyle.fromTextStyle(
+      effectiveBase,
+      forceStrutHeight: true,
+    );
     final metrics = _metrics.measure(effectiveBase, strut, textScaler);
     final pad = widget.padding.resolve(textDirection);
 
@@ -311,7 +327,10 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     // Set the selection color for the code rows below. Keep this inside any
     // SelectionArea (ours or an ancestor's) so the selectable rows read it.
     if (widget.selectionColor != null) {
-      content = DefaultSelectionStyle(selectionColor: widget.selectionColor, child: content);
+      content = DefaultSelectionStyle(
+        selectionColor: widget.selectionColor,
+        child: content,
+      );
     }
 
     // Only add our own SelectionArea when asked to and when there isn't one

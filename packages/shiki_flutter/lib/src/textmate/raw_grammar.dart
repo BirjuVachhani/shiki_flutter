@@ -80,7 +80,9 @@ class RawRule {
       endCaptures: _cloneCaptures(endCaptures),
       whilePattern: whilePattern,
       whileCaptures: _cloneCaptures(whileCaptures),
-      patterns: patterns == null ? null : [for (final p in patterns!) p.clone()],
+      patterns: patterns == null
+          ? null
+          : [for (final p in patterns!) p.clone()],
       repository: repository?.clone(),
       applyEndPatternLast: applyEndPatternLast,
     );
@@ -158,8 +160,9 @@ class RawRepository {
   }
 
   RawRepository clone() {
-    return RawRepository(
-        {for (final e in _map.entries) e.key: e.value.clone()});
+    return RawRepository({
+      for (final e in _map.entries) e.key: e.value.clone(),
+    });
   }
 
   /// Returns a new repository with [this] entries overlaid by [other] entries
@@ -202,8 +205,9 @@ class RawGrammar {
       injections = <String, RawRule>{};
       rawInjections.forEach((key, value) {
         if (value is Map) {
-          injections![key.toString()] =
-              RawRule.fromJson(value.cast<String, dynamic>());
+          injections![key.toString()] = RawRule.fromJson(
+            value.cast<String, dynamic>(),
+          );
         }
       });
     }
@@ -226,7 +230,7 @@ class RawGrammar {
     Map<String, RawRule>? clonedInjections;
     if (injections != null) {
       clonedInjections = {
-        for (final e in injections!.entries) e.key: e.value.clone()
+        for (final e in injections!.entries) e.key: e.value.clone(),
       };
     }
     return RawGrammar(

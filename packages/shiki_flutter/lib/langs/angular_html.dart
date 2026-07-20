@@ -10,7 +10,15 @@ import 'angular_template_blocks.dart';
 final angularHtml = BundledLanguage(
   id: 'angular-html',
   scopeName: 'text.html.derivative.ng',
-  json: _json, embeddedLanguages: () => [html, angularExpression, angularLetDeclaration, angularTemplate, angularTemplateBlocks],
+  json: _json,
+  embeddedLanguages: () => [
+    html,
+    angularExpression,
+    angularLetDeclaration,
+    angularTemplate,
+    angularTemplateBlocks,
+  ],
 );
 
-const _json = '{"displayName":"Angular HTML","injections":{"R:text.html - (comment.block, text.html meta.embedded, meta.tag.*.*.html, meta.tag.*.*.*.html, meta.tag.*.*.*.*.html)":{"patterns":[{"match":"<","name":"invalid.illegal.bad-angle-bracket.html"}]}},"name":"angular-html","patterns":[{"include":"text.html.basic#core-minus-invalid"},{"begin":"(</?)(\\\\w[^>\\\\s]*)(?<!/)","beginCaptures":{"1":{"name":"punctuation.definition.tag.begin.html"},"2":{"name":"entity.name.tag.html"}},"end":"((?: ?/)?>)","endCaptures":{"1":{"name":"punctuation.definition.tag.end.html"}},"name":"meta.tag.other.unrecognized.html.derivative","patterns":[{"include":"text.html.basic#attribute"}]}],"scopeName":"text.html.derivative.ng","embeddedLangs":["html","angular-expression","angular-let-declaration","angular-template","angular-template-blocks"]}';
+const _json =
+    '{"displayName":"Angular HTML","injections":{"R:text.html - (comment.block, text.html meta.embedded, meta.tag.*.*.html, meta.tag.*.*.*.html, meta.tag.*.*.*.*.html)":{"patterns":[{"match":"<","name":"invalid.illegal.bad-angle-bracket.html"}]}},"name":"angular-html","patterns":[{"include":"text.html.basic#core-minus-invalid"},{"begin":"(</?)(\\\\w[^>\\\\s]*)(?<!/)","beginCaptures":{"1":{"name":"punctuation.definition.tag.begin.html"},"2":{"name":"entity.name.tag.html"}},"end":"((?: ?/)?>)","endCaptures":{"1":{"name":"punctuation.definition.tag.end.html"}},"name":"meta.tag.other.unrecognized.html.derivative","patterns":[{"include":"text.html.basic#attribute"}]}],"scopeName":"text.html.derivative.ng","embeddedLangs":["html","angular-expression","angular-let-declaration","angular-template","angular-template-blocks"]}';

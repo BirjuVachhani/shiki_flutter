@@ -49,34 +49,47 @@ const _toyGrammarJson = r'''
 ''';
 
 Grammar buildToyGrammar() {
-  final theme = Theme.createFromRawTheme(RawTheme(settings: [
-    RawThemeSetting(
-        settings:
-            ThemeSettingStyle(foreground: '#ffffff', background: '#1e1e1e')),
-    RawThemeSetting(
-        scope: 'keyword.control',
-        settings: ThemeSettingStyle(foreground: '#ff0000', fontStyle: 'bold')),
-    RawThemeSetting(
-        scope: 'string',
-        settings: ThemeSettingStyle(foreground: '#00ff00')),
-    RawThemeSetting(
-        scope: 'constant.numeric',
-        settings: ThemeSettingStyle(foreground: '#0000ff')),
-    RawThemeSetting(
-        scope: 'comment',
-        settings:
-            ThemeSettingStyle(foreground: '#888888', fontStyle: 'italic')),
-  ]));
+  final theme = Theme.createFromRawTheme(
+    RawTheme(
+      settings: [
+        RawThemeSetting(
+          settings: ThemeSettingStyle(
+            foreground: '#ffffff',
+            background: '#1e1e1e',
+          ),
+        ),
+        RawThemeSetting(
+          scope: 'keyword.control',
+          settings: ThemeSettingStyle(foreground: '#ff0000', fontStyle: 'bold'),
+        ),
+        RawThemeSetting(
+          scope: 'string',
+          settings: ThemeSettingStyle(foreground: '#00ff00'),
+        ),
+        RawThemeSetting(
+          scope: 'constant.numeric',
+          settings: ThemeSettingStyle(foreground: '#0000ff'),
+        ),
+        RawThemeSetting(
+          scope: 'comment',
+          settings: ThemeSettingStyle(
+            foreground: '#888888',
+            fontStyle: 'italic',
+          ),
+        ),
+      ],
+    ),
+  );
 
   final registry = SyncRegistry(theme, const ShikiHighlighterEmbeddedEngine());
   registry.addGrammar(
-      RawGrammar.fromJson(jsonDecode(_toyGrammarJson) as Map<String, dynamic>));
+    RawGrammar.fromJson(jsonDecode(_toyGrammarJson) as Map<String, dynamic>),
+  );
   return registry.grammarForScopeName('source.toy', 0, null, null, null)!;
 }
 
 /// Returns [scope-list] for the token covering [needle] in [tokens].
-List<String> scopesForContent(
-    List<Token> tokens, String line, String needle) {
+List<String> scopesForContent(List<Token> tokens, String line, String needle) {
   final index = line.indexOf(needle);
   for (final t in tokens) {
     if (t.startIndex <= index && index < t.endIndex) {
@@ -135,10 +148,13 @@ void main() {
       expect(escapeScopes, contains('constant.character.escape.toy'));
 
       // Opening quote should have the begin-capture scope.
-      final openQuoteToken = result.tokens
-          .firstWhere((t) => t.startIndex == line.indexOf('"'));
-      expect(openQuoteToken.scopes,
-          contains('punctuation.definition.string.begin.toy'));
+      final openQuoteToken = result.tokens.firstWhere(
+        (t) => t.startIndex == line.indexOf('"'),
+      );
+      expect(
+        openQuoteToken.scopes,
+        contains('punctuation.definition.string.begin.toy'),
+      );
     });
 
     test('multi-line string keeps state across lines', () {

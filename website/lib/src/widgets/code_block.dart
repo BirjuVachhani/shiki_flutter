@@ -52,7 +52,9 @@ class CodeBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final service = HighlighterService.instance;
-    final themeId = theme ?? HighlighterService.themeForBrightness(Theme.of(context).brightness);
+    final themeId =
+        theme ??
+        HighlighterService.themeForBrightness(Theme.of(context).brightness);
 
     final trimmed = code.trim();
     final bg = service.displayBackground(themeId, colors.surface);
@@ -91,7 +93,12 @@ class CodeBlock extends StatelessWidget {
         paintBackground: false,
         // shrinkWrap: true,
         // physics: const NeverScrollableScrollPhysics(),
-        padding: .only(left: 15.6, top: hasHeader && !showDividers ? 0 : 12, bottom: 12, right: 15.6),
+        padding: .only(
+          left: 15.6,
+          top: hasHeader && !showDividers ? 0 : 12,
+          bottom: 12,
+          right: 15.6,
+        ),
       ),
     );
 

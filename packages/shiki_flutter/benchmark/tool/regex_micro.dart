@@ -6,7 +6,9 @@ void main() {
   final text = generateDartSource(5000);
   final lines = text.split('\n');
   final pats = <RegExp>[
-    RegExp(r'\b(?:if|else|for|while|return|class|final|const|var|void|import|export|async|await)\b'),
+    RegExp(
+      r'\b(?:if|else|for|while|return|class|final|const|var|void|import|export|async|await)\b',
+    ),
     RegExp(r'[A-Za-z_$][A-Za-z0-9_$]*'),
     RegExp(r'"(?:[^"\\]|\\.)*"'),
     RegExp(r'\b[0-9]+(?:\.[0-9]+)?\b'),
@@ -19,7 +21,10 @@ void main() {
   for (var w = 0; w < 3; w++) {
     for (final line in lines) {
       for (final re in pats) {
-        for (final _ in re.allMatches(line)) { sink++; break; }
+        for (final _ in re.allMatches(line)) {
+          sink++;
+          break;
+        }
       }
     }
   }
@@ -29,7 +34,10 @@ void main() {
   for (var it = 0; it < iters; it++) {
     for (final line in lines) {
       for (final re in pats) {
-        for (final _ in re.allMatches(line)) { sink++; break; }
+        for (final _ in re.allMatches(line)) {
+          sink++;
+          break;
+        }
       }
     }
   }
@@ -37,8 +45,12 @@ void main() {
   // Big single-scan (RegExp engine raw speed, minimal per-call overhead).
   final sw2 = Stopwatch()..start();
   for (var it = 0; it < iters; it++) {
-    for (final re in pats) { sink += re.allMatches(text).length; }
+    for (final re in pats) {
+      sink += re.allMatches(text).length;
+    }
   }
   sw2.stop();
-  print('per-line-scan: ${sw.elapsedMilliseconds} ms   big-scan: ${sw2.elapsedMilliseconds} ms   (sink=$sink)');
+  print(
+    'per-line-scan: ${sw.elapsedMilliseconds} ms   big-scan: ${sw2.elapsedMilliseconds} ms   (sink=$sink)',
+  );
 }

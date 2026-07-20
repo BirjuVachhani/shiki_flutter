@@ -13,7 +13,8 @@ import 'lang_descriptor.dart';
 import 'protocol.dart';
 import 'tokenize_worker_inline.dart'
     if (dart.library.io) 'tokenize_worker_io.dart'
-    if (dart.library.js_interop) 'tokenize_worker_web.dart' as impl;
+    if (dart.library.js_interop) 'tokenize_worker_web.dart'
+    as impl;
 
 /// Runs `codeToTokens` for a warm highlighter, ideally on a background isolate.
 ///
@@ -29,7 +30,10 @@ abstract interface class TokenizeWorker {
   bool get isRemote;
 
   /// Tokenizes [code] with [options] and returns the themed tokens.
-  Future<List<List<ThemedToken>>> tokenize(String code, TokenizeOptions options);
+  Future<List<List<ThemedToken>>> tokenize(
+    String code,
+    TokenizeOptions options,
+  );
 
   /// Adds a bundled language to the running worker (mirrors a later
   /// `loadBundledLanguage` on the main highlighter).

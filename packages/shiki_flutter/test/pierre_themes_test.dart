@@ -24,10 +24,16 @@ class Greeter {
   for (final theme in pierreThemes) {
     test('${theme.id}: bg/fg resolve to valid colors', () {
       final reg = hl.getThemeRegistration(theme.id);
-      expect(parseColor(reg.bg), isNotNull,
-          reason: 'bg "${reg.bg}" should parse to a Color');
-      expect(parseColor(reg.fg), isNotNull,
-          reason: 'fg "${reg.fg}" should parse to a Color');
+      expect(
+        parseColor(reg.bg),
+        isNotNull,
+        reason: 'bg "${reg.bg}" should parse to a Color',
+      );
+      expect(
+        parseColor(reg.fg),
+        isNotNull,
+        reason: 'fg "${reg.fg}" should parse to a Color',
+      );
     });
 
     test('${theme.id}: tokenizes Dart with multiple real colors', () {
@@ -41,16 +47,22 @@ class Greeter {
           final c = token.color;
           if (c != null && c.isNotEmpty) {
             // Every emitted color must be renderable (hex or color(display-p3 …)).
-            expect(parseColor(c), isNotNull,
-                reason: '${theme.id} token color "$c" is not parseable');
+            expect(
+              parseColor(c),
+              isNotNull,
+              reason: '${theme.id} token color "$c" is not parseable',
+            );
             colors.add(c.toLowerCase());
           }
         }
       }
       // A syntax-highlighted snippet should use more than one color; if the
       // theme failed to load, everything would fall back to a single color.
-      expect(colors.length, greaterThan(3),
-          reason: '${theme.id} produced too few distinct colors: $colors');
+      expect(
+        colors.length,
+        greaterThan(3),
+        reason: '${theme.id} produced too few distinct colors: $colors',
+      );
     });
   }
 }

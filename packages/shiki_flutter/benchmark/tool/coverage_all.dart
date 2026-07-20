@@ -40,6 +40,10 @@ void main() {
     }
   }
   print('grammars=${allLanguages.length}  patterns=$total  compileErr=$err');
-  print('fast-path coverage: $fast/$total = ${(100 * fast / total).toStringAsFixed(1)}%');
-  print('fast-pathed patterns using a widened construct (atomic/(?i)/\\A/\\z): $widenFast');
+  print(
+    'fast-path coverage: $fast/$total = ${(100 * fast / total).toStringAsFixed(1)}%',
+  );
+  print(
+    'fast-pathed patterns using a widened construct (atomic/(?i)/\\A/\\z): $widenFast',
+  );
 }

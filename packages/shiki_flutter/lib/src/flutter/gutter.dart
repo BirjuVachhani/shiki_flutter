@@ -17,8 +17,8 @@ class GutterStyle {
     this.dividerThickness = 1.0,
     this.textColor,
     this.textScale = 1.0,
-  })  : assert(dividerThickness >= 0, 'dividerThickness must be non-negative.'),
-        assert(textScale > 0, 'textScale must be greater than 0.');
+  }) : assert(dividerThickness >= 0, 'dividerThickness must be non-negative.'),
+       assert(textScale > 0, 'textScale must be greater than 0.');
 
   /// Horizontal gap between the gutter and the code, in logical pixels. When
   /// null, defaults to two character widths of the base text style, so the gap
@@ -70,8 +70,10 @@ GutterMetrics measureGutter(
     textScaler: textScaler,
     strutStyle: strut,
   )..layout();
-  final metrics =
-      GutterMetrics(rowHeight: painter.height, charWidth: painter.width / 10);
+  final metrics = GutterMetrics(
+    rowHeight: painter.height,
+    charWidth: painter.width / 10,
+  );
   painter.dispose();
   return metrics;
 }
@@ -92,7 +94,11 @@ class MetricsCache {
 
   final Map<Object, GutterMetrics> _cache = {};
 
-  GutterMetrics measure(TextStyle style, StrutStyle strut, TextScaler textScaler) {
+  GutterMetrics measure(
+    TextStyle style,
+    StrutStyle strut,
+    TextScaler textScaler,
+  ) {
     final key = (style.copyWith(color: _keyColor), textScaler);
     final hit = _cache[key];
     if (hit != null) return hit;
@@ -137,13 +143,15 @@ Widget buildGutterRow({
   final children = <Widget>[];
   if (showLineNumbers) {
     final digits = lineCount.toString().length;
-    final numberColor = gutterStyle.textColor ??
+    final numberColor =
+        gutterStyle.textColor ??
         (fg ?? const Color(0xFF808080)).withValues(alpha: 0.4);
     // Line numbers may be rendered smaller than the code, but keep the code's
     // strut and row height so they share its baseline and stay row-aligned;
     // only the glyph size shrinks.
     final scale = gutterStyle.textScale;
-    final baseFontSize = effectiveBase.fontSize ??
+    final baseFontSize =
+        effectiveBase.fontSize ??
         DefaultTextStyle.of(context).style.fontSize ??
         14.0;
     final numberStyle = effectiveBase.copyWith(
@@ -159,22 +167,24 @@ Widget buildGutterRow({
     final numberCharWidth = scale == 1.0
         ? metrics.charWidth
         : (metricsCache?.measure(numberStyle, strut, textScaler) ??
-                measureGutter(numberStyle, strut, textScaler))
-            .charWidth;
+                  measureGutter(numberStyle, strut, textScaler))
+              .charWidth;
     final gutterWidth = digits * numberCharWidth + 1;
-    children.add(Padding(
-      padding: vpad,
-      child: LineNumberGutter(
-        controller: controller,
-        lineCount: lineCount,
-        rowHeight: metrics.rowHeight,
-        width: gutterWidth,
-        style: numberStyle,
-        textScaler: textScaler,
-        strut: strut,
-        windowed: windowed,
+    children.add(
+      Padding(
+        padding: vpad,
+        child: LineNumberGutter(
+          controller: controller,
+          lineCount: lineCount,
+          rowHeight: metrics.rowHeight,
+          width: gutterWidth,
+          style: numberStyle,
+          textScaler: textScaler,
+          strut: strut,
+          windowed: windowed,
+        ),
       ),
-    ));
+    );
 
     // The gap between gutter and code, with an optional divider centered in it.
     // The divider is not padded, so it runs the full column height. A windowed
@@ -186,30 +196,38 @@ Widget buildGutterRow({
     if (dividerColor == null) {
       children.add(SizedBox(width: spacing));
     } else {
-      final dividerHeight =
-          windowed ? null : padding.top + lineCount * metrics.rowHeight + padding.bottom;
-      children.add(SizedBox(
-        width: spacing,
-        height: dividerHeight,
-        child: Center(
-          child: SizedBox(
-            width: gutterStyle.dividerThickness,
-            height: double.infinity,
-            child: ColoredBox(color: dividerColor),
+      final dividerHeight = windowed
+          ? null
+          : padding.top + lineCount * metrics.rowHeight + padding.bottom;
+      children.add(
+        SizedBox(
+          width: spacing,
+          height: dividerHeight,
+          child: Center(
+            child: SizedBox(
+              width: gutterStyle.dividerThickness,
+              height: double.infinity,
+              child: ColoredBox(color: dividerColor),
+            ),
           ),
         ),
-      ));
+      );
     }
   }
-  children.add(Expanded(child: Padding(padding: vpad, child: codeColumn)));
+  children.add(
+    Expanded(
+      child: Padding(padding: vpad, child: codeColumn),
+    ),
+  );
 
   return Padding(
     padding: EdgeInsets.only(left: padding.left),
     child: Row(
       // Stretch the gutter to the viewport height so it can window its numbers;
       // when not windowed there is no viewport to fill.
-      crossAxisAlignment:
-          windowed ? CrossAxisAlignment.stretch : CrossAxisAlignment.start,
+      crossAxisAlignment: windowed
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.start,
       children: children,
     ),
   );
@@ -230,8 +248,10 @@ class LineNumberGutter extends StatelessWidget {
     required this.textScaler,
     required this.strut,
     required this.windowed,
-  }) : assert(!windowed || controller != null,
-            'a windowed gutter requires a controller');
+  }) : assert(
+         !windowed || controller != null,
+         'a windowed gutter requires a controller',
+       );
 
   /// Vertical scroll controller of the code; only read when [windowed].
   final ScrollController? controller;
@@ -244,30 +264,30 @@ class LineNumberGutter extends StatelessWidget {
   final bool windowed;
 
   Widget _label(int index) => Text(
-        '${index + 1}',
-        style: style,
-        textScaler: textScaler,
-        strutStyle: strut,
-        maxLines: 1,
-        textAlign: TextAlign.right,
-      );
+    '${index + 1}',
+    style: style,
+    textScaler: textScaler,
+    strutStyle: strut,
+    maxLines: 1,
+    textAlign: TextAlign.right,
+  );
 
   /// Every line number stacked in a column, used when not windowed (no viewport
   /// to window against) and as the unbounded-height fallback.
   Widget _column() => SizedBox(
-        width: width,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < lineCount; i++)
-              SizedBox(
-                height: rowHeight,
-                child: Align(alignment: Alignment.centerRight, child: _label(i)),
-              ),
-          ],
-        ),
-      );
+    width: width,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < lineCount; i++)
+          SizedBox(
+            height: rowHeight,
+            child: Align(alignment: Alignment.centerRight, child: _label(i)),
+          ),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -291,9 +311,15 @@ class LineNumberGutter extends StatelessWidget {
               return AnimatedBuilder(
                 animation: controller,
                 builder: (context, _) {
-                  final offset = controller.hasClients ? controller.offset : 0.0;
-                  final first = (offset / rowHeight).floor().clamp(0, lineCount);
-                  final visible = (constraints.maxHeight / rowHeight).ceil() + 1;
+                  final offset = controller.hasClients
+                      ? controller.offset
+                      : 0.0;
+                  final first = (offset / rowHeight).floor().clamp(
+                    0,
+                    lineCount,
+                  );
+                  final visible =
+                      (constraints.maxHeight / rowHeight).ceil() + 1;
                   final last = math.min(lineCount, first + visible);
                   return Stack(
                     clipBehavior: Clip.none,

@@ -39,7 +39,10 @@ class LangDescriptor {
 /// every grammar still appears at least once while recursion stays finite. The
 /// worker's [BundledLanguage] loader is idempotent by scope, so the duplicate is
 /// skipped there.
-LangDescriptor flattenBundledLanguage(BundledLanguage lang, [Set<String>? seen]) {
+LangDescriptor flattenBundledLanguage(
+  BundledLanguage lang, [
+  Set<String>? seen,
+]) {
   seen ??= <String>{};
   final embedded = <LangDescriptor>[];
   if (seen.add(lang.scopeName)) {
@@ -59,9 +62,9 @@ LangDescriptor flattenBundledLanguage(BundledLanguage lang, [Set<String>? seen])
 /// Rebuilds a [BundledLanguage] from a [LangDescriptor] inside the worker, with
 /// an `embeddedLanguages` thunk that closes over the descriptor's children.
 BundledLanguage rebuildBundledLanguage(LangDescriptor d) => BundledLanguage(
-      id: d.id,
-      scopeName: d.scopeName,
-      json: d.json,
-      aliases: d.aliases,
-      embeddedLanguages: () => d.embedded.map(rebuildBundledLanguage).toList(),
-    );
+  id: d.id,
+  scopeName: d.scopeName,
+  json: d.json,
+  aliases: d.aliases,
+  embeddedLanguages: () => d.embedded.map(rebuildBundledLanguage).toList(),
+);

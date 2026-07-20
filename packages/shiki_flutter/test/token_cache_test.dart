@@ -5,8 +5,8 @@ import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter/src/async/lang_descriptor.dart';
 
 List<List<ThemedToken>> _tokens(String content) => [
-      [ThemedToken(content: content, offset: 0)],
-    ];
+  [ThemedToken(content: content, offset: 0)],
+];
 
 void main() {
   group('TokenCache.keyFor', () {
@@ -20,10 +20,24 @@ void main() {
       const base = TokenizeOptions(lang: 'dart', theme: 'github-dark');
       final k = TokenCache.keyFor('x', base);
       expect(k, isNot(TokenCache.keyFor('y', base)));
-      expect(k,
-          isNot(TokenCache.keyFor('x', const TokenizeOptions(lang: 'js', theme: 'github-dark'))));
-      expect(k,
-          isNot(TokenCache.keyFor('x', const TokenizeOptions(lang: 'dart', theme: 'nord'))));
+      expect(
+        k,
+        isNot(
+          TokenCache.keyFor(
+            'x',
+            const TokenizeOptions(lang: 'js', theme: 'github-dark'),
+          ),
+        ),
+      );
+      expect(
+        k,
+        isNot(
+          TokenCache.keyFor(
+            'x',
+            const TokenizeOptions(lang: 'dart', theme: 'nord'),
+          ),
+        ),
+      );
     });
 
     test('colorReplacements key order does not matter', () {
@@ -112,7 +126,10 @@ void main() {
       expect(rebuilt.json, html.json);
       // The thunk resolves to the flattened children (a plain closure, so it is
       // safe to send across an isolate boundary as a descriptor).
-      final scopes = rebuilt.embeddedLanguages().map((e) => e.scopeName).toSet();
+      final scopes = rebuilt
+          .embeddedLanguages()
+          .map((e) => e.scopeName)
+          .toSet();
       expect(scopes, contains('source.css'));
       expect(scopes, contains('source.js'));
     });
