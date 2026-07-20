@@ -16,11 +16,8 @@ import 'render.dart';
 ///
 /// Only used when [ShikiCodeListView.showLineNumbers] is `true`.
 class GutterStyle {
-  const GutterStyle({
-    this.spacing,
-    this.dividerColor,
-    this.dividerThickness = 1.0,
-  }) : assert(dividerThickness >= 0, 'dividerThickness must be non-negative.');
+  const GutterStyle({this.spacing, this.dividerColor, this.dividerThickness = 1.0})
+    : assert(dividerThickness >= 0, 'dividerThickness must be non-negative.');
 
   /// Horizontal gap between the gutter and the code, in logical pixels. When
   /// null, defaults to two character widths of the base text style, so the gap
@@ -95,15 +92,12 @@ class ShikiCodeListView extends StatefulWidget {
     this.physics,
     this.controller,
     this.async,
-  })  : assert(
-          !(showLineNumbers && softWrap),
-          'showLineNumbers requires softWrap: false. Wrapped lines cannot '
-          'align with a fixed-height line-number gutter.',
-        ),
-        assert(
-          lineNumberTextScale > 0,
-          'lineNumberTextScale must be greater than 0.',
-        );
+  }) : assert(
+         !(showLineNumbers && softWrap),
+         'showLineNumbers requires softWrap: false. Wrapped lines cannot '
+         'align with a fixed-height line-number gutter.',
+       ),
+       assert(lineNumberTextScale > 0, 'lineNumberTextScale must be greater than 0.');
 
   final ShikiHighlighter highlighter;
   final String code;
@@ -191,19 +185,15 @@ class ShikiCodeListView extends StatefulWidget {
 class _ShikiCodeListViewState extends State<ShikiCodeListView> {
   ScrollController? _internalController;
 
-  late final AsyncTokenResolver _resolver =
-      AsyncTokenResolver(() => setState(() {}));
+  late final AsyncTokenResolver _resolver = AsyncTokenResolver(() => setState(() {}));
 
-  ScrollController get _controller =>
-      widget.controller ?? (_internalController ??= ScrollController());
+  ScrollController get _controller => widget.controller ?? (_internalController ??= ScrollController());
 
   /// Async is active only when enabled and the caller hasn't already supplied
   /// pre-highlighted [lines].
-  bool get _asyncEffective =>
-      widget.lines == null && (widget.async ?? ShikiHighlighter.asyncDefault);
+  bool get _asyncEffective => widget.lines == null && (widget.async ?? ShikiHighlighter.asyncDefault);
 
-  TokenizeOptions get _options =>
-      TokenizeOptions(lang: widget.lang, theme: widget.theme);
+  TokenizeOptions get _options => TokenizeOptions(lang: widget.lang, theme: widget.theme);
 
   @override
   void initState() {
@@ -264,10 +254,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       lines = widget.lines!;
     } else if (!_asyncEffective) {
       // Synchronous path: unchanged behavior.
-      lines = tokensToLineSpans(
-        widget.highlighter.codeToTokens(widget.code, _options),
-        baseStyle: effectiveBase,
-      );
+      lines = tokensToLineSpans(widget.highlighter.codeToTokens(widget.code, _options), baseStyle: effectiveBase);
     } else {
       final tokens = _resolver.tokens;
       lines = tokens != null
@@ -276,8 +263,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
           // preserving the line count (and thus height) so nothing jumps when
           // the highlighted result swaps in.
           : [
-              for (final line in splitLines(widget.code))
-                [TextSpan(text: line.content, style: effectiveBase)],
+              for (final line in splitLines(widget.code)) [TextSpan(text: line.content, style: effectiveBase)],
             ];
     }
 
@@ -286,12 +272,12 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     final pad = widget.padding.resolve(textDirection);
 
     Widget rowFor(int i) => Text.rich(
-          lineToTextSpan(lines[i]),
-          textScaler: textScaler,
-          softWrap: widget.softWrap,
-          maxLines: widget.softWrap ? null : 1,
-          strutStyle: strut,
-        );
+      lineToTextSpan(lines[i]),
+      textScaler: textScaler,
+      softWrap: widget.softWrap,
+      maxLines: widget.softWrap ? null : 1,
+      strutStyle: strut,
+    );
 
     final codeList = ListView.builder(
       controller: _controller,
@@ -330,42 +316,36 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     final children = <Widget>[];
     if (widget.showLineNumbers) {
       final digits = lines.length.toString().length;
-      final numberColor = widget.lineNumberColor ??
-          (fg ?? const Color(0xFF808080)).withValues(alpha: 0.4);
+      final numberColor = widget.lineNumberColor ?? (fg ?? const Color(0xFF808080)).withValues(alpha: 0.4);
       // Line numbers may be rendered smaller than the code, but keep the code's
       // strut and row height so they share its baseline and stay row-aligned;
       // only the glyph size shrinks.
       final scale = widget.lineNumberTextScale;
-      final baseFontSize = effectiveBase.fontSize ??
-          DefaultTextStyle.of(context).style.fontSize ??
-          14.0;
-      final numberStyle = effectiveBase.copyWith(
-        color: numberColor,
-        fontSize: baseFontSize * scale,
-      );
+      final baseFontSize = effectiveBase.fontSize ?? DefaultTextStyle.of(context).style.fontSize ?? 14.0;
+      final numberStyle = effectiveBase.copyWith(color: numberColor, fontSize: baseFontSize * scale);
       // Size the gutter to the widest number plus a one-pixel guard. Sizing it
       // to exactly `digits * charWidth` leaves the label on a knife edge: web
       // text layout rounds line width up, pushing the last glyph past the box
       // and, with maxLines: 1, dropping it entirely, so multi-digit numbers
       // rendered as just their leading digit(s). Measure the gutter's own
       // advance so a scaled-down font still gets a snug box.
-      final numberCharWidth = scale == 1.0
-          ? metrics.charWidth
-          : _measure(numberStyle, strut, textScaler).charWidth;
+      final numberCharWidth = scale == 1.0 ? metrics.charWidth : _measure(numberStyle, strut, textScaler).charWidth;
       final gutterWidth = digits * numberCharWidth + 1;
-      children.add(Padding(
-        padding: vpad,
-        child: _LineNumberGutter(
-          controller: _controller,
-          lineCount: lines.length,
-          rowHeight: metrics.rowHeight,
-          width: gutterWidth,
-          style: numberStyle,
-          textScaler: textScaler,
-          strut: strut,
-          windowed: !widget.shrinkWrap,
+      children.add(
+        Padding(
+          padding: vpad,
+          child: _LineNumberGutter(
+            controller: _controller,
+            lineCount: lines.length,
+            rowHeight: metrics.rowHeight,
+            width: gutterWidth,
+            style: numberStyle,
+            textScaler: textScaler,
+            strut: strut,
+            windowed: !widget.shrinkWrap,
+          ),
         ),
-      ));
+      );
 
       // The gap between gutter and code, with an optional divider centered in
       // it. The divider is not padded, so it runs the full column height. The
@@ -378,32 +358,34 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       if (dividerColor == null) {
         children.add(SizedBox(width: spacing));
       } else {
-        final dividerHeight = widget.shrinkWrap
-            ? pad.top + lines.length * metrics.rowHeight + pad.bottom
-            : null;
-        children.add(SizedBox(
-          width: spacing,
-          height: dividerHeight,
-          child: Center(
-            child: SizedBox(
-              width: gutter.dividerThickness,
-              height: double.infinity,
-              child: ColoredBox(color: dividerColor),
+        final dividerHeight = widget.shrinkWrap ? pad.top + lines.length * metrics.rowHeight + pad.bottom : null;
+        children.add(
+          SizedBox(
+            width: spacing,
+            height: dividerHeight,
+            child: Center(
+              child: SizedBox(
+                width: gutter.dividerThickness,
+                height: double.infinity,
+                child: ColoredBox(color: dividerColor),
+              ),
             ),
           ),
-        ));
+        );
       }
     }
-    children.add(Expanded(child: Padding(padding: vpad, child: codeArea)));
+    children.add(
+      Expanded(
+        child: Padding(padding: vpad, child: codeArea),
+      ),
+    );
 
     Widget content = Padding(
       padding: EdgeInsets.only(left: pad.left),
       child: Row(
         // Stretch the gutter to the viewport height so it can window its
         // numbers; in shrink-wrap mode there is no viewport to fill.
-        crossAxisAlignment: widget.shrinkWrap
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.stretch,
+        crossAxisAlignment: widget.shrinkWrap ? CrossAxisAlignment.start : CrossAxisAlignment.stretch,
         children: children,
       ),
     );
@@ -416,10 +398,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
     // Set the selection color for the code rows below. Keep this inside any
     // SelectionArea (ours or an ancestor's) so the selectable rows read it.
     if (widget.selectionColor != null) {
-      content = DefaultSelectionStyle(
-        selectionColor: widget.selectionColor,
-        child: content,
-      );
+      content = DefaultSelectionStyle(selectionColor: widget.selectionColor, child: content);
     }
 
     // Only add our own SelectionArea when asked to and when there isn't one
@@ -440,10 +419,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
       textScaler: textScaler,
       strutStyle: strut,
     )..layout();
-    final metrics = _Metrics(
-      rowHeight: painter.height,
-      charWidth: painter.width / 10,
-    );
+    final metrics = _Metrics(rowHeight: painter.height, charWidth: painter.width / 10);
     painter.dispose();
     return metrics;
   }
@@ -451,6 +427,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
 
 class _Metrics {
   const _Metrics({required this.rowHeight, required this.charWidth});
+
   final double rowHeight;
   final double charWidth;
 }
@@ -480,30 +457,30 @@ class _LineNumberGutter extends StatelessWidget {
   final bool windowed;
 
   Widget _label(int index) => Text(
-        '${index + 1}',
-        style: style,
-        textScaler: textScaler,
-        strutStyle: strut,
-        maxLines: 1,
-        textAlign: TextAlign.right,
-      );
+    '${index + 1}',
+    style: style,
+    textScaler: textScaler,
+    strutStyle: strut,
+    maxLines: 1,
+    textAlign: TextAlign.right,
+  );
 
   /// Every line number stacked in a column, used in shrink-wrap mode (no
   /// viewport to window against) and as the unbounded-height fallback.
   Widget _column() => SizedBox(
-        width: width,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < lineCount; i++)
-              SizedBox(
-                height: rowHeight,
-                child: Align(alignment: Alignment.centerRight, child: _label(i)),
-              ),
-          ],
-        ),
-      );
+    width: width,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < lineCount; i++)
+          SizedBox(
+            height: rowHeight,
+            child: Align(alignment: Alignment.centerRight, child: _label(i)),
+          ),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -526,10 +503,8 @@ class _LineNumberGutter extends StatelessWidget {
               return AnimatedBuilder(
                 animation: controller,
                 builder: (context, _) {
-                  final offset =
-                      controller.hasClients ? controller.offset : 0.0;
-                  final first =
-                      (offset / rowHeight).floor().clamp(0, lineCount);
+                  final offset = controller.hasClients ? controller.offset : 0.0;
+                  final first = (offset / rowHeight).floor().clamp(0, lineCount);
                   final visible = (constraints.maxHeight / rowHeight).ceil() + 1;
                   final last = math.min(lineCount, first + visible);
                   return Stack(
@@ -541,10 +516,7 @@ class _LineNumberGutter extends StatelessWidget {
                           left: 0,
                           width: width,
                           height: rowHeight,
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: _label(i),
-                          ),
+                          child: Align(alignment: Alignment.centerRight, child: _label(i)),
                         ),
                     ],
                   );
