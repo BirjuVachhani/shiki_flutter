@@ -103,15 +103,10 @@ abstract class ShikiBaseWidget extends StatefulWidget {
   final Color? selectionColor;
 }
 
-mixin ShikiStateMixin<W extends ShikiBaseWidget, R extends Object> on State<W> {
+mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
   late final AsyncTokenResolver resolver = AsyncTokenResolver(() {
     if (mounted) setState(() {});
   });
-
-  // Per-build memoization (see render_cache.dart). Each recomputes only when its
-  // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
-  @protected
-  final RenderMemo<R> spanMemo = RenderMemo<R>();
 
   // Per-build memoization (see render_cache.dart). Each recomputes only when its
   // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
@@ -132,13 +127,11 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget, R extends Object> on State<W> {
   ShikiTheme? resolvedTheme;
 
   @protected
-  TokenizeOptions get options =>
-      TokenizeOptions(lang: widget.lang.id, theme: resolvedTheme!.id);
+  TokenizeOptions get options => TokenizeOptions(lang: widget.lang.id, theme: resolvedTheme!.id);
 
   /// Resolves the theme for the current brightness, loads the language and theme
   /// into the highlighter on demand, then (re)kicks tokenization.
-  @protected
-  void resolveAndKick() {
+  void _resolveAndKick() {
     resolveTheme();
     resolveLanguage();
   }
@@ -146,8 +139,7 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget, R extends Object> on State<W> {
   @protected
   void resolveTheme() {
     final isDark = (widget.brightness ?? Theme.brightnessOf(context)) == .dark;
-    resolvedTheme = (widget.theme ?? ShikiHighlighter.config.defaultTheme)
-        .resolve(isDark: isDark);
+    resolvedTheme = (widget.theme ?? ShikiHighlighter.config.defaultTheme).resolve(isDark: isDark);
     widget.highlighter.ensureShikiTheme(resolvedTheme!);
   }
 
@@ -185,13 +177,13 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget, R extends Object> on State<W> {
     // Runs after initState and whenever an inherited dependency changes — in
     // particular a `Theme` brightness flip, which does not trigger
     // didUpdateWidget. Re-resolving here keeps a dual theme in sync with it.
-    resolveAndKick();
+    _resolveAndKick();
   }
 
   @override
   void didUpdateWidget(W oldWidget) {
     super.didUpdateWidget(oldWidget);
-    resolveAndKick();
+    _resolveAndKick();
   }
 
   @override

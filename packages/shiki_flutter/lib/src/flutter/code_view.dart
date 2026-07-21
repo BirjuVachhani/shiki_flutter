@@ -8,6 +8,7 @@ import '../core/code_language.dart';
 import '../core/colors.dart';
 import 'gutter.dart';
 import 'render.dart';
+import 'render_cache.dart';
 
 /// Displays [code] highlighted with the given [lang] and [theme].
 ///
@@ -52,8 +53,12 @@ class ShikiCodeView extends ShikiBaseWidget {
   State<ShikiCodeView> createState() => _ShikiCodeViewState();
 }
 
-class _ShikiCodeViewState extends State<ShikiCodeView>
-    with ShikiStateMixin<ShikiCodeView, InlineSpan> {
+class _ShikiCodeViewState extends State<ShikiCodeView> with ShikiStateMixin<ShikiCodeView> {
+  // Per-build memoization (see render_cache.dart). Each recomputes only when its
+  // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
+  @protected
+  final RenderMemo<InlineSpan> _spanMemo = RenderMemo();
+
   @override
   Widget build(BuildContext context) {
     final base = widget.textStyle ?? const TextStyle(fontFamily: 'monospace');
@@ -69,7 +74,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView>
     // rebuild reuses it and neither re-tokenizes nor rebuilds any TextSpan. The
     // sync path is byte-for-byte the old codeToTextSpan(baseStyle: base), which
     // bakes the same fg into effectiveBase.
-    final span = spanMemo.resolve(
+    final span = _spanMemo.resolve(
       tokens: resolver.tokens,
       code: widget.code,
       base: effectiveBase,

@@ -106,14 +106,13 @@ class ShikiCodeListView extends ShikiBaseWidget {
   State<ShikiCodeListView> createState() => _ShikiCodeListViewState();
 }
 
-class _ShikiCodeListViewState extends State<ShikiCodeListView>
-    with ShikiStateMixin<ShikiCodeListView, List<List<InlineSpan>>> {
+class _ShikiCodeListViewState extends State<ShikiCodeListView> with ShikiStateMixin<ShikiCodeListView> {
   ScrollController? _internalController;
 
   final Memoized<String, int> _maxLen = Memoized();
+  final RenderMemo<List<List<InlineSpan>>> _spanMemo = RenderMemo();
 
-  ScrollController get _controller =>
-      widget.controller ?? (_internalController ??= ScrollController());
+  ScrollController get _controller => widget.controller ?? (_internalController ??= ScrollController());
 
   @override
   void resolveLanguage() {
@@ -161,7 +160,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView>
     // rebuild reuses them and neither re-tokenizes nor rebuilds any TextSpan.
     final List<List<InlineSpan>> lines =
         widget.lines ??
-        spanMemo.resolve(
+        _spanMemo.resolve(
           tokens: resolver.tokens,
           code: widget.code,
           base: effectiveBase,
@@ -170,8 +169,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView>
           // preserving the line count (and thus height) so nothing jumps when
           // the highlighted result swaps in.
           placeholder: (code, b) => [
-            for (final line in splitLines(code))
-              [TextSpan(text: line.content, style: b)],
+            for (final line in splitLines(code)) [TextSpan(text: line.content, style: b)],
           ],
         );
 
