@@ -18,8 +18,6 @@ import 'package:flutter/services.dart' show FontLoader;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart' as dart_lang;
-import 'package:shiki_flutter/themes/all.dart' as all_themes;
 
 /// A single line exercising several token kinds (keyword, identifier,
 /// operator, type, number, punctuation, comment) so each golden shows a slice
@@ -44,13 +42,13 @@ Future<void> _loadFont() async {
 /// One theme's row: the theme background filling the whole row, with the
 /// highlighted line on top. The background comes from the widget tree, so a
 /// stray per-token background would show up immediately as a lighter box.
-Widget _themeRow(ShikiHighlighter hl, String theme) {
-  final registration = hl.getThemeRegistration(theme);
+Widget _themeRow(ShikiHighlighter hl, ShikiTheme theme) {
+  final registration = hl.getThemeRegistration(theme.id);
   final bg = parseColor(registration.bg)!;
   final span = codeToTextSpan(
     hl,
     _code,
-    lang: 'dart',
+    lang: CodeLanguages.dart,
     theme: theme,
     baseStyle: _codeStyle,
   );
@@ -82,15 +80,15 @@ void main() {
   setUpAll(() async {
     await _loadFont();
     hl = createHighlighter(
-      langs: [dart_lang.dart],
-      themes: all_themes.allThemes,
+      langs: [CodeLanguages.dart],
+      themes: ShikiThemes.all,
     );
   });
 
-  for (final theme in all_themes.allThemes) {
+  for (final theme in ShikiThemes.all) {
     testWidgets('theme golden: ${theme.id}', (tester) async {
       await tester.binding.setSurfaceSize(_rowSize);
-      await tester.pumpWidget(_themeRow(hl, theme.id));
+      await tester.pumpWidget(_themeRow(hl, theme));
       await expectLater(
         find.byType(ColoredBox),
         matchesGoldenFile('goldens/themes/${theme.id}.png'),

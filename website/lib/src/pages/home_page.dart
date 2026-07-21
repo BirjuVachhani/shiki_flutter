@@ -178,10 +178,6 @@ class _HeroMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    final compact = context.isCompact;
-    final markSize = compact ? 34.0 : 44.0;
-
     return SizedBox.square(
       dimension: 64,
       child: SvgPicture.asset('assets/shiki_logo_with_bg.svg'),
@@ -190,51 +186,51 @@ class _HeroMark extends StatelessWidget {
     // The identity behind the package, drawn as a visual equation: Shiki (the
     // "S" mark) combined with Flutter yields the "式" brand logo. Each mark keeps
     // its native colors, which read on both light and dark surfaces.
-    Widget mark(String asset, String label) {
-      return Column(
-        mainAxisSize: .min,
-        spacing: 8,
-        children: [
-          SvgPicture.asset(asset, height: markSize),
-          if (false)
-            Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.7),
-                fontWeight: .w200,
-              ),
-            ),
-        ],
-      );
-    }
-
-    Widget op(String glyph) => Padding(
-      padding: .symmetric(horizontal: compact ? 9 : 13),
-      child: Text(
-        glyph,
-        style: TextStyle(
-          color: colors.mutedForeground,
-          fontSize: compact ? 20 : 26,
-          fontWeight: FontWeight.w400,
-          height: 1,
-        ),
-      ),
-    );
-
-    return SelectionContainer.disabled(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          mark('assets/shiki.svg', 'Shiki'),
-          op('+'),
-          mark('assets/flutter.svg', 'Flutter'),
-          op('='),
-          mark('assets/shiki_logo.svg', 'shiki_flutter'),
-        ],
-      ),
-    );
+    // Widget mark(String asset, String label) {
+    //   return Column(
+    //     mainAxisSize: .min,
+    //     spacing: 8,
+    //     children: [
+    //       SvgPicture.asset(asset, height: markSize),
+    //       if (false)
+    //         Text(
+    //           label,
+    //           style: TextStyle(
+    //             color: Theme.of(
+    //               context,
+    //             ).colorScheme.onSurface.withValues(alpha: 0.7),
+    //             fontWeight: .w200,
+    //           ),
+    //         ),
+    //     ],
+    //   );
+    // }
+    //
+    // Widget op(String glyph) => Padding(
+    //   padding: .symmetric(horizontal: compact ? 9 : 13),
+    //   child: Text(
+    //     glyph,
+    //     style: TextStyle(
+    //       color: colors.mutedForeground,
+    //       fontSize: compact ? 20 : 26,
+    //       fontWeight: FontWeight.w400,
+    //       height: 1,
+    //     ),
+    //   ),
+    // );
+    //
+    // return SelectionContainer.disabled(
+    //   child: Row(
+    //     mainAxisSize: MainAxisSize.min,
+    //     children: [
+    //       mark('assets/shiki.svg', 'Shiki'),
+    //       op('+'),
+    //       mark('assets/flutter.svg', 'Flutter'),
+    //       op('='),
+    //       mark('assets/shiki_logo.svg', 'shiki_flutter'),
+    //     ],
+    //   ),
+    // );
   }
 }
 
@@ -551,9 +547,9 @@ class _WidgetPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final themeId = HighlighterService.themeForBrightness(
-      Theme.of(context).brightness,
-    );
+    const config = HighlighterService.defaultThemeConfig;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeId = config.resolve(isDark: isDark).id;
     // Fill the whole card with the theme background and let ShikiCodeView paint
     // only the text - otherwise its background spans just the text width and
     // leaves a mismatched strip on the right.
@@ -571,8 +567,8 @@ class _WidgetPreview extends StatelessWidget {
       child: ShikiCodeView(
         highlighter: HighlighterService.instance.highlighter,
         code: Snippets.widgetSample.trim(),
-        lang: 'dart',
-        theme: themeId,
+        lang: CodeLanguages.dart,
+        theme: config,
         paintBackground: false,
         textStyle: const TextStyle(
           fontFamily: AppFonts.mono,

@@ -2,7 +2,7 @@
 // many patterns contain the newly-widened constructs.
 // ignore_for_file: avoid_print
 import 'dart:convert';
-import 'package:shiki_flutter/langs/all.dart';
+import 'package:shiki_flutter/langs.dart';
 import 'package:shiki_flutter/src/onig/regex_engine.dart';
 
 void _collect(dynamic node, List<String> out) {
@@ -24,7 +24,7 @@ void _collect(dynamic node, List<String> out) {
 void main() {
   var total = 0, fast = 0, err = 0, widenFast = 0;
   final widenRe = RegExp(r'\(\?>|\(\?i|\\A|\\z');
-  for (final lang in allLanguages) {
+  for (final lang in CodeLanguages.all) {
     final pats = <String>[];
     _collect(jsonDecode(lang.json), pats);
     for (final p in pats) {
@@ -39,7 +39,9 @@ void main() {
       }
     }
   }
-  print('grammars=${allLanguages.length}  patterns=$total  compileErr=$err');
+  print(
+    'grammars=${CodeLanguages.all.length}  patterns=$total  compileErr=$err',
+  );
   print(
     'fast-path coverage: $fast/$total = ${(100 * fast / total).toStringAsFixed(1)}%',
   );

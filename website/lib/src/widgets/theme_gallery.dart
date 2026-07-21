@@ -27,7 +27,7 @@ class _ThemeGalleryState extends State<ThemeGallery> {
   String _query = '';
   String _selectedId = _defaultId;
 
-  List<BundledTheme> get _all => HighlighterService.instance.galleryThemes;
+  List<ShikiTheme> get _all => HighlighterService.instance.galleryThemes;
 
   @override
   void dispose() {
@@ -35,7 +35,7 @@ class _ThemeGalleryState extends State<ThemeGallery> {
     super.dispose();
   }
 
-  List<BundledTheme> _filtered(String type) {
+  List<ShikiTheme> _filtered(String type) {
     final q = _query.trim().toLowerCase();
     return _all
         .where((t) => t.type == type && (q.isEmpty || t.id.contains(q)))
@@ -140,8 +140,8 @@ class _ThemeList extends StatelessWidget {
     required this.search,
   });
 
-  final List<BundledTheme> dark;
-  final List<BundledTheme> light;
+  final List<ShikiTheme> dark;
+  final List<ShikiTheme> light;
   final String selectedId;
   final ValueChanged<String> onSelect;
   final Widget search;
@@ -238,7 +238,7 @@ class _ThemeRow extends StatefulWidget {
     required this.onTap,
   });
 
-  final BundledTheme theme;
+  final ShikiTheme theme;
   final bool selected;
   final VoidCallback onTap;
 
@@ -339,7 +339,10 @@ class _ThemePreview extends StatelessWidget {
     final onBg = bg.computeLuminance() > 0.5 ? Colors.black : Colors.white;
     final border = onBg.withValues(alpha: 0.10);
 
-    final span = service.gallerySpan(sample, theme: themeId);
+    // gallerySpan now takes the resolved theme object; find it by the selected
+    // id (galleryThemes is the gallery highlighter's full theme set).
+    final theme = service.galleryThemes.firstWhere((t) => t.id == themeId);
+    final span = service.gallerySpan(sample, theme: theme);
     final lineCount = '\n'.allMatches(sample).length + 1;
     final numberStyle = TextStyle(
       fontFamily: AppFonts.mono,

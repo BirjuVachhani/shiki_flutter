@@ -267,8 +267,9 @@ List<InlineSpan> inlineSpans(String text, AppColors colors) {
   final pattern = RegExp(r'\*\*[^*]+\*\*|`[^`]+`');
   var last = 0;
   for (final m in pattern.allMatches(text)) {
-    if (m.start > last)
+    if (m.start > last) {
       spans.add(TextSpan(text: text.substring(last, m.start)));
+    }
     final token = m.group(0)!;
     if (token.startsWith('`')) {
       spans.add(

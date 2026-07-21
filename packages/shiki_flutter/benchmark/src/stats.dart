@@ -4,7 +4,6 @@
 // `flutter test` file without pulling in Flutter. Timings are collected in
 // microseconds via [Stopwatch] and summarized as min / mean / median / p90 /
 // p99 / max. Percentiles matter here because layout cost is spiky.
-library;
 
 import 'dart:convert';
 import 'dart:io';

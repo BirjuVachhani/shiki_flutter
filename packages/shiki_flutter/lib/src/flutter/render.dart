@@ -1,11 +1,12 @@
 // Flutter rendering helpers: convert themed tokens into styled spans/widgets.
-library;
 
 import 'dart:ui' show ColorSpace;
 
 import 'package:flutter/widgets.dart';
 
+import '../core/code_language.dart';
 import '../core/highlighter.dart';
+import '../core/shiki_theme.dart';
 import '../core/themed_token.dart';
 import '../textmate/theme.dart' as tm;
 
@@ -161,15 +162,18 @@ TextSpan _tokenSpan(ThemedToken token, TextStyle? baseStyle) => TextSpan(
 ({List<List<ThemedToken>> tokens, TextStyle baseStyle}) _tokenizeWithBase(
   ShikiHighlighter highlighter,
   String code, {
-  required String lang,
-  required String theme,
+  required CodeLanguage lang,
+  required ShikiTheme theme,
   TextStyle? baseStyle,
 }) {
+  highlighter
+    ..ensureLanguage(lang)
+    ..ensureShikiTheme(theme);
   final tokens = highlighter.codeToTokens(
     code,
-    TokenizeOptions(lang: lang, theme: theme),
+    TokenizeOptions(lang: lang.id, theme: theme.id),
   );
-  final registration = highlighter.getThemeRegistration(theme);
+  final registration = highlighter.getThemeRegistration(theme.id);
   final fg = parseColor(registration.fg);
   final effectiveBase = (baseStyle ?? const TextStyle()).copyWith(color: fg);
   return (tokens: tokens, baseStyle: effectiveBase);
@@ -194,11 +198,15 @@ TextSpan tokensToTextSpan(
 }
 
 /// Highlights [code] and returns a ready-to-use [TextSpan].
+///
+/// [lang] and [theme] are loaded into [highlighter] on demand; [theme] is a
+/// concrete [ShikiTheme] (resolve a light/dark [ShikiThemeConfig] yourself
+/// first, since these helpers have no `BuildContext`).
 TextSpan codeToTextSpan(
   ShikiHighlighter highlighter,
   String code, {
-  required String lang,
-  required String theme,
+  required CodeLanguage lang,
+  required ShikiTheme theme,
   TextStyle? baseStyle,
 }) {
   final resolved = _tokenizeWithBase(
@@ -251,8 +259,8 @@ List<List<TextSpan>> tokensToLineSpans(
 List<List<TextSpan>> codeToLineSpans(
   ShikiHighlighter highlighter,
   String code, {
-  required String lang,
-  required String theme,
+  required CodeLanguage lang,
+  required ShikiTheme theme,
   TextStyle? baseStyle,
 }) {
   final resolved = _tokenizeWithBase(

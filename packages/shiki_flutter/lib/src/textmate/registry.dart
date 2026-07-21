@@ -1,5 +1,4 @@
 // Grammar registry, ported from `vscode-textmate`'s `registry.ts`.
-library;
 
 import '../onig/onig.dart';
 import 'basic_scopes.dart';

@@ -6,7 +6,6 @@
 // signals). Regenerating every TextSpan/TextStyle for the whole file each time is
 // wasted work that scales with file size, not the viewport. These tiny caches key
 // on the *real* inputs of each derived value and recompute only when those change.
-library;
 
 import 'package:flutter/widgets.dart';
 

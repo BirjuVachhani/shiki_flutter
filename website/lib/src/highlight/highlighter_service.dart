@@ -1,50 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-
-// Import ONLY the bundled languages/themes the site actually demonstrates. This
-// is exactly how a consumer app dogfoods the package: everything not imported
-// here is tree-shaken out of the build.
-import 'package:shiki_flutter/langs/css.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/langs/go.dart';
-import 'package:shiki_flutter/langs/html.dart';
-import 'package:shiki_flutter/langs/javascript.dart';
-import 'package:shiki_flutter/langs/json.dart';
-import 'package:shiki_flutter/langs/markdown.dart';
-import 'package:shiki_flutter/langs/python.dart';
-import 'package:shiki_flutter/langs/rust.dart';
-import 'package:shiki_flutter/langs/shellscript.dart';
-import 'package:shiki_flutter/langs/sql.dart';
-import 'package:shiki_flutter/langs/tsx.dart';
-import 'package:shiki_flutter/langs/typescript.dart';
-import 'package:shiki_flutter/langs/yaml.dart';
-
-import 'package:shiki_flutter/themes/dracula.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
-import 'package:shiki_flutter/themes/github_light.dart';
-import 'package:shiki_flutter/themes/nord.dart';
-import 'package:shiki_flutter/themes/one_dark_pro.dart';
-import 'package:shiki_flutter/themes/vesper.dart';
-import 'package:shiki_flutter/themes/vitesse_dark.dart';
-import 'package:shiki_flutter/themes/vitesse_light.dart';
-
-// The docs theme gallery previews EVERY bundled theme, so it legitimately needs
-// the `all.dart` barrel. This is the one intentional exception to the site's
-// lean-imports dogfooding, kept off the main shared highlighter and isolated to
-// a separate, lazily-built gallery highlighter so the bundle-size docs stay
-// truthful.
-import 'package:shiki_flutter/themes/all.dart';
-
-// The custom "Pierre" theme collection now lives in the package as a separate,
-// opt-in set (package:shiki_flutter/pierre_themes/), dogfooded here.
-import 'package:shiki_flutter/pierre_themes/pierre_themes.dart';
-
 import '../theme/tokens.dart';
 
 /// A language the demos can switch between, with a display label and sample.
 class DemoLanguage {
   const DemoLanguage(this.language, this.label, this.filename);
-  final BundledLanguage language;
+
+  final CodeLanguage language;
   final String label;
   final String filename;
 
@@ -54,10 +16,12 @@ class DemoLanguage {
 /// A theme the demos can switch between.
 class DemoTheme {
   const DemoTheme(this.theme, this.label);
-  final BundledTheme theme;
+
+  final ShikiTheme theme;
   final String label;
 
   String get id => theme.id;
+
   bool get isDark => theme.type == 'dark';
 }
 
@@ -74,38 +38,54 @@ class HighlighterService {
 
   // Bundled `dart`, `githubDark`, ... symbols are top-level `final`s (not
   // `const`), so these lists can't be `const`.
+  //
+  // The languages a code block can reference by id (see [languageForId]); the
+  // shared highlighter registers exactly this set.
+  static final List<CodeLanguage> _bundledLanguages = [
+    CodeLanguages.dart,
+    CodeLanguages.typescript,
+    CodeLanguages.tsx,
+    CodeLanguages.javascript,
+    CodeLanguages.python,
+    CodeLanguages.rust,
+    CodeLanguages.go,
+    CodeLanguages.json,
+    CodeLanguages.yaml,
+    CodeLanguages.html,
+    CodeLanguages.css,
+    CodeLanguages.shellscript,
+    CodeLanguages.markdown,
+    CodeLanguages.sql,
+  ];
+
+  /// Maps a language id (as passed to a code block) to its bundled
+  /// [CodeLanguage]. Every id the site uses is in [_bundledLanguages].
+  static final Map<String, CodeLanguage> _languagesById = {
+    for (final lang in _bundledLanguages) lang.id: lang,
+  };
+
+  /// The bundled [CodeLanguage] registered under [id] (e.g. `'dart'`). The
+  /// widgets now take a [CodeLanguage] object, so string-id call sites resolve
+  /// through here.
+  static CodeLanguage languageForId(String id) => _languagesById[id]!;
+
   late final ShikiHighlighter _highlighter = createHighlighter(
-    langs: [
-      dart,
-      typescript,
-      tsx,
-      javascript,
-      python,
-      rust,
-      go,
-      json,
-      yaml,
-      html,
-      css,
-      shellscript,
-      markdown,
-      sql,
-    ],
+    langs: _bundledLanguages,
     themes: [
-      githubDark,
-      githubLight,
-      oneDarkPro,
-      dracula,
-      nord,
-      vitesseDark,
-      vitesseLight,
-      vesper,
+      ShikiThemes.githubDark,
+      ShikiThemes.githubLight,
+      ShikiThemes.oneDarkPro,
+      ShikiThemes.dracula,
+      ShikiThemes.nord,
+      ShikiThemes.vitesseDark,
+      ShikiThemes.vitesseLight,
+      ShikiThemes.vesper,
       // Site-wide defaults for code blocks. These are the custom Pierre themes
       // (package:shiki_flutter/pierre_themes/, an opt-in collection, not part
       // of the package's `allThemes`). Only the two defaults are registered
       // here; the other variants are tree-shaken out of the build.
-      pierreDark,
-      pierreLight,
+      PierreThemes.pierreDark,
+      PierreThemes.pierreLight,
     ],
   );
 
@@ -116,31 +96,34 @@ class HighlighterService {
 
   /// Themes offered in the "any VS Code theme" switcher.
   static final List<DemoTheme> demoThemes = [
-    DemoTheme(githubDark, 'GitHub Dark'),
-    DemoTheme(oneDarkPro, 'One Dark Pro'),
-    DemoTheme(dracula, 'Dracula'),
-    DemoTheme(nord, 'Nord'),
-    DemoTheme(vesper, 'Vesper'),
-    DemoTheme(vitesseDark, 'Vitesse Dark'),
-    DemoTheme(githubLight, 'GitHub Light'),
-    DemoTheme(vitesseLight, 'Vitesse Light'),
+    DemoTheme(ShikiThemes.githubDark, 'GitHub Dark'),
+    DemoTheme(ShikiThemes.oneDarkPro, 'One Dark Pro'),
+    DemoTheme(ShikiThemes.dracula, 'Dracula'),
+    DemoTheme(ShikiThemes.nord, 'Nord'),
+    DemoTheme(ShikiThemes.vesper, 'Vesper'),
+    DemoTheme(ShikiThemes.vitesseDark, 'Vitesse Dark'),
+    DemoTheme(ShikiThemes.githubLight, 'GitHub Light'),
+    DemoTheme(ShikiThemes.vitesseLight, 'Vitesse Light'),
   ];
 
   /// Languages offered in the "~250 languages" switcher.
   static final List<DemoLanguage> demoLanguages = [
-    DemoLanguage(dart, 'Dart', 'main.dart'),
-    DemoLanguage(typescript, 'TypeScript', 'server.ts'),
-    DemoLanguage(python, 'Python', 'model.py'),
-    DemoLanguage(rust, 'Rust', 'lib.rs'),
-    DemoLanguage(go, 'Go', 'main.go'),
+    DemoLanguage(CodeLanguages.dart, 'Dart', 'main.dart'),
+    DemoLanguage(CodeLanguages.typescript, 'TypeScript', 'server.ts'),
+    DemoLanguage(CodeLanguages.python, 'Python', 'model.py'),
+    DemoLanguage(CodeLanguages.rust, 'Rust', 'lib.rs'),
+    DemoLanguage(CodeLanguages.go, 'Go', 'main.go'),
   ];
 
-  /// The Shiki theme id that pairs with the current site [brightness]. Code
-  /// blocks default to the custom Pierre themes (the opt-in
-  /// package:shiki_flutter/pierre_themes collection); the theme-switcher
-  /// showcase overrides this to demo the package's bundled `allThemes`.
-  static String themeForBrightness(Brightness brightness) =>
-      brightness == Brightness.dark ? pierreDark.id : pierreLight.id;
+  /// The default theme(s) for code blocks: the custom Pierre light/dark pair
+  /// (the opt-in package:shiki_flutter/pierre_themes collection). The widgets
+  /// resolve the pair against the ambient brightness themselves; the
+  /// theme-switcher showcase overrides this to demo the package's bundled
+  /// themes.
+  static const ShikiThemeConfig defaultThemeConfig = ShikiThemeConfig.dual(
+    light: PierreThemes.pierreLight,
+    dark: PierreThemes.pierreDark,
+  );
 
   /// The background color declared by [theme], falling back to [fallback].
   Color backgroundOf(String theme, Color fallback) {
@@ -154,7 +137,7 @@ class HighlighterService {
   /// the page (black) instead of using its own lighter editor background; every
   /// other theme keeps its native background.
   Color displayBackground(String theme, Color fallback) {
-    if (theme == githubDark.id) return AppColors.dark.background;
+    if (theme == ShikiThemes.githubDark.id) return AppColors.dark.background;
     return backgroundOf(theme, fallback);
   }
 
@@ -166,28 +149,28 @@ class HighlighterService {
 
   late final ShikiHighlighter _galleryHighlighter = createHighlighter(
     // Only Dart is needed: the gallery always previews one Dart sample.
-    langs: [dart],
-    themes: allThemes,
+    langs: [CodeLanguages.dart],
+    themes: ShikiThemes.all,
   );
 
   final Map<String, TextSpan> _gallerySpanCache = {};
 
   /// Every bundled theme, in package order: the source of truth for the docs
   /// gallery's list (so it stays in sync when themes are regenerated).
-  List<BundledTheme> get galleryThemes => allThemes;
+  List<ShikiTheme> get galleryThemes => ShikiThemes.all;
 
   /// Highlights [code] in a bundled [theme] via the gallery highlighter.
   TextSpan gallerySpan(
     String code, {
-    required String theme,
+    required ShikiTheme theme,
     double fontSize = 13.5,
   }) {
-    final key = '$theme $fontSize $code';
+    final key = '${theme.id} $fontSize $code';
     return _gallerySpanCache.putIfAbsent(key, () {
       return codeToTextSpan(
         _galleryHighlighter,
         code,
-        lang: 'dart',
+        lang: CodeLanguages.dart,
         theme: theme,
         baseStyle: TextStyle(
           fontFamily: AppFonts.mono,

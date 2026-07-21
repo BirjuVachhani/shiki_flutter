@@ -5,7 +5,6 @@
 // worker as the fallback. All three expose the same `spawnTokenizeWorker` entry
 // point. `dart.library.io` matches only on the VM and `dart.library.js_interop`
 // only on web, so each platform resolves to exactly one implementation.
-library;
 
 import '../core/highlighter.dart';
 import '../core/themed_token.dart';

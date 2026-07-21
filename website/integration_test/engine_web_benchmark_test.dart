@@ -25,8 +25,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
 import 'support/corpus.dart';
@@ -36,7 +34,7 @@ const _langId = 'dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  final theme = githubDark.id;
+  final theme = ShikiThemes.githubDark.id;
 
   testWidgets('engine benchmark: embedded (pure-Dart) vs oniguruma_native', (
     tester,
@@ -65,11 +63,14 @@ void main() {
         // matters, since there is no isolate to hide it behind.
         final h = name == 'oniguruma_native'
             ? createHighlighter(
-                langs: [dart],
-                themes: [githubDark],
+                langs: [CodeLanguages.dart],
+                themes: [ShikiThemes.githubDark],
                 engine: const ShikiHighlighterNativeEngine(),
               )
-            : createHighlighter(langs: [dart], themes: [githubDark]);
+            : createHighlighter(
+                langs: [CodeLanguages.dart],
+                themes: [ShikiThemes.githubDark],
+              );
 
         final cold = Stopwatch()..start();
         final first = h.codeToTokens(src, opts);

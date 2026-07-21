@@ -3,7 +3,6 @@
 // This file must NOT import `dart:isolate`: it is reached from web builds (via
 // `WorkerConfig`), where `dart:isolate` is unavailable. The `SendPort`-bearing
 // bootstrap/handshake types live in `tokenize_worker_io.dart` instead.
-library;
 
 import 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.dart';
 

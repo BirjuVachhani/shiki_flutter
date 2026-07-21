@@ -1,6 +1,5 @@
 // Theme parsing and scope-selector matching, ported from `vscode-textmate`'s
 // `theme.ts`.
-library;
 
 import 'utils.dart';
 

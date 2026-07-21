@@ -2,7 +2,6 @@
 //
 // The regular expressions in this file are ordinary Dart [RegExp]s: they are
 // fixed helper patterns (not grammar patterns), so the built-in engine is fine.
-library;
 
 import '../onig/onig.dart';
 

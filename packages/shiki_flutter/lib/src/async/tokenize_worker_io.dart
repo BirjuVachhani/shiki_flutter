@@ -1,7 +1,6 @@
 // Real `dart:isolate` worker: holds a warm highlighter on a background isolate
 // and answers tokenize requests, so the UI thread never blocks on the expensive
 // first-call grammar/regex compile.
-library;
 
 import 'dart:async';
 import 'dart:isolate';

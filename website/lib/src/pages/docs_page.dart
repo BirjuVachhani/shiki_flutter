@@ -567,17 +567,17 @@ List<Widget> _content(BuildContext context, String id) {
         ),
         DocH3('Bring your own theme'),
         DocProse(
-          "Shiki doesn't own the themes. They're plain VS Code theme JSON. So "
-          'any theme works: grab one from a VS Code marketplace extension, the '
-          'textmate-grammars-themes source, or hand-write your own, and load '
-          'it live. Four entry points take a theme and return its id:',
+          'Themes are plain VS Code theme JSON, so any theme works: grab one '
+          'from a VS Code marketplace extension, the textmate-grammars-themes '
+          'source, or hand-write your own, and load it live. Four entry points '
+          'take a theme and return its id:',
         ),
         DocTable(
           headers: ['Method', 'Accepts', 'Use when'],
           rows: [
             [
-              '`loadBundledTheme(t)`',
-              '`BundledTheme`',
+              '`loadShikiTheme(t)`',
+              '`ShikiTheme`',
               'Using a theme that ships with the package.',
             ],
             [
@@ -614,7 +614,7 @@ List<Widget> _content(BuildContext context, String id) {
       return const [
         DocProse(
           'Alongside the bundled VS Code themes, shiki_flutter ships the 10 '
-          'custom **Pierre** themes from diffs.com (built by Pierre), the same '
+          'custom **Pierre** themes from diffs.com (built by Pierre Computer Company), the same '
           'set this site uses for its own code blocks. The collection spans '
           'light and dark, plus soft, vibrant, and color-blind-friendly '
           'variants:',

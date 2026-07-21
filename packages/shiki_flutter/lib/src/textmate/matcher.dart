@@ -2,7 +2,6 @@
 //
 // Parses selectors like `source.js meta.function` or `L:string -comment` into
 // predicate functions over a list of scope names, with a priority.
-library;
 
 typedef Matcher<T> = bool Function(T input);
 

@@ -20,12 +20,10 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter/src/async/lang_descriptor.dart';
 import 'package:shiki_flutter/src/async/protocol.dart';
 import 'package:shiki_flutter/src/async/tokenize_worker.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 
 import 'src/corpus.dart';
 import 'src/stats.dart';
@@ -88,7 +86,10 @@ void main() {
         final iters = size == CorpusSize.xl ? 2 : 3;
 
         // --- sync: cold (fresh highlighter) then warm (same highlighter) --------
-        final syncHl = createHighlighter(langs: [dart], themes: [githubDark]);
+        final syncHl = createHighlighter(
+          langs: [CodeLanguages.dart],
+          themes: [ShikiThemes.githubDark],
+        );
         final syncCold =
             measureOnce(() => syncHl.codeToTokens(code, _opts)) / 1000;
         final syncWarmSamples = [
@@ -105,8 +106,8 @@ void main() {
             await _timeMicros(() async {
               await Isolate.run(() {
                 final h = createHighlighter(
-                  langs: [dart],
-                  themes: [githubDark],
+                  langs: [CodeLanguages.dart],
+                  themes: [ShikiThemes.githubDark],
                 );
                 return h.codeToTokens(variant, _opts);
               });
@@ -118,8 +119,8 @@ void main() {
         // --- warm-worker: spawn once (warmed), then reuse -----------------------
         final worker = await spawnTokenizeWorker(
           WorkerConfig(
-            langs: [flattenBundledLanguage(dart)],
-            themeJsons: [githubDark.json],
+            langs: [flattenBundledLanguage(CodeLanguages.dart)],
+            themeJsons: [ShikiThemes.githubDark.json],
             warmups: const [WarmupSpec('dart', 'github-dark')],
           ),
         );
@@ -169,8 +170,8 @@ void main() {
             for (final s in snippets) {
               await Isolate.run(() {
                 final h = createHighlighter(
-                  langs: [dart],
-                  themes: [githubDark],
+                  langs: [CodeLanguages.dart],
+                  themes: [ShikiThemes.githubDark],
                 );
                 return h.codeToTokens(s, _opts);
               });
@@ -180,8 +181,8 @@ void main() {
 
       final batchWorker = await spawnTokenizeWorker(
         WorkerConfig(
-          langs: [flattenBundledLanguage(dart)],
-          themeJsons: [githubDark.json],
+          langs: [flattenBundledLanguage(CodeLanguages.dart)],
+          themeJsons: [ShikiThemes.githubDark.json],
           warmups: const [WarmupSpec('dart', 'github-dark')],
         ),
       );
@@ -197,7 +198,10 @@ void main() {
 
       // --- Main-thread responsiveness (xl): sync freezes, worker stays live -----
       final xl = corpusFor(CorpusSize.xl);
-      final warmHl = createHighlighter(langs: [dart], themes: [githubDark]);
+      final warmHl = createHighlighter(
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
+      );
       warmHl.codeToTokens(xl, _opts); // warm so this measures work, not compile
       final syncGap = await _maxHeartbeatGapMs(
         () async => warmHl.codeToTokens('$xl\n//j', _opts),
@@ -205,8 +209,8 @@ void main() {
 
       final jankWorker = await spawnTokenizeWorker(
         WorkerConfig(
-          langs: [flattenBundledLanguage(dart)],
-          themeJsons: [githubDark.json],
+          langs: [flattenBundledLanguage(CodeLanguages.dart)],
+          themeJsons: [ShikiThemes.githubDark.json],
           warmups: const [WarmupSpec('dart', 'github-dark')],
         ),
       );

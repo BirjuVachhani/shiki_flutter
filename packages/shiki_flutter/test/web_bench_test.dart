@@ -9,8 +9,6 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 import 'package:shiki_flutter/src/onig/regex_engine.dart' show OnigRegex;
 
 import '../benchmark/src/corpus.dart';
@@ -19,7 +17,10 @@ void main() {
   test(
     'web tokenization throughput (Dart / GitHub Dark)',
     () {
-      final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+      final hl = createHighlighter(
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
+      );
       const opts = TokenizeOptions(lang: 'dart', theme: 'github-dark');
 
       double median(CorpusSize size, {required bool fastPath}) {

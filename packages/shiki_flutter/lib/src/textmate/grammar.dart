@@ -1,5 +1,4 @@
 // The grammar interpreter, ported from `vscode-textmate`'s `grammar/grammar.ts`.
-library;
 
 import '../onig/onig.dart';
 import 'basic_scopes.dart';

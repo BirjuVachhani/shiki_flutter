@@ -9,7 +9,6 @@
 //
 // This file is intentionally dependency-free and duplicated into
 // `website/integration_test/support/corpus.dart` so each layer runs standalone.
-library;
 
 /// Named workload sizes, measured in lines of Dart.
 enum CorpusSize {

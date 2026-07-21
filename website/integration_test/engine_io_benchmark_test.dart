@@ -19,13 +19,6 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/langs/javascript.dart';
-import 'package:shiki_flutter/langs/json.dart';
-import 'package:shiki_flutter/langs/python.dart';
-import 'package:shiki_flutter/langs/css.dart';
-import 'package:shiki_flutter/langs/html.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
 import 'support/corpus.dart';
@@ -46,8 +39,15 @@ const _samples = {
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  final theme = githubDark.id;
-  final langs = [dart, javascript, json, python, css, html];
+  final theme = ShikiThemes.githubDark.id;
+  final langs = [
+    CodeLanguages.dart,
+    CodeLanguages.javascript,
+    CodeLanguages.json,
+    CodeLanguages.python,
+    CodeLanguages.css,
+    CodeLanguages.html,
+  ];
 
   testWidgets('native (UTF-8) vs dart-port: parity + throughput (IO)', (
     tester,
@@ -57,17 +57,17 @@ void main() {
     // Golden oracle: the pure-Dart embedded engine (golden-proven).
     final embedded = createHighlighter(
       langs: langs,
-      themes: [githubDark],
+      themes: [ShikiThemes.githubDark],
       engine: const ShikiHighlighterEmbeddedEngine(),
     );
     // The two async-worker candidates.
     final port = createHighlighter(
       langs: langs,
-      themes: [githubDark],
+      themes: [ShikiThemes.githubDark],
     ); // default = dart-port
     final native = createHighlighter(
       langs: langs,
-      themes: [githubDark],
+      themes: [ShikiThemes.githubDark],
       engine: const ShikiHighlighterNativeEngine(),
     );
 
@@ -94,11 +94,14 @@ void main() {
         // Fresh highlighter so the first call pays the full compile.
         final h = name == 'native'
             ? createHighlighter(
-                langs: [dart],
-                themes: [githubDark],
+                langs: [CodeLanguages.dart],
+                themes: [ShikiThemes.githubDark],
                 engine: const ShikiHighlighterNativeEngine(),
               )
-            : createHighlighter(langs: [dart], themes: [githubDark]);
+            : createHighlighter(
+                langs: [CodeLanguages.dart],
+                themes: [ShikiThemes.githubDark],
+              );
 
         final cold = Stopwatch()..start();
         h.codeToTokens(code, opts);

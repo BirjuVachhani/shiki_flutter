@@ -8,8 +8,10 @@
 library;
 
 export 'src/async/token_cache.dart' show TokenCache;
-export 'src/bundled/bundled_language.dart' show BundledLanguage;
-export 'src/bundled/bundled_theme.dart' show BundledTheme;
+export 'src/core/code_language.dart' show CodeLanguage, GrammarCategory;
+export 'src/core/shiki_theme.dart' show ShikiTheme;
+export 'src/core/shiki_theme_config.dart'
+    show ShikiThemeConfig, SingleThemeConfig, DualThemeConfig;
 export 'src/core/highlighter.dart'
     show
         ShikiHighlighter,

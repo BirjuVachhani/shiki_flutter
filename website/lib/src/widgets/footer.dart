@@ -115,9 +115,6 @@ class SimpleFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    final compact = context.isCompact;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

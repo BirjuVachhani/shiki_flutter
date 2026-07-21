@@ -285,11 +285,11 @@ final light = codeToTextSpan(
 
 ### Bring your own theme
 
-Shiki doesn't own the themes. They're plain VS Code theme JSON. So any theme works: grab one from a VS Code marketplace extension, the textmate-grammars-themes source, or hand-write your own, and load it live. Four entry points take a theme and return its id:
+Themes are plain VS Code theme JSON, so any theme works: grab one from a VS Code marketplace extension, the textmate-grammars-themes source, or hand-write your own, and load it live. Four entry points take a theme and return its id:
 
 | Method | Accepts | Use when |
 | --- | --- | --- |
-| `loadBundledTheme(t)` | `BundledTheme` | Using a theme that ships with the package. |
+| `loadShikiTheme(t)` | `ShikiTheme` | Using a theme that ships with the package. |
 | `loadThemeFromJson(s)` | `String` | You have raw theme JSON (asset, network, a `.json` file). |
 | `loadTheme(m)` | `Map<String, dynamic>` | You already decoded the JSON to a map. |
 | `loadThemeRegistration(r)` | `ThemeRegistration` | You built a theme programmatically. |

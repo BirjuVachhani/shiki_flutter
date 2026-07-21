@@ -5,7 +5,6 @@
 // the current isolate, so it does not remove UI-thread work; it exists so the
 // async API works uniformly everywhere. Each request is deferred one event-loop
 // turn so a placeholder frame can paint before the (blocking) tokenize runs.
-library;
 
 import '../core/highlighter.dart';
 import '../core/themed_token.dart';

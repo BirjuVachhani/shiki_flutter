@@ -1,21 +1,27 @@
 // A ready-to-use widget for displaying highlighted code.
-library;
 
-import 'package:flutter/material.dart' show SelectionArea;
+import 'package:flutter/material.dart' show SelectionArea, Theme;
 import 'package:flutter/widgets.dart';
 
 import '../async/async_token_resolver.dart';
+import '../core/code_language.dart';
 import '../core/colors.dart';
 import '../core/highlighter.dart';
+import '../core/shiki_theme.dart';
+import '../core/shiki_theme_config.dart';
 import 'gutter.dart';
 import 'render.dart';
 import 'render_cache.dart';
 
 /// Displays [code] highlighted with the given [lang] and [theme].
 ///
-/// The [highlighter] must already have the language and theme loaded. The
-/// widget paints the theme's background color behind the code and applies the
-/// theme's foreground as the default text color.
+/// [lang] and [theme] are passed as objects ([CodeLanguage] and
+/// [ShikiThemeConfig]); the widget loads them into the [highlighter] on demand,
+/// so no pre-loading is required. When [theme] is omitted it falls back to the
+/// global [ShikiHighlighter.defaultTheme]. A [ShikiThemeConfig.dual] pair is
+/// resolved from the ambient `Theme.of(context)` brightness (override it with
+/// [brightness]). The widget paints the resolved theme's background color behind
+/// the code and applies its foreground as the default text color.
 ///
 /// When [async] highlighting is active (see [ShikiHighlighter.asyncDefault]), the code
 /// first appears as plain text in the theme's base color while it is tokenized
@@ -34,7 +40,8 @@ class ShikiCodeView extends StatefulWidget {
     required this.highlighter,
     required this.code,
     required this.lang,
-    required this.theme,
+    this.theme,
+    this.brightness,
     this.textStyle,
     this.padding = const EdgeInsets.all(16),
     this.paintBackground = true,
@@ -47,8 +54,18 @@ class ShikiCodeView extends StatefulWidget {
 
   final ShikiHighlighter highlighter;
   final String code;
-  final String lang;
-  final String theme;
+
+  /// The language to highlight [code] as. Loaded into [highlighter] on demand.
+  final CodeLanguage lang;
+
+  /// The theme(s) to render with: a single theme or a light/dark pair. When
+  /// null, falls back to the global [ShikiHighlighter.defaultTheme]; if both are
+  /// null a [ShikiError] is thrown.
+  final ShikiThemeConfig? theme;
+
+  /// Overrides the brightness used to pick a [ShikiThemeConfig.dual] theme. When
+  /// null, the ambient `Theme.of(context).brightness` is used.
+  final Brightness? brightness;
 
   /// Base text style. A monospace `fontFamily` is recommended.
   final TextStyle? textStyle;
@@ -103,8 +120,36 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
 
   bool get _asyncEffective => widget.async ?? ShikiHighlighter.asyncDefault;
 
+  /// The concrete theme resolved from [ShikiCodeView.theme] (or the global
+  /// default) and the ambient brightness; set in [didChangeDependencies].
+  ShikiTheme? _resolvedTheme;
+
   TokenizeOptions get _options =>
-      TokenizeOptions(lang: widget.lang, theme: widget.theme);
+      TokenizeOptions(lang: widget.lang.id, theme: _resolvedTheme!.id);
+
+  /// Resolves the theme for the current brightness, loads the language and theme
+  /// into the highlighter on demand, then (re)kicks tokenization.
+  void _resolveAndKick() {
+    final config = widget.theme ?? ShikiHighlighter.defaultTheme;
+    if (config == null) {
+      throw ShikiError(
+        'ShikiCodeView has no theme: pass a `theme:` or set '
+        'ShikiHighlighter.config.defaultTheme.',
+      );
+    }
+    final isDark =
+        (widget.brightness ?? Theme.of(context).brightness) == Brightness.dark;
+    _resolvedTheme = config.resolve(isDark: isDark);
+    widget.highlighter
+      ..ensureLanguage(widget.lang)
+      ..ensureShikiTheme(_resolvedTheme!);
+    _resolver.resolve(
+      widget.highlighter,
+      widget.code,
+      _options,
+      async: _asyncEffective,
+    );
+  }
 
   @override
   void initState() {
@@ -115,12 +160,6 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
     // fallback whose metrics differ. Text relayouts on this signal on its own,
     // but our manual measurement does not, so we listen and rebuild.
     PaintingBinding.instance.systemFonts.addListener(_onSystemFontsChanged);
-    _resolver.resolve(
-      widget.highlighter,
-      widget.code,
-      _options,
-      async: _asyncEffective,
-    );
   }
 
   void _onSystemFontsChanged() {
@@ -128,14 +167,18 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Runs after initState and whenever an inherited dependency changes — in
+    // particular a `Theme` brightness flip, which does not trigger
+    // didUpdateWidget. Re-resolving here keeps a dual theme in sync with it.
+    _resolveAndKick();
+  }
+
+  @override
   void didUpdateWidget(ShikiCodeView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _resolver.resolve(
-      widget.highlighter,
-      widget.code,
-      _options,
-      async: _asyncEffective,
-    );
+    _resolveAndKick();
   }
 
   @override
@@ -148,7 +191,9 @@ class _ShikiCodeViewState extends State<ShikiCodeView> {
   @override
   Widget build(BuildContext context) {
     final base = widget.textStyle ?? const TextStyle(fontFamily: 'monospace');
-    final registration = widget.highlighter.getThemeRegistration(widget.theme);
+    final registration = widget.highlighter.getThemeRegistration(
+      _resolvedTheme!.id,
+    );
     final fg = parseColor(registration.fg);
     final bg = widget.paintBackground ? parseColor(registration.bg) : null;
     final effectiveBase = base.copyWith(color: fg);

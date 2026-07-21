@@ -19,8 +19,8 @@ final highlighter = createHighlighter(
 final span = codeToTextSpan(
   highlighter,
   sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: dart,
+  theme: githubDark,
 );
 ''';
 
@@ -179,8 +179,8 @@ class CodeCard extends StatelessWidget {
     return ShikiCodeView(
       highlighter: highlighter,
       code: source,
-      lang: dart.id,        // 'dart'
-      theme: githubDark.id, // 'github-dark'
+      lang: dart,
+      theme: ShikiThemeConfig.single(githubDark),
       textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
     );
   }
@@ -191,8 +191,8 @@ class CodeCard extends StatelessWidget {
 final span = codeToTextSpan(
   highlighter,
   sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemes.githubDark,
   baseStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
 );
 
@@ -204,8 +204,8 @@ Text.rich(span);
 ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
   textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
 )
 ''';
@@ -216,8 +216,8 @@ Expanded(
   child: ShikiCodeListView(
     highlighter: highlighter,
     code: sourceCode,
-    lang: 'dart',
-    theme: 'github-dark',
+    lang: CodeLanguages.dart,
+    theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
     textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
   ),
 )
@@ -243,8 +243,8 @@ for (final line in lines) {
 final lines = codeToLineSpans(
   highlighter,
   sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemes.githubDark,
   baseStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
 );
 
@@ -260,8 +260,8 @@ ListView.builder(
 ShikiCodeListView(
   highlighter: highlighter,
   code: sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
   showLineNumbers: true,
   textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
 )
@@ -276,18 +276,18 @@ final highlighter = createHighlighter(
   themes: [oneDarkPro, vitesseLight],
 );
 
-// Switch themes per render by id.
+// Switch themes per render by passing a different theme object.
 final dark = codeToTextSpan(
   highlighter,
   code,
-  lang: 'dart',
-  theme: oneDarkPro.id,
+  lang: dart,
+  theme: oneDarkPro,
 );
 final light = codeToTextSpan(
   highlighter,
   code,
-  lang: 'dart',
-  theme: vitesseLight.id,
+  lang: dart,
+  theme: vitesseLight,
 );
 ''';
 
@@ -298,31 +298,31 @@ final json = await rootBundle.loadString('assets/aurora.json');
 // loadThemeFromJson returns the theme's id.
 final themeId = highlighter.loadThemeFromJson(json);
 
-final span = codeToTextSpan(
-  highlighter,
+// Render a runtime-loaded theme by id through the tokens API: codeToTextSpan
+// takes a ShikiTheme object, while TokenizeOptions still selects by id.
+final lines = highlighter.codeToTokens(
   code,
-  lang: 'dart',
-  theme: themeId,
+  TokenizeOptions(lang: 'dart', theme: themeId),
 );
+final span = tokensToTextSpan(lines);
 ''';
 
   static const String extraThemes = r'''
-// Pierre themes live under pierre_themes/. Import individual themes…
-import 'package:shiki_flutter/pierre_themes/pierre_dark.dart';
-import 'package:shiki_flutter/pierre_themes/pierre_light.dart';
-// …or the whole set via the barrel, which exports a `pierreThemes` list.
+// Pierre themes are an opt-in set, exposed via the PierreThemes facade.
+import 'package:shiki_flutter/langs.dart';
+import 'package:shiki_flutter/pierre_themes.dart';
 
 final highlighter = createHighlighter(
-  langs: [dart],
-  themes: [pierreDark, pierreLight],
+  langs: [CodeLanguages.dart],
+  themes: [PierreThemes.pierreDark, PierreThemes.pierreLight],
 );
 
-// Reference a theme by its id when you render.
+// Reference a theme object when you render.
 final span = codeToTextSpan(
   highlighter,
   code,
-  lang: 'dart',
-  theme: pierreDark.id, // 'pierre-dark'
+  lang: CodeLanguages.dart,
+  theme: PierreThemes.pierreDark,
 );
 ''';
 
@@ -364,12 +364,12 @@ final highlighter = createHighlighter(
 highlighter.loadLanguageFromJson(myGrammarJsonString);
 final themeName = highlighter.loadThemeFromJson(myThemeJsonString);
 
-final span = codeToTextSpan(
-  highlighter,
+// Both were loaded by id, so render them through the tokens API.
+final lines = highlighter.codeToTokens(
   code,
-  lang: 'my-lang',
-  theme: themeName,
+  TokenizeOptions(lang: 'my-lang', theme: themeName),
 );
+final span = tokensToTextSpan(lines);
 ''';
 
   // ---- Async, engines, web setup, configuration ---------------------------
@@ -382,8 +382,8 @@ final span = codeToTextSpan(
 ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
   async: true, // force off-thread; omit to follow the global default
 )
 ''';

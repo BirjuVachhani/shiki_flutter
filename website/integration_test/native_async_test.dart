@@ -20,8 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
 import 'support/corpus.dart';
@@ -34,7 +32,7 @@ const _base = TextStyle(fontFamily: 'monospace', fontSize: 14, height: 1.4);
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  final theme = githubDark.id;
+  final theme = ShikiThemes.githubDark.id;
 
   testWidgets('native engine via async worker: parity + no freeze', (
     tester,
@@ -45,14 +43,17 @@ void main() {
     final src = corpusFor(CorpusSize.l); // 2,000 lines - the freeze case
 
     // Reference tokens: the default (dart-port) engine, synchronous.
-    final refH = createHighlighter(langs: [dart], themes: [githubDark]);
+    final refH = createHighlighter(
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
+    );
     final refFp = _fp(refH.codeToTokens(src, opts));
 
     // Native engine. codeToTokensAsync routes through the worker isolate with
     // the native (FFI) engine forwarded to it.
     final nativeH = createHighlighter(
-      langs: [dart],
-      themes: [githubDark],
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
       engine: const ShikiHighlighterNativeEngine(),
     );
     final asyncTokens = await nativeH.codeToTokensAsync(src, opts);
@@ -74,8 +75,8 @@ void main() {
     // main isolate (e.g. silent inline fallback), the ~cold compile would show
     // up as one big frame here.
     final jankH = createHighlighter(
-      langs: [dart],
-      themes: [githubDark],
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
       engine: const ShikiHighlighterNativeEngine(),
     );
     final reg = jankH.getThemeRegistration(theme);
@@ -97,8 +98,8 @@ void main() {
               key: const Key('scroller'),
               highlighter: jankH,
               code: src,
-              lang: _lang,
-              theme: theme,
+              lang: CodeLanguages.dart,
+              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
               textStyle: _base.copyWith(color: fg),
               async: true,
             ),

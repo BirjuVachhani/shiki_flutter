@@ -13,8 +13,8 @@
 //   dart run benchmark/engine_compare.dart
 
 import 'package:shiki_flutter/engine.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
+import 'package:shiki_flutter/langs.dart';
+import 'package:shiki_flutter/themes.dart';
 import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
@@ -58,8 +58,8 @@ void main() {
   final structure = <CorpusSize, ({int lines, int bytes, int tokens})>{};
   {
     final hl = createHighlighter(
-      langs: [dart],
-      themes: [githubDark],
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
       engine: engines.first.engine,
     );
     for (final size in _sizes) {
@@ -76,8 +76,8 @@ void main() {
   final samples = <String, Map<CorpusSize, Sample>>{};
   for (final e in engines) {
     final hl = createHighlighter(
-      langs: [dart],
-      themes: [githubDark],
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
       engine: e.engine,
     );
     samples[e.label] = {};

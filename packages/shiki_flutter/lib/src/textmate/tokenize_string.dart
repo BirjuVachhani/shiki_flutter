@@ -1,6 +1,5 @@
 // The core tokenization loop, ported from `vscode-textmate`'s
 // `grammar/tokenizeString.ts`.
-library;
 
 import '../onig/onig.dart';
 import 'grammar.dart';

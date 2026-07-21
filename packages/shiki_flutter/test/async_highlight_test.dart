@@ -1,10 +1,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter/src/textmate/theme.dart'
     show RawThemeSetting, ThemeSettingStyle;
-import 'package:shiki_flutter/themes/github_dark.dart';
+
+const dart = CodeLanguages.dart;
+const githubDark = ShikiThemes.githubDark;
 
 const _code = '''
 void main() {
@@ -151,8 +152,8 @@ void main() {
           ShikiCodeView(
             highlighter: hl,
             code: _code,
-            lang: 'dart',
-            theme: 'github-dark',
+            lang: dart,
+            theme: ShikiThemeConfig.single(githubDark),
             async: true,
           ),
         ),
@@ -178,8 +179,8 @@ void main() {
         ShikiCodeView(
           highlighter: hl,
           code: _code,
-          lang: 'dart',
-          theme: 'github-dark',
+          lang: dart,
+          theme: ShikiThemeConfig.single(githubDark),
           async: true,
         ),
       ),
@@ -203,8 +204,8 @@ void main() {
         ShikiCodeView(
           highlighter: hl,
           code: _code,
-          lang: 'dart',
-          theme: 'github-dark',
+          lang: dart,
+          theme: ShikiThemeConfig.single(githubDark),
           async: false,
         ),
       ),

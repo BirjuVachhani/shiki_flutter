@@ -7,15 +7,18 @@
 //   node /tmp/webbench.js
 // ignore_for_file: avoid_print
 
+import 'package:shiki_flutter/langs.dart';
 import 'package:shiki_flutter/src/core/highlighter.dart';
 import 'package:shiki_flutter/src/onig/regex_engine.dart' show OnigRegex;
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
+import 'package:shiki_flutter/themes.dart';
 
 import '../src/corpus.dart';
 
 void main() {
-  final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+  final hl = createHighlighter(
+    langs: [CodeLanguages.dart],
+    themes: [ShikiThemes.githubDark],
+  );
   const opts = TokenizeOptions(lang: 'dart', theme: 'github-dark');
 
   double median(CorpusSize size, {required bool fastPath}) {

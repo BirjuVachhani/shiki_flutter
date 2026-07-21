@@ -11,7 +11,6 @@
 // web, so this is only for callers who want Oniguruma-port semantics everywhere.
 //
 // Flutter-free (no `dart:ui`).
-library;
 
 import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
 

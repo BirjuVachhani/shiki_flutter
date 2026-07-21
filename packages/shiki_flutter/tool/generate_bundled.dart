@@ -1,17 +1,41 @@
-// Generates the bundled language/theme Dart libraries under `lib/langs/` and
-// `lib/themes/` from Shiki's `@shikijs/langs` and `@shikijs/themes` dist files.
+// Generates the bundled language/theme Dart libraries from `tm-grammars` and
+// `tm-themes` (the canonical TextMate sources Shiki itself is built from).
 //
-// This is a build-time tool, not part of the published package. It reads the
-// `.mjs` files (which embed the grammar/theme as `JSON.parse("...")`) and
-// extracts that JSON with pure Dart string handling: no JavaScript is executed.
+// This is a build-time tool, not part of the published package.
 //
-// Usage:
-//   dart run tool/generate_bundled.dart <path-to-@shikijs-dir>
+// Output layout (everything the app imports is either a facade or in `src/`):
+//   lib/langs.dart               exposed facade: `CodeLanguages`
+//   lib/themes.dart              exposed facade: `ShikiThemes`
+//   lib/pierre_themes.dart       exposed facade: `PierreThemes` (opt-in, @pierre/theme)
+//   lib/src/langs/<id>.dart       one `const CodeLanguage` per grammar (incl. injections)
+//   lib/src/themes/<id>.dart      one `const ShikiTheme` per theme
+//   lib/src/pierre_themes/<id>.dart one `const ShikiTheme` per Pierre theme
 //
-// where <path-to-@shikijs-dir> contains `langs/dist/*.mjs` and
-// `themes/dist/*.mjs`.
+// Each symbol is `const` so a `static const` facade member is a pure compile-time
+// alias: referencing `CodeLanguages.dart` pulls in only that grammar and its
+// embedded deps; everything else is tree-shaken away.
+//
+// Prerequisite (run once, or after bumping versions in tool/tm/package.json):
+//   cd tool/tm && npm ci && node dump_meta.mjs
+// then from the package root:
+//   dart run tool/generate_bundled.dart
 import 'dart:convert';
 import 'dart:io';
+
+// Maps each `tm-grammars` category string to its `GrammarCategory` enum member.
+// Kept in lockstep with the enum in lib/src/core/code_language.dart; an upstream
+// category missing from here is warned about and skipped (see the grammar loop).
+const _categoryEnum = {
+  'web': 'GrammarCategory.web',
+  'markup': 'GrammarCategory.markup',
+  'general': 'GrammarCategory.general',
+  'scripting': 'GrammarCategory.scripting',
+  'data': 'GrammarCategory.data',
+  'dsl': 'GrammarCategory.dsl',
+  'utility': 'GrammarCategory.utility',
+  'config': 'GrammarCategory.config',
+  'lisp': 'GrammarCategory.lisp',
+};
 
 const _reserved = {
   'abstract',
@@ -82,31 +106,6 @@ const _reserved = {
   'yield',
 };
 
-// Common aliases (Shiki's installed data doesn't carry them). id -> aliases.
-const _aliases = <String, List<String>>{
-  'javascript': ['js'],
-  'typescript': ['ts'],
-  'python': ['py'],
-  'ruby': ['rb'],
-  'rust': ['rs'],
-  'markdown': ['md'],
-  'yaml': ['yml'],
-  'shellscript': ['sh', 'shell', 'bash', 'zsh'],
-  'csharp': ['cs', 'c#'],
-  'cpp': ['c++'],
-  'fsharp': ['fs', 'f#'],
-  'kotlin': ['kt', 'kts'],
-  'objective-c': ['objc'],
-  'powershell': ['ps', 'ps1'],
-  'json5': ['json5'],
-  'jsonc': ['jsonc'],
-  'docker': ['dockerfile'],
-  'make': ['makefile'],
-  'text': ['txt', 'plaintext'],
-  'html': ['htm'],
-  'vue': ['vue'],
-};
-
 String _identFor(String id, Set<String> taken) {
   // Build a lowerCamelCase identifier, e.g. `github-dark` -> `githubDark`.
   final parts = id.split(RegExp(r'[^A-Za-z0-9]+')).where((p) => p.isNotEmpty);
@@ -134,8 +133,19 @@ String _identFor(String id, Set<String> taken) {
   return candidate;
 }
 
-String _fileFor(String id) => id.replaceAll(RegExp(r'[^A-Za-z0-9_]'), '_');
+String _fileFor(String id, Set<String> taken) {
+  var s = id.replaceAll(RegExp(r'[^A-Za-z0-9_]'), '_');
+  var candidate = s;
+  var n = 2;
+  while (taken.contains(candidate)) {
+    candidate = '${s}_$n';
+    n++;
+  }
+  taken.add(candidate);
+  return candidate;
+}
 
+/// Encodes [value] as a single-quoted Dart string literal.
 String _dartString(String value) {
   final b = StringBuffer("'");
   for (final unit in value.codeUnits) {
@@ -158,222 +168,430 @@ String _dartString(String value) {
   return b.toString();
 }
 
-/// Extracts the first `JSON.parse("...")` string body from an `.mjs` file and
-/// returns the decoded JSON text.
-String? _extractJson(String content) {
-  const marker = 'JSON.parse("';
-  final start = content.indexOf(marker);
-  if (start == -1) return null;
-  final bodyStart = start + marker.length;
-  final buffer = StringBuffer();
-  var i = bodyStart;
-  while (i < content.length) {
-    final ch = content[i];
-    if (ch == r'\') {
-      buffer.write(ch);
-      if (i + 1 < content.length) buffer.write(content[i + 1]);
-      i += 2;
-      continue;
-    }
-    if (ch == '"') break;
-    buffer.write(ch);
-    i++;
-  }
-  // buffer holds the JS-escaped string body; decode it into the raw JSON text.
-  return jsonDecode('"${buffer.toString()}"') as String;
-}
+typedef _Info = ({String ident, String file});
 
 void main(List<String> args) {
-  final shikiDir = args.isNotEmpty
-      ? args[0]
-      : '/Users/birjuvachhani/Documents/Projects/mypub/sites/web/node_modules/@shikijs';
-  final libDir = Directory('lib');
-  if (!libDir.existsSync()) {
+  if (!Directory('lib').existsSync()) {
     stderr.writeln('Run from the package root (lib/ not found).');
     exit(1);
   }
+  final tm = args.isNotEmpty ? args[0] : 'tool/tm';
+  final metaFile = File('$tm/meta.json');
+  final grammarsSrc = Directory('$tm/node_modules/tm-grammars/grammars');
+  final themesSrc = Directory('$tm/node_modules/tm-themes/themes');
+  final pierreSrc = Directory('$tm/node_modules/@pierre/theme/themes');
+  if (!metaFile.existsSync() ||
+      !grammarsSrc.existsSync() ||
+      !themesSrc.existsSync() ||
+      !pierreSrc.existsSync()) {
+    stderr.writeln(
+      'Missing tm sources. Run:\n'
+      '  cd $tm && npm ci && node dump_meta.mjs\n'
+      'then re-run this generator from the package root.',
+    );
+    exit(1);
+  }
 
-  final langsOut = Directory('lib/langs');
-  final themesOut = Directory('lib/themes');
-  for (final d in [langsOut, themesOut]) {
+  final meta = jsonDecode(metaFile.readAsStringSync()) as Map<String, dynamic>;
+  final topLevel = (meta['grammars'] as List).cast<Map<String, dynamic>>();
+  final injections = (meta['injections'] as List).cast<Map<String, dynamic>>();
+  final themes = (meta['themes'] as List).cast<Map<String, dynamic>>();
+
+  // All grammars (top-level + injections) get generated as symbols so embedded
+  // references resolve; only top-level ones are surfaced on the facade.
+  final allGrammars = [...topLevel, ...injections]
+    ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+  themes.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+
+  // Assign stable idents/files up front so cross-references are consistent.
+  final langIdents = <String>{};
+  final langFiles = <String>{};
+  final langInfo = <String, _Info>{};
+  for (final g in allGrammars) {
+    final name = g['name'] as String;
+    langInfo[name] = (
+      ident: _identFor(name, langIdents),
+      file: _fileFor(name, langFiles),
+    );
+  }
+  final themeIdents = <String>{};
+  final themeFiles = <String>{};
+  final themeInfo = <String, _Info>{};
+  for (final t in themes) {
+    final name = t['name'] as String;
+    themeInfo[name] = (
+      ident: _identFor(name, themeIdents),
+      file: _fileFor(name, themeFiles),
+    );
+  }
+
+  // Fresh output dirs. The old public per-file dirs (lib/langs, lib/themes) are
+  // removed; grammars/themes now live under src/ and are reached via the facades.
+  for (final d in ['lib/langs', 'lib/themes', 'lib/pierre_themes']) {
+    final dir = Directory(d);
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+  }
+  final langsOut = Directory('lib/src/langs');
+  final themesOut = Directory('lib/src/themes');
+  final pierreOut = Directory('lib/src/pierre_themes');
+  for (final d in [langsOut, themesOut, pierreOut]) {
     if (d.existsSync()) d.deleteSync(recursive: true);
     d.createSync(recursive: true);
   }
 
-  final langIdents = <String>{};
-  final langInfo = <String, ({String ident, String file})>{};
-  final langFiles =
-      Directory('$shikiDir/langs/dist')
-          .listSync()
-          .whereType<File>()
-          .where(
-            (f) => f.path.endsWith('.mjs') && !f.path.endsWith('index.mjs'),
-          )
-          .toList()
-        ..sort((a, b) => a.path.compareTo(b.path));
-
-  // First pass: assign idents/files for every language id.
-  for (final f in langFiles) {
-    final id = f.uri.pathSegments.last.replaceAll('.mjs', '');
-    final ident = _identFor(id, langIdents);
-    langInfo[id] = (ident: ident, file: _fileFor(id));
-  }
-
-  final generatedLangIds = <String>[];
-  var langCount = 0;
-  for (final f in langFiles) {
-    final id = f.uri.pathSegments.last.replaceAll('.mjs', '');
-    final content = f.readAsStringSync();
-    final jsonText = _extractJson(content);
-    if (jsonText == null) {
-      // Re-export/alias stub with no embedded grammar JSON; skip it.
-      continue;
-    }
-    generatedLangIds.add(id);
-    final obj = jsonDecode(jsonText) as Map<String, dynamic>;
-    final scopeName = obj['scopeName'] as String? ?? 'source.$id';
-    final embedded =
-        (obj['embeddedLangs'] as List?)?.cast<String>() ?? const [];
-    final info = langInfo[id]!;
-
-    final deps = embedded
-        .where((e) => langInfo.containsKey(e) && e != id)
+  for (final g in allGrammars) {
+    final name = g['name'] as String;
+    final scopeName = g['scopeName'] as String;
+    final displayName = (g['displayName'] as String?) ?? name;
+    final aliases = (g['aliases'] as List).cast<String>();
+    final embedded = (g['embedded'] as List)
+        .cast<String>()
+        .where((e) => langInfo.containsKey(e) && e != name)
         .toList();
-
-    final imports = StringBuffer(
-      "import '../src/bundled/bundled_language.dart';",
-    );
-    for (final dep in deps) {
-      imports.write("\nimport '${langInfo[dep]!.file}.dart';");
+    final categories = <String>[];
+    for (final c in (g['categories'] as List?)?.cast<String>() ?? const []) {
+      final member = _categoryEnum[c];
+      if (member == null) {
+        stderr.writeln(
+          'WARNING: unknown grammar category "$c" on "$name"; skipping. '
+          'Add it to GrammarCategory (lib/src/core/code_language.dart) and '
+          '_categoryEnum (this file), then regenerate.',
+        );
+        continue;
+      }
+      categories.add(member);
     }
+    final info = langInfo[name]!;
+    final compact = jsonEncode(
+      jsonDecode(
+        File('${grammarsSrc.path}/$name.json').readAsStringSync(),
+      ),
+    );
 
-    final aliases = _aliases[id] ?? const [];
-    final aliasStr = aliases.isEmpty
-        ? ''
-        : ', aliases: [${aliases.map((a) => "'$a'").join(', ')}]';
-    final embeddedStr = deps.isEmpty
-        ? ''
-        : ', embeddedLanguages: () => [${deps.map((d) => langInfo[d]!.ident).join(', ')}]';
-
-    final out = StringBuffer()
+    final b = StringBuffer()
       ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
-      ..writeln(imports.toString())
+      ..writeln("import '../core/code_language.dart';");
+    for (final dep in embedded) {
+      b.writeln("import '${langInfo[dep]!.file}.dart';");
+    }
+    b
       ..writeln()
-      ..writeln('/// TextMate grammar for `$id` (scope `$scopeName`).')
-      ..writeln('final ${info.ident} = BundledLanguage(')
-      ..writeln("  id: '$id',")
-      ..writeln("  scopeName: '$scopeName',")
-      ..writeln('  json: _json$embeddedStr$aliasStr,')
-      ..writeln(');')
+      ..writeln('/// $displayName grammar (scope `$scopeName`).')
+      ..writeln('const CodeLanguage ${info.ident} = CodeLanguage(')
+      ..writeln('  id: ${_dartString(name)},')
+      ..writeln('  scopeName: ${_dartString(scopeName)},')
+      ..writeln('  displayName: ${_dartString(displayName)},')
+      ..writeln('  json: _json,');
+    if (embedded.isNotEmpty) b.writeln('  embeddedLanguages: _embedded,');
+    if (aliases.isNotEmpty) {
+      b.writeln('  aliases: [${aliases.map(_dartString).join(', ')}],');
+    }
+    if (categories.isNotEmpty) {
+      b.writeln('  categories: [${categories.join(', ')}],');
+    }
+    b.writeln(');');
+    if (embedded.isNotEmpty) {
+      b
+        ..writeln()
+        ..writeln('List<CodeLanguage> _embedded() =>')
+        ..writeln(
+          '    [${embedded.map((d) => langInfo[d]!.ident).join(', ')}];',
+        );
+    }
+    b
       ..writeln()
-      ..writeln('const _json = ${_dartString(jsonText)};');
-
-    File(
-      '${langsOut.path}/${info.file}.dart',
-    ).writeAsStringSync(out.toString());
-    langCount++;
+      ..writeln('const _json = ${_dartString(compact)};');
+    File('${langsOut.path}/${info.file}.dart').writeAsStringSync(b.toString());
   }
 
-  // Themes.
-  final themeIdents = <String>{};
-  final themeEntries = <({String id, String ident, String file})>[];
-  final themeFiles =
-      Directory('$shikiDir/themes/dist')
-          .listSync()
-          .whereType<File>()
-          .where(
-            (f) => f.path.endsWith('.mjs') && !f.path.endsWith('index.mjs'),
-          )
-          .toList()
-        ..sort((a, b) => a.path.compareTo(b.path));
-
-  var themeCount = 0;
-  for (final f in themeFiles) {
-    final id = f.uri.pathSegments.last.replaceAll('.mjs', '');
-    final content = f.readAsStringSync();
-    final jsonText = _extractJson(content);
-    if (jsonText == null) {
-      stderr.writeln('skip theme $id (no JSON found)');
-      continue;
-    }
-    final obj = jsonDecode(jsonText) as Map<String, dynamic>;
-    final type = obj['type'] as String? ?? 'dark';
-    final name = obj['name'] as String? ?? id;
-    final ident = _identFor(id, themeIdents);
-    final file = _fileFor(id);
-    themeEntries.add((id: id, ident: ident, file: file));
-
-    final out = StringBuffer()
+  for (final t in themes) {
+    final name = t['name'] as String;
+    final type = t['type'] as String;
+    final displayName = (t['displayName'] as String?) ?? name;
+    final info = themeInfo[name]!;
+    final compact = jsonEncode(
+      jsonDecode(
+        File('${themesSrc.path}/$name.json').readAsStringSync(),
+      ),
+    );
+    final b = StringBuffer()
       ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
-      ..writeln("import '../src/bundled/bundled_theme.dart';")
+      ..writeln("import '../core/shiki_theme.dart';")
       ..writeln()
-      ..writeln('/// The `$name` theme.')
-      ..writeln('final $ident = BundledTheme(')
-      ..writeln("  id: '$name',")
-      ..writeln("  type: '$type',")
+      ..writeln('/// $displayName ($type) theme.')
+      ..writeln('const ShikiTheme ${info.ident} = ShikiTheme(')
+      ..writeln('  id: ${_dartString(name)},')
+      ..writeln('  type: ${_dartString(type)},')
       ..writeln('  json: _json,')
       ..writeln(');')
       ..writeln()
-      ..writeln('const _json = ${_dartString(jsonText)};');
-
-    File('${themesOut.path}/$file.dart').writeAsStringSync(out.toString());
-    themeCount++;
+      ..writeln('const _json = ${_dartString(compact)};');
+    File('${themesOut.path}/${info.file}.dart').writeAsStringSync(b.toString());
   }
 
-  // Barrels.
-  _writeLangBarrel(langsOut, generatedLangIds, langInfo);
-  _writeThemeBarrel(themesOut, themeEntries);
+  // Pierre themes: an opt-in collection sourced from @pierre/theme
+  // (https://github.com/pierrecomputer/pierre/tree/main/packages/theme), MIT.
+  // Same `const ShikiTheme` shape as the bundled themes, but kept separate from
+  // `ShikiThemes` and surfaced via their own `PierreThemes` facade.
+  final pierreThemes =
+      pierreSrc
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.json'))
+          .map((f) {
+            final o = jsonDecode(f.readAsStringSync()) as Map<String, dynamic>;
+            return {
+              'name': o['name'],
+              'type': o['type'],
+              'displayName': o['displayName'],
+            };
+          })
+          .toList()
+        ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+  final pierreIdents = <String>{};
+  final pierreFiles = <String>{};
+  final pierreInfo = <String, _Info>{};
+  for (final t in pierreThemes) {
+    final name = t['name'] as String;
+    pierreInfo[name] = (
+      ident: _identFor(name, pierreIdents),
+      file: _fileFor(name, pierreFiles),
+    );
+  }
+  for (final t in pierreThemes) {
+    final name = t['name'] as String;
+    final type = t['type'] as String;
+    final displayName = (t['displayName'] as String?) ?? name;
+    final info = pierreInfo[name]!;
+    final compact = jsonEncode(
+      jsonDecode(
+        File('${pierreSrc.path}/$name.json').readAsStringSync(),
+      ),
+    );
+    final b = StringBuffer()
+      ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
+      ..writeln("import '../core/shiki_theme.dart';")
+      ..writeln()
+      ..writeln(
+        '/// $displayName ($type) theme. Pierre, MIT © The Pierre Computer Company.',
+      )
+      ..writeln('const ShikiTheme ${info.ident} = ShikiTheme(')
+      ..writeln('  id: ${_dartString(name)},')
+      ..writeln('  type: ${_dartString(type)},')
+      ..writeln('  json: _json,')
+      ..writeln(');')
+      ..writeln()
+      ..writeln('const _json = ${_dartString(compact)};');
+    File('${pierreOut.path}/${info.file}.dart').writeAsStringSync(b.toString());
+  }
 
-  stdout.writeln('Generated $langCount languages and $themeCount themes.');
+  _writeLangFacade(topLevel, langInfo);
+  _writeThemeFacade(themes, themeInfo);
+  _writePierreFacade(pierreThemes, pierreInfo);
+  _writeAttribution(tm);
+
+  stdout.writeln(
+    'Generated ${topLevel.length} languages '
+    '(+${injections.length} injections), ${themes.length} themes, '
+    'and ${pierreThemes.length} Pierre themes.',
+  );
 }
 
-void _writeLangBarrel(
-  Directory dir,
-  List<String> ids,
-  Map<String, ({String ident, String file})> langInfo,
+void _writeLangFacade(
+  List<Map<String, dynamic>> topLevel,
+  Map<String, _Info> info,
 ) {
+  final entries = [...topLevel]
+    ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
   final b = StringBuffer()
     ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
     ..writeln('//')
-    ..writeln('// Importing this file pulls EVERY bundled grammar into your')
-    ..writeln('// build (defeats tree-shaking). Prefer importing only the')
-    ..writeln('// specific `langs/<id>.dart` files you use.')
-    ..writeln("import '../src/bundled/bundled_language.dart';");
-  for (final id in ids) {
-    b.writeln("import '${langInfo[id]!.file}.dart';");
+    ..writeln('// Typesafe, tree-shakeable access to the bundled languages.')
+    ..writeln(
+      '// Referencing a member (e.g. `CodeLanguages.dart`) pulls in only',
+    )
+    ..writeln(
+      '// that grammar and its embedded deps; the rest are tree-shaken away.',
+    )
+    ..writeln()
+    ..writeln("import 'src/core/code_language.dart';")
+    ..writeln(
+      "export 'src/core/code_language.dart' show CodeLanguage, GrammarCategory;",
+    );
+  for (final g in entries) {
+    final i = info[g['name']]!;
+    b.writeln("import 'src/langs/${i.file}.dart' as l_${i.file};");
   }
   b
     ..writeln()
-    ..writeln('/// Every bundled language.')
-    ..writeln('final List<BundledLanguage> allLanguages = [');
-  for (final id in ids) {
-    b.writeln('  ${langInfo[id]!.ident},');
+    ..writeln('abstract final class CodeLanguages {');
+  for (final g in entries) {
+    final i = info[g['name']]!;
+    b
+      ..writeln('  /// ${(g['displayName'] as String?) ?? g['name']}.')
+      ..writeln(
+        '  static const CodeLanguage ${i.ident} = l_${i.file}.${i.ident};',
+      );
   }
-  b.writeln('];');
-  File('${dir.path}/all.dart').writeAsStringSync(b.toString());
+  b
+    ..writeln()
+    ..writeln(
+      '  // CAUTION: referencing `all` pulls EVERY grammar into your build',
+    )
+    ..writeln(
+      '  // (defeats tree-shaking). Prefer individual members; use this only',
+    )
+    ..writeln('  // when you truly need every language.')
+    ..writeln('  static const List<CodeLanguage> all = [');
+  for (final g in entries) {
+    b.writeln('    ${info[g['name']]!.ident},');
+  }
+  b
+    ..writeln('  ];')
+    ..writeln('}');
+  File('lib/langs.dart').writeAsStringSync(b.toString());
 }
 
-void _writeThemeBarrel(
-  Directory dir,
-  List<({String id, String ident, String file})> themes,
+void _writeThemeFacade(
+  List<Map<String, dynamic>> themes,
+  Map<String, _Info> info,
 ) {
+  final entries = [...themes]
+    ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+  final b = StringBuffer()
+    ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
+    ..writeln('//')
+    ..writeln('// Typesafe, tree-shakeable access to the bundled themes.')
+    ..writeln(
+      '// Referencing a member (e.g. `ShikiThemes.githubDark`) pulls in',
+    )
+    ..writeln('// only that theme; the rest are tree-shaken away.')
+    ..writeln()
+    ..writeln("import 'src/core/shiki_theme.dart';")
+    ..writeln("export 'src/core/shiki_theme.dart' show ShikiTheme;");
+  for (final t in entries) {
+    final i = info[t['name']]!;
+    b.writeln("import 'src/themes/${i.file}.dart' as t_${i.file};");
+  }
+  b
+    ..writeln()
+    ..writeln('abstract final class ShikiThemes {');
+  for (final t in entries) {
+    final i = info[t['name']]!;
+    b
+      ..writeln(
+        '  /// ${(t['displayName'] as String?) ?? t['name']} (${t['type']}).',
+      )
+      ..writeln(
+        '  static const ShikiTheme ${i.ident} = t_${i.file}.${i.ident};',
+      );
+  }
+  b
+    ..writeln()
+    ..writeln(
+      '  // CAUTION: referencing `all` pulls EVERY theme into your build.',
+    )
+    ..writeln('  // Prefer individual members.')
+    ..writeln('  static const List<ShikiTheme> all = [');
+  for (final t in entries) {
+    b.writeln('    ${info[t['name']]!.ident},');
+  }
+  b
+    ..writeln('  ];')
+    ..writeln('}');
+  File('lib/themes.dart').writeAsStringSync(b.toString());
+}
+
+void _writePierreFacade(
+  List<Map<String, dynamic>> themes,
+  Map<String, _Info> info,
+) {
+  final entries = [...themes]
+    ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
   final b = StringBuffer()
     ..writeln('// GENERATED by tool/generate_bundled.dart. Do not edit.')
     ..writeln('//')
     ..writeln(
-      '// Importing this file pulls EVERY bundled theme into your build.',
+      '// Pierre themes: an opt-in set of 10 custom themes by Pierre, MIT ©',
     )
-    ..writeln("import '../src/bundled/bundled_theme.dart';");
-  for (final t in themes) {
-    b.writeln("import '${t.file}.dart';");
+    ..writeln(
+      '// The Pierre Computer Company (https://pierre.co). Sourced from',
+    )
+    ..writeln(
+      '// https://github.com/pierrecomputer/pierre/tree/main/packages/theme',
+    )
+    ..writeln(
+      '// (npm: @pierre/theme). Separate from `ShikiThemes` and not counted',
+    )
+    ..writeln('// among the bundled Shiki themes.')
+    ..writeln('//')
+    ..writeln('// Typesafe and tree-shakeable: referencing a member (e.g.')
+    ..writeln('// `PierreThemes.pierreDark`) pulls in only that theme.')
+    ..writeln()
+    ..writeln("import 'src/core/shiki_theme.dart';")
+    ..writeln("export 'src/core/shiki_theme.dart' show ShikiTheme;");
+  for (final t in entries) {
+    final i = info[t['name']]!;
+    b.writeln("import 'src/pierre_themes/${i.file}.dart' as p_${i.file};");
   }
   b
     ..writeln()
-    ..writeln('/// Every bundled theme.')
-    ..writeln('final List<BundledTheme> allThemes = [');
-  for (final t in themes) {
-    b.writeln('  ${t.ident},');
+    ..writeln('abstract final class PierreThemes {');
+  for (final t in entries) {
+    final i = info[t['name']]!;
+    b
+      ..writeln(
+        '  /// ${(t['displayName'] as String?) ?? t['name']} (${t['type']}).',
+      )
+      ..writeln(
+        '  static const ShikiTheme ${i.ident} = p_${i.file}.${i.ident};',
+      );
   }
-  b.writeln('];');
-  File('${dir.path}/all.dart').writeAsStringSync(b.toString());
+  b
+    ..writeln()
+    ..writeln('  // CAUTION: referencing `all` pulls in all 10 Pierre themes.')
+    ..writeln('  static const List<ShikiTheme> all = [');
+  for (final t in entries) {
+    b.writeln('    ${info[t['name']]!.ident},');
+  }
+  b
+    ..writeln('  ];')
+    ..writeln('}');
+  File('lib/pierre_themes.dart').writeAsStringSync(b.toString());
+}
+
+/// Copies the upstream NOTICE files (per-grammar/theme source licenses) into a
+/// combined attribution file at the package root, if present.
+void _writeAttribution(String tm) {
+  final sources = {
+    'tm-grammars': '$tm/node_modules/tm-grammars/NOTICE',
+    'tm-themes': '$tm/node_modules/tm-themes/NOTICE',
+    '@pierre/theme (Pierre themes, github.com/pierrecomputer/pierre)':
+        '$tm/node_modules/@pierre/theme/LICENSE',
+  };
+  final b = StringBuffer()
+    ..writeln('# Third-party notices')
+    ..writeln()
+    ..writeln(
+      'Bundled grammars/themes are sourced from `tm-grammars` and `tm-themes`;',
+    )
+    ..writeln(
+      'the opt-in Pierre themes from `@pierre/theme`. Each redistributes under',
+    )
+    ..writeln('its original license, reproduced below.')
+    ..writeln();
+  var wrote = false;
+  sources.forEach((name, path) {
+    final f = File(path);
+    if (!f.existsSync()) return;
+    wrote = true;
+    b
+      ..writeln('## $name')
+      ..writeln()
+      ..writeln('```')
+      ..writeln(f.readAsStringSync().trimRight())
+      ..writeln('```')
+      ..writeln();
+  });
+  if (wrote) File('THIRD_PARTY_NOTICES.md').writeAsStringSync(b.toString());
 }

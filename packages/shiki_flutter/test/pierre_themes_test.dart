@@ -1,13 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/pierre_themes/pierre_themes.dart';
 
 /// Verifies the extracted Pierre themes load and tokenize with real colors,
 /// including the two "vibrant" themes, whose wide-gamut `color(display-p3 …)`
 /// values are parsed natively by `parseColor`.
 void main() {
-  final hl = createHighlighter(langs: [dart], themes: [...pierreThemes]);
+  final hl = createHighlighter(
+    langs: [CodeLanguages.dart],
+    themes: [...PierreThemes.all],
+  );
 
   const snippet = '''
 class Greeter {
@@ -18,10 +19,10 @@ class Greeter {
 ''';
 
   test('all 10 Pierre themes are registered', () {
-    expect(pierreThemes.length, 10);
+    expect(PierreThemes.all.length, 10);
   });
 
-  for (final theme in pierreThemes) {
+  for (final theme in PierreThemes.all) {
     test('${theme.id}: bg/fg resolve to valid colors', () {
       final reg = hl.getThemeRegistration(theme.id);
       expect(

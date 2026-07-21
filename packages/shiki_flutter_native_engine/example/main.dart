@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shiki_flutter/engine.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
+import 'package:shiki_flutter/langs.dart';
+import 'package:shiki_flutter/themes.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
 void main() {
@@ -16,7 +16,10 @@ void main() {
     print('Native Oniguruma unavailable; using the pure-Dart engine.');
   }
 
-  final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+  final hl = createHighlighter(
+    langs: [CodeLanguages.dart],
+    themes: [ShikiThemes.githubDark],
+  );
   final lines = hl.codeToTokens(
     "void main() => print('hello');",
     const TokenizeOptions(lang: 'dart', theme: 'github-dark'),

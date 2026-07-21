@@ -1,5 +1,4 @@
 // The public token representation produced by the highlighter.
-library;
 
 /// A single highlighted token: a run of characters sharing one style.
 class ThemedToken {

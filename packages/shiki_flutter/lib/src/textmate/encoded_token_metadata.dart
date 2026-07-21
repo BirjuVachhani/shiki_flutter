@@ -5,7 +5,6 @@
 //   bbbb bbbb ffff ffff fFFF FBTT LLLL LLLL
 //   L = languageId (8)  T = StandardTokenType (2)  B = balanced brackets (1)
 //   F = FontStyle (4)   f = foreground color id (9)  b = background color id (9)
-library;
 
 import 'theme.dart' show FontStyle;
 

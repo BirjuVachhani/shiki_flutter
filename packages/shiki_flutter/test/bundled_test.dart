@@ -1,9 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/langs/html.dart';
-import 'package:shiki_flutter/langs/javascript.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
+
+// Bundled languages/themes are reached via the facades; alias the ones used
+// here so the test bodies below stay unchanged.
+const dart = CodeLanguages.dart;
+const html = CodeLanguages.html;
+const javascript = CodeLanguages.javascript;
+const ruby = CodeLanguages.ruby;
+const githubDark = ShikiThemes.githubDark;
 
 void main() {
   group('bundled createHighlighter', () {
@@ -60,7 +64,7 @@ void main() {
 
     test('loadBundledLanguage is idempotent', () {
       final hl = ShikiHighlighter()
-        ..loadBundledTheme(githubDark)
+        ..loadShikiTheme(githubDark)
         ..loadBundledLanguage(dart)
         ..loadBundledLanguage(dart);
       expect(hl.loadedLanguages.where((s) => s == 'source.dart').length, 1);
@@ -75,6 +79,19 @@ void main() {
         html.embeddedLanguages().map((l) => l.id),
         containsAll(['css', 'javascript']),
       );
+    });
+
+    test('cyclic embedded languages load without overflow (ruby <-> haml)', () {
+      // ruby embeds haml and haml embeds ruby; the loader must break the cycle
+      // instead of recursing forever (regression: StackOverflowError in
+      // loadBundledLanguage on the richer tm-grammars embed graph).
+      final hl = createHighlighter(langs: [ruby], themes: [githubDark]);
+      expect(hl.loadedLanguages, contains('source.ruby'));
+      final tokens = hl.codeToTokens(
+        'puts "hi"',
+        TokenizeOptions(lang: ruby.id, theme: githubDark.id),
+      );
+      expect(tokens, isNotEmpty);
     });
   });
 }

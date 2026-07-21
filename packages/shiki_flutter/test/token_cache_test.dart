@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/langs/html.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter/src/async/lang_descriptor.dart';
+
+const dart = CodeLanguages.dart;
+const html = CodeLanguages.html;
 
 List<List<ThemedToken>> _tokens(String content) => [
   [ThemedToken(content: content, offset: 0)],

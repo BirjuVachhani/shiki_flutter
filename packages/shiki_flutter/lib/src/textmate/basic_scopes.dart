@@ -1,6 +1,5 @@
 // Basic scope attributes (language id + standard token type), ported from
 // `vscode-textmate`'s `grammar/basicScopesAttributeProvider.ts`.
-library;
 
 import 'encoded_token_metadata.dart';
 import 'utils.dart';

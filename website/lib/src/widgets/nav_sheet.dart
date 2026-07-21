@@ -6,7 +6,6 @@ import '../data/links.dart';
 import '../theme/theme_controller.dart';
 import '../theme/tokens.dart';
 import 'app_icon.dart';
-import 'brand.dart';
 
 /// Implemented by a page that has an in-page section list (the docs page) so
 /// the shared nav sheet can list those sections and scroll to them, no matter

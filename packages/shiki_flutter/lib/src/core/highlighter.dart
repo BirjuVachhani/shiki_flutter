@@ -1,6 +1,3 @@
-// The high-level highlighter, mirroring Shiki's `codeToTokens` pipeline.
-library;
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -10,15 +7,16 @@ import '../async/lang_descriptor.dart';
 import '../async/protocol.dart';
 import '../async/token_cache.dart';
 import '../async/tokenize_worker.dart';
-import '../bundled/bundled_language.dart';
-import '../bundled/bundled_theme.dart';
 import '../onig/onig.dart';
 import '../textmate/encoded_token_metadata.dart';
 import '../textmate/grammar.dart';
 import '../textmate/raw_grammar.dart';
 import '../textmate/registry.dart';
 import '../textmate/theme.dart';
+import 'code_language.dart';
 import 'colors.dart';
+import 'shiki_theme.dart';
+import 'shiki_theme_config.dart';
 import 'theme_registration.dart';
 import 'themed_token.dart';
 
@@ -42,8 +40,8 @@ const bool _kIsWeb = !bool.fromEnvironment('dart.library.io');
 /// final hl = createHighlighter(langs: [dart], themes: [githubDark]);
 /// ```
 ShikiHighlighter createHighlighter({
-  List<BundledLanguage> langs = const [],
-  List<BundledTheme> themes = const [],
+  List<CodeLanguage> langs = const [],
+  List<ShikiTheme> themes = const [],
   ShikiHighlighterEngine? engine,
   TokenCache? cache,
 }) {
@@ -52,7 +50,7 @@ ShikiHighlighter createHighlighter({
     hl.loadBundledLanguage(lang);
   }
   for (final theme in themes) {
-    hl.loadBundledTheme(theme);
+    hl.loadShikiTheme(theme);
   }
   return hl;
 }
@@ -124,6 +122,7 @@ class ShikiHighlighterConfig {
     this.webEngine = const ShikiHighlighterEmbeddedEngine(),
     this.asyncIO = true,
     this.asyncWeb = false,
+    this.defaultTheme,
   });
 
   /// The regex engine used on native/VM (IO). Defaults to the pure-Dart
@@ -148,17 +147,29 @@ class ShikiHighlighterConfig {
   /// worker, otherwise it runs inline on the main thread. Defaults to `false`.
   final bool asyncWeb;
 
+  /// The theme the rendering widgets use when their `theme:` argument is omitted.
+  ///
+  /// Either a single theme ([ShikiThemeConfig.single]) or a light/dark pair
+  /// ([ShikiThemeConfig.dual]) resolved from the ambient `Theme.of(context)`
+  /// brightness. When null, each widget must supply its own `theme:`.
+  ///
+  /// The widgets load the resolved theme (and language) on demand, so a global
+  /// default works without pre-loading it into every highlighter.
+  final ShikiThemeConfig? defaultTheme;
+
   /// Returns a copy with the given fields replaced.
   ShikiHighlighterConfig copyWith({
     ShikiHighlighterEngine? ioEngine,
     ShikiHighlighterEngine? webEngine,
     bool? asyncIO,
     bool? asyncWeb,
+    ShikiThemeConfig? defaultTheme,
   }) => ShikiHighlighterConfig(
     ioEngine: ioEngine ?? this.ioEngine,
     webEngine: webEngine ?? this.webEngine,
     asyncIO: asyncIO ?? this.asyncIO,
     asyncWeb: asyncWeb ?? this.asyncWeb,
+    defaultTheme: defaultTheme ?? this.defaultTheme,
   );
 }
 
@@ -190,6 +201,10 @@ class ShikiHighlighter {
   /// [ShikiHighlighterConfig.asyncIO]. A widget's `async:` argument overrides it.
   static bool get asyncDefault => _kIsWeb ? config.asyncWeb : config.asyncIO;
 
+  /// The global default theme selection (see [ShikiHighlighterConfig.defaultTheme]),
+  /// used by the widgets when their `theme:` argument is omitted. May be null.
+  static ShikiThemeConfig? get defaultTheme => config.defaultTheme;
+
   /// Creates a highlighter. [engine] overrides the global [engine] default for
   /// this instance only; when null [ShikiHighlighter.engineDefault] is used.
   /// [cache] overrides the token cache used for async highlighting.
@@ -207,9 +222,20 @@ class ShikiHighlighter {
   final Map<String, ThemeRegistration> _themes = {};
   final Map<String, _ResolvedTheme> _resolvedThemes = {};
 
+  /// Ids of [ShikiTheme]s loaded via [loadShikiTheme]/[ensureShikiTheme], so the
+  /// latter can skip re-parsing a theme's JSON on repeat calls (a theme's `id`
+  /// need not equal its registration name, which is what [_themes] keys on).
+  final Set<String> _loadedShikiThemeIds = {};
+
   /// language name / alias -> scope name.
   final Map<String, String> _langToScope = {};
   final Set<String> _loadedScopes = {};
+
+  /// Bundled scopes currently being loaded, so a cyclic `embeddedLanguages`
+  /// graph (e.g. `markdown` -> `html` -> ... -> `markdown`) doesn't recurse
+  /// forever: the scope is only added to [_loadedScopes] after its JSON is
+  /// registered, which happens *after* the embedded recursion below.
+  final Set<String> _loadingBundledScopes = {};
 
   String? _lastLoadedTheme;
 
@@ -278,8 +304,11 @@ class ShikiHighlighter {
 
   /// Loads a bundled language (from `package:shiki_flutter/langs/<id>.dart`),
   /// including any grammars it embeds and its aliases. Idempotent.
-  void loadBundledLanguage(BundledLanguage lang) {
+  void loadBundledLanguage(CodeLanguage lang) {
     if (_loadedScopes.contains(lang.scopeName)) return;
+    // Break embed cycles: skip a scope already being loaded further up the
+    // recursion (its JSON is registered below, after the embedded loop).
+    if (!_loadingBundledScopes.add(lang.scopeName)) return;
     final outermost = _langLoadDepth == 0;
     _langLoadDepth++;
     try {
@@ -294,11 +323,28 @@ class ShikiHighlighter {
       }
     } finally {
       _langLoadDepth--;
+      _loadingBundledScopes.remove(lang.scopeName);
     }
   }
 
   /// Loads a bundled theme (from `package:shiki_flutter/themes/<id>.dart`).
-  String loadBundledTheme(BundledTheme theme) => loadThemeFromJson(theme.json);
+  String loadShikiTheme(ShikiTheme theme) {
+    _loadedShikiThemeIds.add(theme.id);
+    return loadThemeFromJson(theme.json);
+  }
+
+  /// Loads [theme] only if a [ShikiTheme] with the same id has not been loaded
+  /// yet. Idempotent, so the widgets can call it on every build without
+  /// re-parsing the theme JSON.
+  void ensureShikiTheme(ShikiTheme theme) {
+    if (!_loadedShikiThemeIds.contains(theme.id)) loadShikiTheme(theme);
+  }
+
+  /// Loads [lang]'s grammar only if its scope is not already loaded. Idempotent,
+  /// so the widgets can call it on every build without re-parsing the grammar.
+  void ensureLanguage(CodeLanguage lang) {
+    if (!_loadedScopes.contains(lang.scopeName)) loadBundledLanguage(lang);
+  }
 
   /// Loads a theme from a decoded JSON map and returns its resolved name.
   String loadTheme(Map<String, dynamic> themeJson) {
@@ -419,8 +465,9 @@ class ShikiHighlighter {
   /// A widget uses this to render highlighted output on the very first frame when
   /// the result is cached (no placeholder flash).
   List<List<ThemedToken>>? peekTokens(String code, TokenizeOptions options) {
-    if (_isTrivial(options.lang, options.theme))
+    if (_isTrivial(options.lang, options.theme)) {
       return codeToTokens(code, options);
+    }
     return _tokenCache.get(TokenCache.keyFor(code, options));
   }
 
@@ -480,7 +527,7 @@ class ShikiHighlighter {
         ),
       );
 
-  void _captureLangDescriptor(BundledLanguage lang) {
+  void _captureLangDescriptor(CodeLanguage lang) {
     final descriptor = flattenBundledLanguage(lang);
     _asyncLangDescriptors.add(descriptor);
     _workerFuture?.then((w) => w.loadLanguage(descriptor));

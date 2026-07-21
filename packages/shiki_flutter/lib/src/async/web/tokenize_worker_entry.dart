@@ -11,7 +11,6 @@
 // `shiki_flutter_native_engine`. All three share `runTokenizeWorker`.
 //
 // Flutter-free (no `dart:ui`): it compiles only against the tokenizer core.
-library;
 
 import '../../onig/onig.dart' show ShikiHighlighterEmbeddedEngine;
 import 'worker_runtime.dart';

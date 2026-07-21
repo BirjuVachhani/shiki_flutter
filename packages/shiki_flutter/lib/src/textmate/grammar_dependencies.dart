@@ -1,6 +1,5 @@
 // Include-reference parsing, ported from the relevant part of
 // `vscode-textmate`'s `grammar/grammarDependencies.ts`.
-library;
 
 enum IncludeReferenceKind {
   base,

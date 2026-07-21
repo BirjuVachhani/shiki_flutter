@@ -5,42 +5,39 @@
 /// or render them with [codeToTextSpan] / [ShikiCodeView].
 ///
 /// ```dart
+/// import 'package:shiki_flutter/shiki_flutter.dart';
+/// import 'package:shiki_flutter/langs.dart';
+/// import 'package:shiki_flutter/themes.dart';
+///
 /// final highlighter = ShikiHighlighter();
-/// highlighter.loadLanguage(jsonDecode(grammarJson));
-/// final themeName = highlighter.loadTheme(jsonDecode(themeJson));
+/// // lang/theme are objects and are loaded on demand.
 /// final span = codeToTextSpan(highlighter, sourceCode,
-///     lang: 'dart', theme: themeName);
+///     lang: CodeLanguages.dart, theme: ShikiThemes.githubDark);
 /// ```
 library;
 
-export 'src/async/token_cache.dart' show TokenCache;
-export 'src/bundled/bundled_language.dart' show BundledLanguage;
-export 'src/bundled/bundled_theme.dart' show BundledTheme;
+// Flutter-free core: the TextMate tokenizer and the pluggable regex-engine
+// seam (ShikiHighlighter, createHighlighter, ThemedToken, the OnigScanner
+// types, CodeLanguage / ShikiTheme, and more). Set `ShikiHighlighter.config`
+// (ioEngine / webEngine) or pass `createHighlighter(engine: …)` to swap the
+// pure-Dart default for a native backend such as `ShikiHighlighterNativeEngine`
+// from `shiki_flutter_native_engine`.
+export 'engine.dart';
+// Bundled, tree-shakeable grammars and themes. Referencing a member (e.g.
+// `CodeLanguages.dart` / `ShikiThemes.githubDark` / `PierreThemes.pierreDark`)
+// pulls in only that grammar/theme; the rest are tree-shaken away.
+export 'langs.dart' show CodeLanguages;
+export 'pierre_themes.dart' show PierreThemes;
+export 'src/core/code_language.dart';
+// Flutter-only surface not provided by `engine.dart`.
 export 'src/core/colors.dart' show applyColorReplacements, splitLines;
-export 'src/core/highlighter.dart'
-    show
-        ShikiHighlighter,
-        ShikiHighlighterConfig,
-        TokenizeOptions,
-        ShikiError,
-        createHighlighter;
+export 'src/core/highlighter.dart';
+export 'src/core/shiki_theme.dart';
+export 'src/core/shiki_theme_config.dart';
 export 'src/core/theme_registration.dart'
     show ThemeRegistration, normalizeTheme;
-export 'src/core/themed_token.dart' show ThemedToken;
-// The pluggable regex-engine seam. Set `ShikiHighlighter.config` (ioEngine /
-// webEngine) or pass `createHighlighter(engine: …)` to swap the pure-Dart
-// default for a native backend such as `ShikiHighlighterNativeEngine` from
-// `shiki_flutter_native_engine`.
-export 'src/onig/onig.dart'
-    show
-        ShikiHighlighterEngine,
-        ShikiHighlighterEmbeddedEngine,
-        OnigScanner,
-        OnigString,
-        OnigMatch,
-        OnigCaptureIndex;
-export 'src/flutter/code_list_view.dart' show ShikiCodeListView;
-export 'src/flutter/code_view.dart' show ShikiCodeView;
+export 'src/flutter/code_list_view.dart';
+export 'src/flutter/code_view.dart';
 export 'src/flutter/gutter.dart' show GutterStyle;
 export 'src/flutter/render.dart'
     show
@@ -53,3 +50,4 @@ export 'src/flutter/render.dart'
         parseColor,
         parseHexColor;
 export 'src/textmate/theme.dart' show FontStyle;
+export 'themes.dart' show ShikiThemes;

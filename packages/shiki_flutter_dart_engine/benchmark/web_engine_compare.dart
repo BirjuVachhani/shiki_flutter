@@ -9,8 +9,8 @@
 //   node /tmp/web_bench.js
 
 import 'package:shiki_flutter/engine.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
+import 'package:shiki_flutter/langs.dart';
+import 'package:shiki_flutter/themes.dart';
 import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
 
 import '../../shiki_flutter/benchmark/src/corpus.dart';
@@ -30,8 +30,8 @@ double _bench(
   required int iters,
 }) {
   final hl = createHighlighter(
-    langs: [dart],
-    themes: [githubDark],
+    langs: [CodeLanguages.dart],
+    themes: [ShikiThemes.githubDark],
     engine: engine,
   );
   for (var i = 0; i < warmup; i++) {

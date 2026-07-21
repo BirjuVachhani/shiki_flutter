@@ -9,8 +9,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart' as bundled_dart;
-import 'package:shiki_flutter/themes/github_dark.dart' as bundled_theme;
 import 'package:shiki_flutter/src/onig/regex_engine.dart' show OnigRegex;
 
 import '../benchmark/src/corpus.dart';
@@ -25,8 +23,8 @@ ShikiHighlighter _buildHighlighter() {
     final file = File('test/fixtures/themes/$theme.json');
     if (file.existsSync()) hl.loadThemeFromJson(file.readAsStringSync());
   }
-  hl.loadBundledLanguage(bundled_dart.dart);
-  hl.loadBundledTheme(bundled_theme.githubDark);
+  hl.loadBundledLanguage(CodeLanguages.dart);
+  hl.loadShikiTheme(ShikiThemes.githubDark);
   return hl;
 }
 

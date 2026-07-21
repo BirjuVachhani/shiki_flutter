@@ -7,7 +7,6 @@
 // `package:shiki_flutter_engine_interface` so every engine backend shares them.
 // This file re-exports them and adds shiki_flutter's bundled implementation:
 // [ShikiHighlighterEmbeddedEngine], the pure-Dart engine backed by [OnigRegex].
-library;
 
 import 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.dart';
 

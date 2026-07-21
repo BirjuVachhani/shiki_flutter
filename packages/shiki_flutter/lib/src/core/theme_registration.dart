@@ -1,5 +1,4 @@
 // Theme normalization, ported from Shiki's `textmate/normalize-theme.ts`.
-library;
 
 import '../textmate/theme.dart';
 

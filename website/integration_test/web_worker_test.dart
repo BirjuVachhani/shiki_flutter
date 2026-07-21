@@ -21,8 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 // Internal seam: lets the test spawn the Web Worker directly and confirm it is
 // remote, which the public API deliberately hides.
 import 'package:shiki_flutter/src/async/lang_descriptor.dart';
@@ -39,7 +37,7 @@ const _base = TextStyle(fontFamily: 'monospace', fontSize: 14, height: 1.4);
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  final theme = githubDark.id;
+  final theme = ShikiThemes.githubDark.id;
 
   testWidgets('web worker: remote, parity, and no main-thread freeze', (
     tester,
@@ -49,8 +47,8 @@ void main() {
 
     // Reference: the synchronous embedded engine (the engine the worker uses).
     final ref = createHighlighter(
-      langs: [dart],
-      themes: [githubDark],
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
       engine: const ShikiHighlighterEmbeddedEngine(),
     );
     final refFp = _fp(ref.codeToTokens(src, opts));
@@ -59,8 +57,8 @@ void main() {
     // Worker (not the inline fallback), i.e. the script was found and handshook.
     final worker = await spawnTokenizeWorker(
       WorkerConfig(
-        langs: [flattenBundledLanguage(dart)],
-        themeJsons: [githubDark.json],
+        langs: [flattenBundledLanguage(CodeLanguages.dart)],
+        themeJsons: [ShikiThemes.githubDark.json],
       ),
     );
     await worker.ready;
@@ -75,7 +73,10 @@ void main() {
 
     // --- Jank: drive the virtualized list with async on, so the highlighter's
     // own worker pays the cold compile off-thread while we watch the UI thread.
-    final jankH = createHighlighter(langs: [dart], themes: [githubDark]);
+    final jankH = createHighlighter(
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
+    );
     final reg = jankH.getThemeRegistration(theme);
     final fg = parseColor(reg.fg);
     final bg = parseColor(reg.bg);
@@ -95,8 +96,8 @@ void main() {
               key: const Key('scroller'),
               highlighter: jankH,
               code: src,
-              lang: _lang,
-              theme: theme,
+              lang: CodeLanguages.dart,
+              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
               textStyle: _base.copyWith(color: fg),
               async: true,
             ),

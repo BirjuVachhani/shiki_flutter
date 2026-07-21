@@ -1,6 +1,5 @@
 // Color-replacement and line-splitting helpers, ported from Shiki's
 // `utils/colors.ts` and `utils/general.ts`.
-library;
 
 /// Merges a theme's own `colorReplacements` with any per-call replacements.
 Map<String, String> resolveColorReplacements(

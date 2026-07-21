@@ -1,6 +1,5 @@
 // Shared line-number gutter machinery: styling, measurement, the gutter widget,
 // and the row composition used by both ShikiCodeView and ShikiCodeListView.
-library;
 
 import 'dart:math' as math;
 

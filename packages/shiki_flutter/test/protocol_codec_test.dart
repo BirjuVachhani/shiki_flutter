@@ -25,18 +25,22 @@ void main() {
       const d = LangDescriptor(
         id: 'html',
         scopeName: 'text.html.basic',
+        displayName: 'HTML',
         json: '{"name":"html"}',
         aliases: ['htm'],
+        categories: [GrammarCategory.web, GrammarCategory.markup],
         embedded: [
           LangDescriptor(
             id: 'css',
             scopeName: 'source.css',
+            displayName: 'CSS',
             json: '{"name":"css"}',
             aliases: [],
             embedded: [
               LangDescriptor(
                 id: 'js',
                 scopeName: 'source.js',
+                displayName: 'JavaScript',
                 json: '{"name":"js"}',
               ),
             ],
@@ -50,9 +54,12 @@ void main() {
 
       expect(back.id, d.id);
       expect(back.scopeName, d.scopeName);
+      expect(back.displayName, d.displayName);
       expect(back.json, d.json);
       expect(back.aliases, d.aliases);
+      expect(back.categories, d.categories);
       expect(back.embedded.single.id, 'css');
+      expect(back.embedded.single.displayName, 'CSS');
       expect(back.embedded.single.embedded.single.id, 'js');
       expect(back.embedded.single.embedded.single.scopeName, 'source.js');
     });
@@ -140,6 +147,7 @@ void main() {
           LangDescriptor(
             id: 'dart',
             scopeName: 'source.dart',
+            displayName: 'Dart',
             json: '{"name":"dart"}',
           ),
         ],

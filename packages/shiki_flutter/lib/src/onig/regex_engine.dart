@@ -12,7 +12,6 @@
 // Matching operates on UTF-16 code units, exactly like Shiki's JavaScript engine
 // (and JavaScript `RegExp` without the `u` flag), so the reported offsets line up
 // with Dart string indices without any conversion.
-library;
 
 /// Thrown when a pattern cannot be parsed by [OnigRegex].
 class RegexSyntaxException implements Exception {
@@ -58,23 +57,27 @@ class _EmptyNode extends _Node {}
 
 class _CharNode extends _Node {
   _CharNode(this.ch, this.ignoreCase);
+
   final int ch;
   final bool ignoreCase;
 }
 
 class _AnyNode extends _Node {
   _AnyNode(this.dotAll);
+
   final bool dotAll;
 }
 
 class _Range {
   const _Range(this.lo, this.hi);
+
   final int lo;
   final int hi;
 }
 
 class _ClassNode extends _Node {
   _ClassNode(this.ranges, this.negated, this.ignoreCase);
+
   final List<_Range> ranges;
   final bool negated;
   final bool ignoreCase;
@@ -127,11 +130,13 @@ List<_Range> _mergeSortedRanges(List<_Range> input) {
 
 class _AnchorNode extends _Node {
   _AnchorNode(this.kind);
+
   final int kind;
 }
 
 class _GroupNode extends _Node {
   _GroupNode(this.child, this.captureIndex, this.atomic);
+
   final _Node child;
   final int? captureIndex; // null for non-capturing
   final bool atomic;
@@ -139,16 +144,19 @@ class _GroupNode extends _Node {
 
 class _ConcatNode extends _Node {
   _ConcatNode(this.parts);
+
   final List<_Node> parts;
 }
 
 class _AltNode extends _Node {
   _AltNode(this.options);
+
   final List<_Node> options;
 }
 
 class _QuantNode extends _Node {
   _QuantNode(this.child, this.min, this.max, this.greedy, this.possessive);
+
   final _Node child;
   final int min;
   final int max; // -1 == unbounded
@@ -158,6 +166,7 @@ class _QuantNode extends _Node {
 
 class _LookNode extends _Node {
   _LookNode(this.child, this.ahead, this.negative);
+
   final _Node child;
   final bool ahead;
   final bool negative;
@@ -165,6 +174,7 @@ class _LookNode extends _Node {
 
 class _BackrefNode extends _Node {
   _BackrefNode(this.group, this.ignoreCase);
+
   int group;
   final bool ignoreCase;
 }
@@ -173,9 +183,11 @@ class _BackrefNode extends _Node {
 
 class _Flags {
   _Flags(this.ignoreCase, this.dotAll, this.extended);
+
   bool ignoreCase;
   bool dotAll;
   bool extended;
+
   _Flags clone() => _Flags(ignoreCase, dotAll, extended);
 }
 
@@ -189,7 +201,9 @@ class _Parser {
   final Map<String, int> groupNames = {};
 
   int get _len => src.length;
+
   int? _peek() => pos < _len ? src.codeUnitAt(pos) : null;
+
   int _cur() => src.codeUnitAt(pos);
 
   Never _error(String message) => throw RegexSyntaxException(message, src);
@@ -960,6 +974,7 @@ class _Parser {
 
 class _PendingNamed {
   _PendingNamed(this.ref, this.name);
+
   final _BackrefNode ref;
   final String name;
 }
@@ -1472,6 +1487,7 @@ class _Matcher {
   }
 
   int _charAt(int pos) => pos < len ? input.codeUnitAt(pos) : -1;
+
   int _charBefore(int pos) => pos > 0 ? input.codeUnitAt(pos - 1) : -1;
 }
 
@@ -1894,8 +1910,9 @@ String? _emitDart(_Node node, _EmitCtx ctx) {
     final sb = StringBuffer('[');
     if (node.negated) sb.write('^');
     for (final r in node.ranges) {
-      if (r.lo > 0xffff || r.hi > 0xffff)
+      if (r.lo > 0xffff || r.hi > 0xffff) {
         return null; // BMP only (UTF-16 units)
+      }
       if (node.ignoreCase && r.hi > 0x7f) return null; // ASCII folding only
       if (r.lo == r.hi) {
         sb.write(_uEsc(r.lo));

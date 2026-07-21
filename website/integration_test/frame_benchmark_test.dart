@@ -27,8 +27,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 
 import 'support/corpus.dart';
 import 'support/local_writer.dart';
@@ -55,9 +53,12 @@ void main() {
     await Future<void>.delayed(const Duration(seconds: 4));
   });
 
-  final highlighter = createHighlighter(langs: [dart], themes: [githubDark]);
+  final highlighter = createHighlighter(
+    langs: [CodeLanguages.dart],
+    themes: [ShikiThemes.githubDark],
+  );
   const langId = 'dart';
-  final themeName = githubDark.id;
+  final themeName = ShikiThemes.githubDark.id;
   final fg = parseColor(highlighter.getThemeRegistration(themeName).fg);
   final bg = parseColor(highlighter.getThemeRegistration(themeName).bg);
   final base = _baseStyle.copyWith(color: fg);
@@ -89,8 +90,8 @@ void main() {
             child: ShikiCodeView(
               highlighter: highlighter,
               code: source,
-              lang: langId,
-              theme: themeName,
+              lang: CodeLanguages.dart,
+              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
               textStyle: base,
             ),
           ),
@@ -131,8 +132,8 @@ void main() {
     // is meant to fix; scroll jank is then measured after the swap settles.
     testWidgets('frames · isolate · ${size.label}', (tester) async {
       final asyncHighlighter = createHighlighter(
-        langs: [dart],
-        themes: [githubDark],
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
       );
       addTearDown(asyncHighlighter.dispose);
       await _runCase(
@@ -149,8 +150,8 @@ void main() {
             key: const Key('scroller'),
             highlighter: asyncHighlighter,
             code: source,
-            lang: langId,
-            theme: themeName,
+            lang: CodeLanguages.dart,
+            theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
             textStyle: base,
             async: true,
           ),

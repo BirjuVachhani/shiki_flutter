@@ -1,5 +1,4 @@
 // Grammar rule compilation, ported from `vscode-textmate`'s `rule.ts`.
-library;
 
 import '../onig/onig.dart';
 import 'grammar_dependencies.dart';

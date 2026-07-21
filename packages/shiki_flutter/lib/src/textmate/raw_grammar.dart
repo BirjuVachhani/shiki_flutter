@@ -3,7 +3,6 @@
 //
 // Unlike the TypeScript original, which manipulates plain objects dynamically,
 // this port uses typed classes with explicit `clone`/`merge` helpers.
-library;
 
 /// A map of capture-id (`"0"`, `"1"`, ...) to the rule describing that capture.
 typedef RawCaptures = Map<String, RawRule>;

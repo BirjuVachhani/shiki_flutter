@@ -8,7 +8,6 @@
 // that ships its own worker (e.g. `shiki_flutter_native_engine`) reuses this
 // exact loop instead of copying it. Web-only: it imports `dart:js_interop`, so
 // it is only ever reached from a `dart compile js` worker entry.
-library;
 
 import 'dart:convert';
 import 'dart:js_interop';

@@ -5,7 +5,6 @@
 // lazily on first read and memoizes until the inputs change. Flutter-free (no
 // dart:ui) so the seam stays testable, but designed to be owned by a widget's
 // State.
-library;
 
 import '../core/highlighter.dart';
 import '../core/themed_token.dart';

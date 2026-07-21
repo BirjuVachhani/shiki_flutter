@@ -1,0 +1,11 @@
+{
+  "name": "shiki_flutter_tm_source",
+  "private": true,
+  "type": "module",
+  "description": "Build-time source of TextMate grammars/themes (tm-grammars, tm-themes) for tool/generate_bundled.dart. Not part of the published package.",
+  "dependencies": {
+    "@pierre/theme": "1.1.0",
+    "tm-grammars": "1.31.15",
+    "tm-themes": "1.12.2"
+  }
+}

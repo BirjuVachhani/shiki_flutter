@@ -24,8 +24,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 
 import 'src/corpus.dart';
 import 'src/stats.dart';
@@ -53,11 +51,11 @@ void main() {
     'shiki_flutter performance sweep (Dart / GitHub Dark)',
     (tester) async {
       final highlighter = createHighlighter(
-        langs: [dart],
-        themes: [githubDark],
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
       );
       const langId = 'dart';
-      final themeName = githubDark.id; // 'github-dark'
+      final themeName = ShikiThemes.githubDark.id; // 'github-dark'
       final fg = parseColor(highlighter.getThemeRegistration(themeName).fg);
       final bg = parseColor(highlighter.getThemeRegistration(themeName).bg);
       final base = _baseStyle.copyWith(color: fg);
@@ -66,7 +64,10 @@ void main() {
       // Captures the one-time grammar-load + Oniguruma regex-compile latency that
       // a user pays on the very first highlight of a session.
       final coldStartMicros = measureOnce(() {
-        final fresh = createHighlighter(langs: [dart], themes: [githubDark]);
+        final fresh = createHighlighter(
+          langs: [CodeLanguages.dart],
+          themes: [ShikiThemes.githubDark],
+        );
         fresh.codeToTokens(
           corpusFor(CorpusSize.s),
           TokenizeOptions(lang: langId, theme: themeName),
@@ -226,8 +227,8 @@ void main() {
             ShikiCodeView(
               highlighter: highlighter,
               code: source,
-              lang: langId,
-              theme: themeName,
+              lang: CodeLanguages.dart,
+              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
               textStyle: _baseStyle,
             ),
           ),

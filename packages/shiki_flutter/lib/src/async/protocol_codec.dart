@@ -11,10 +11,10 @@
 // and the compiled worker entry (`web/tokenize_worker_entry`), and it is unit
 // tested on the VM. Callers do the `jsonEncode`/`jsonDecode`; this layer only
 // converts between the protocol objects and JSON-able structures.
-library;
 
 import 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.dart';
 
+import '../core/code_language.dart';
 import '../core/highlighter.dart';
 import '../core/themed_token.dart';
 import 'lang_descriptor.dart';
@@ -25,16 +25,24 @@ import 'protocol.dart';
 Map<String, dynamic> langDescriptorToJson(LangDescriptor d) => {
   'id': d.id,
   'scopeName': d.scopeName,
+  'displayName': d.displayName,
   'json': d.json,
   'aliases': d.aliases,
+  'categories': d.categories.map((c) => c.name).toList(),
   'embedded': d.embedded.map(langDescriptorToJson).toList(),
 };
 
 LangDescriptor langDescriptorFromJson(Map<String, dynamic> j) => LangDescriptor(
   id: j['id'] as String,
   scopeName: j['scopeName'] as String,
+  displayName: j['displayName'] as String,
   json: j['json'] as String,
   aliases: (j['aliases'] as List).cast<String>(),
+  categories:
+      (j['categories'] as List?)
+          ?.map((e) => GrammarCategory.values.byName(e as String))
+          .toList() ??
+      const [],
   embedded: (j['embedded'] as List)
       .map((e) => langDescriptorFromJson((e as Map).cast<String, dynamic>()))
       .toList(),

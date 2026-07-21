@@ -3,20 +3,27 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart' hide FontStyle;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
 
-ShikiHighlighter buildHighlighter() {
-  final hl = ShikiHighlighter();
-  hl.loadLanguageFromJson(
-    File('test/fixtures/langs/javascript.json').readAsStringSync(),
-  );
-  hl.loadThemeFromJson(
-    File('test/fixtures/themes/github-dark.json').readAsStringSync(),
-  );
-  return hl;
-}
+/// Fixture language/theme as the objects the public API now takes. The
+/// scopeName/id/type match the fixture JSON so tokenization resolves exactly as
+/// before.
+final _jsLang = CodeLanguage(
+  id: 'javascript',
+  scopeName: 'source.js',
+  displayName: 'JavaScript',
+  json: File('test/fixtures/langs/javascript.json').readAsStringSync(),
+);
+final _darkTheme = ShikiTheme(
+  id: 'github-dark',
+  type: 'dark',
+  json: File('test/fixtures/themes/github-dark.json').readAsStringSync(),
+);
+final _darkThemeConfig = ShikiThemeConfig.single(_darkTheme);
+
+ShikiHighlighter buildHighlighter() => ShikiHighlighter()
+  ..loadBundledLanguage(_jsLang)
+  ..loadShikiTheme(_darkTheme);
 
 void main() {
   group('parseColor: hex', () {
@@ -116,8 +123,8 @@ void main() {
       final span = codeToTextSpan(
         hl,
         'const x = 42;',
-        lang: 'javascript',
-        theme: 'github-dark',
+        lang: _jsLang,
+        theme: _darkTheme,
       );
       final children = span.children!;
       expect(children, isNotEmpty);
@@ -136,8 +143,8 @@ void main() {
       final span = codeToTextSpan(
         hl,
         'const a = 1;\nconst b = 2;',
-        lang: 'javascript',
-        theme: 'github-dark',
+        lang: _jsLang,
+        theme: _darkTheme,
       );
       final text = _flatten(span);
       expect(text, contains('\n'));
@@ -154,8 +161,8 @@ void main() {
           child: ShikiCodeView(
             highlighter: hl,
             code: 'const answer = 42;',
-            lang: 'javascript',
-            theme: 'github-dark',
+            lang: _jsLang,
+            theme: _darkThemeConfig,
           ),
         ),
       );
@@ -167,6 +174,144 @@ void main() {
 
       // The theme background is painted.
       expect(find.byType(ColoredBox), findsOneWidget);
+    });
+  });
+
+  group('ShikiThemeConfig resolution', () {
+    Color codeViewBg(WidgetTester tester) => tester
+        .widget<ColoredBox>(
+          find.descendant(
+            of: find.byType(ShikiCodeView),
+            matching: find.byType(ColoredBox),
+          ),
+        )
+        .color;
+
+    // A dual config renders the light theme under a light Theme and the dark
+    // theme under a dark one, swapping when the ambient brightness flips. The
+    // highlighter starts empty, so this also exercises the widget loading the
+    // language and each resolved theme on demand.
+    testWidgets('dual config follows Theme brightness and swaps on flip', (
+      tester,
+    ) async {
+      final ref = createHighlighter(
+        themes: [ShikiThemes.githubLight, ShikiThemes.githubDark],
+      );
+      final lightBg = parseColor(
+        ref.getThemeRegistration(ShikiThemes.githubLight.id).bg,
+      )!;
+      final darkBg = parseColor(
+        ref.getThemeRegistration(ShikiThemes.githubDark.id).bg,
+      )!;
+      expect(lightBg, isNot(darkBg));
+
+      final hl = ShikiHighlighter();
+      var brightness = Brightness.light;
+      late StateSetter setOuter;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              setOuter = setState;
+              // Drive brightness through an explicit Theme so the test is
+              // deterministic; this is exactly the inherited signal the widget
+              // reads via Theme.of(context).
+              return Theme(
+                data: ThemeData(brightness: brightness),
+                child: ShikiCodeView(
+                  highlighter: hl,
+                  code: 'void main() {}',
+                  lang: CodeLanguages.dart,
+                  theme: ShikiThemeConfig.dual(
+                    light: ShikiThemes.githubLight,
+                    dark: ShikiThemes.githubDark,
+                  ),
+                  async: false,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(codeViewBg(tester), lightBg);
+
+      setOuter(() => brightness = Brightness.dark);
+      await tester.pump();
+      expect(codeViewBg(tester), darkBg);
+    });
+
+    testWidgets('explicit brightness overrides the ambient Theme', (
+      tester,
+    ) async {
+      final ref = createHighlighter(themes: [ShikiThemes.githubDark]);
+      final darkBg = parseColor(
+        ref.getThemeRegistration(ShikiThemes.githubDark.id).bg,
+      )!;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(brightness: Brightness.light), // ambient = light
+          home: ShikiCodeView(
+            highlighter: ShikiHighlighter(),
+            code: 'void main() {}',
+            lang: CodeLanguages.dart,
+            theme: ShikiThemeConfig.dual(
+              light: ShikiThemes.githubLight,
+              dark: ShikiThemes.githubDark,
+            ),
+            brightness: Brightness.dark, // override wins
+            async: false,
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(codeViewBg(tester), darkBg);
+    });
+
+    testWidgets('omitting theme falls back to config.defaultTheme', (
+      tester,
+    ) async {
+      final previous = ShikiHighlighter.config;
+      addTearDown(() => ShikiHighlighter.config = previous);
+      ShikiHighlighter.config = previous.copyWith(
+        defaultTheme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ShikiCodeView(
+            highlighter: ShikiHighlighter(),
+            code: 'void main() {}',
+            lang: CodeLanguages.dart,
+            async: false,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Rendered from the default theme (no `theme:` on the widget).
+      expect(
+        find.descendant(
+          of: find.byType(ShikiCodeView),
+          matching: find.byType(ColoredBox),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('no theme and no default throws ShikiError', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ShikiCodeView(
+            highlighter: ShikiHighlighter(),
+            code: 'void main() {}',
+            lang: CodeLanguages.dart,
+            async: false,
+          ),
+        ),
+      );
+      expect(tester.takeException(), isA<ShikiError>());
     });
   });
 
@@ -189,8 +334,8 @@ void main() {
               child: ShikiCodeView(
                 highlighter: hl,
                 code: code,
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 showLineNumbers: true,
                 gutterStyle: gutter,
                 padding: padding,
@@ -276,8 +421,8 @@ void main() {
           child: ShikiCodeView(
             highlighter: hl,
             code: code,
-            lang: 'javascript',
-            theme: 'github-dark',
+            lang: _jsLang,
+            theme: _darkThemeConfig,
             async: false,
           ),
         ),
@@ -310,8 +455,8 @@ void main() {
       final lines = codeToLineSpans(
         hl,
         'const a = 1;\nconst b = 2;',
-        lang: 'javascript',
-        theme: 'github-dark',
+        lang: _jsLang,
+        theme: _darkTheme,
       );
       expect(lines.length, 2);
     });
@@ -321,8 +466,8 @@ void main() {
       final lines = codeToLineSpans(
         hl,
         'const a = 1;\n\nconst b = 2;',
-        lang: 'javascript',
-        theme: 'github-dark',
+        lang: _jsLang,
+        theme: _darkTheme,
       );
       expect(lines.length, 3);
       expect(lines[1].single.text, '');
@@ -333,8 +478,8 @@ void main() {
       final lines = codeToLineSpans(
         hl,
         'const x = y;',
-        lang: 'javascript',
-        theme: 'github-dark',
+        lang: _jsLang,
+        theme: _darkTheme,
       );
       final spans = lines
           .expand((l) => l)
@@ -349,8 +494,8 @@ void main() {
       final lines = codeToLineSpans(
         hl,
         code,
-        lang: 'javascript',
-        theme: 'github-dark',
+        lang: _jsLang,
+        theme: _darkTheme,
       );
       final text = lines
           .map((l) => l.map((s) => s.text ?? '').join())
@@ -378,8 +523,8 @@ void main() {
             child: ShikiCodeListView(
               highlighter: hl,
               code: 'const answer = x;',
-              lang: 'javascript',
-              theme: 'github-dark',
+              lang: _jsLang,
+              theme: _darkThemeConfig,
             ),
           ),
         ),
@@ -402,8 +547,8 @@ void main() {
             child: ShikiCodeListView(
               highlighter: hl,
               code: 'const a = x;\nconst b = y;\nconst c = z;',
-              lang: 'javascript',
-              theme: 'github-dark',
+              lang: _jsLang,
+              theme: _darkThemeConfig,
               showLineNumbers: true,
             ),
           ),
@@ -432,8 +577,8 @@ void main() {
               child: ShikiCodeListView(
                 highlighter: hl,
                 code: code,
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 showLineNumbers: true,
                 shrinkWrap: true,
                 async: false,
@@ -470,8 +615,8 @@ void main() {
               child: ShikiCodeListView(
                 highlighter: hl,
                 code: code,
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 textStyle: const TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 20,
@@ -506,8 +651,8 @@ void main() {
               child: ShikiCodeListView(
                 highlighter: hl,
                 code: 'const a = x;\nconst b = y;',
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 showLineNumbers: true,
                 gutterStyle: const GutterStyle(spacing: 37),
                 shrinkWrap: true,
@@ -540,8 +685,8 @@ void main() {
               child: ShikiCodeListView(
                 highlighter: hl,
                 code: 'const a = x;\nconst b = y;\nconst c = z;',
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 showLineNumbers: true,
                 paintBackground: false,
                 padding: const EdgeInsets.symmetric(
@@ -611,8 +756,8 @@ void main() {
               child: ShikiCodeListView(
                 highlighter: hl,
                 code: 'const a = x;\nconst b = y;',
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 showLineNumbers: true,
                 gutterStyle: const GutterStyle(dividerColor: dividerColor),
                 async: false,
@@ -644,8 +789,8 @@ void main() {
               child: ShikiCodeListView(
                 highlighter: hl,
                 code: 'const a = x;',
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 selectionColor: color,
                 async: false,
                 shrinkWrap: true,
@@ -673,8 +818,8 @@ void main() {
             child: ShikiCodeListView(
               highlighter: hl,
               code: 'const a = x;\nconst b = y;',
-              lang: 'javascript',
-              theme: 'github-dark',
+              lang: _jsLang,
+              theme: _darkThemeConfig,
               showLineNumbers: true,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -694,8 +839,8 @@ void main() {
         () => ShikiCodeListView(
           highlighter: hl,
           code: 'x',
-          lang: 'javascript',
-          theme: 'github-dark',
+          lang: _jsLang,
+          theme: _darkThemeConfig,
           showLineNumbers: true,
           softWrap: true,
         ),
@@ -714,8 +859,8 @@ void main() {
           home: ShikiCodeView(
             highlighter: hl,
             code: 'const answer = x;',
-            lang: 'javascript',
-            theme: 'github-dark',
+            lang: _jsLang,
+            theme: _darkThemeConfig,
             selectable: true,
           ),
         ),
@@ -733,8 +878,8 @@ void main() {
           home: ShikiCodeView(
             highlighter: hl,
             code: 'const answer = x;',
-            lang: 'javascript',
-            theme: 'github-dark',
+            lang: _jsLang,
+            theme: _darkThemeConfig,
           ),
         ),
       );
@@ -752,8 +897,8 @@ void main() {
               child: ShikiCodeView(
                 highlighter: hl,
                 code: 'const answer = x;',
-                lang: 'javascript',
-                theme: 'github-dark',
+                lang: _jsLang,
+                theme: _darkThemeConfig,
                 selectable: true,
               ),
             ),
@@ -777,8 +922,8 @@ void main() {
             child: ShikiCodeListView(
               highlighter: hl,
               code: 'const a = x;\nconst b = y;',
-              lang: 'javascript',
-              theme: 'github-dark',
+              lang: _jsLang,
+              theme: _darkThemeConfig,
               selectable: true,
             ),
           ),
@@ -801,8 +946,8 @@ void main() {
                 child: ShikiCodeListView(
                   highlighter: hl,
                   code: 'const a = x;\nconst b = y;',
-                  lang: 'javascript',
-                  theme: 'github-dark',
+                  lang: _jsLang,
+                  theme: _darkThemeConfig,
                   selectable: true,
                 ),
               ),
@@ -842,8 +987,8 @@ void main() {
                 return ShikiCodeView(
                   highlighter: hl,
                   code: code,
-                  lang: 'javascript',
-                  theme: 'github-dark',
+                  lang: _jsLang,
+                  theme: _darkThemeConfig,
                   textStyle: TextStyle(
                     fontFamily: 'monospace',
                     fontSize: fontSize,
@@ -894,8 +1039,8 @@ void main() {
                   child: ShikiCodeListView(
                     highlighter: hl,
                     code: code,
-                    lang: 'javascript',
-                    theme: 'github-dark',
+                    lang: _jsLang,
+                    theme: _darkThemeConfig,
                     textStyle: TextStyle(
                       fontFamily: 'monospace',
                       fontSize: fontSize,
@@ -930,7 +1075,10 @@ void main() {
     testWidgets('disposing while an async tokenize is in flight does not throw', (
       tester,
     ) async {
-      final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+      final hl = createHighlighter(
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
+      );
       addTearDown(hl.dispose);
 
       // Pump the async widget: first frame is the plain placeholder, an off-thread
@@ -944,8 +1092,8 @@ void main() {
             child: ShikiCodeView(
               highlighter: hl,
               code: 'void main() {}',
-              lang: 'dart',
-              theme: 'github-dark',
+              lang: CodeLanguages.dart,
+              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
               async: true,
             ),
           ),
