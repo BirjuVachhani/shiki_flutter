@@ -19,7 +19,6 @@ final _darkTheme = ShikiTheme(
   type: 'dark',
   json: File('test/fixtures/themes/github-dark.json').readAsStringSync(),
 );
-final _darkThemeConfig = ShikiThemeConfig.single(_darkTheme);
 
 ShikiHighlighter buildHighlighter() => ShikiHighlighter()
   ..loadBundledLanguage(_jsLang)
@@ -162,7 +161,7 @@ void main() {
             highlighter: hl,
             code: 'const answer = 42;',
             lang: _jsLang,
-            theme: _darkThemeConfig,
+            theme: _darkTheme,
           ),
         ),
       );
@@ -222,7 +221,7 @@ void main() {
                   highlighter: hl,
                   code: 'void main() {}',
                   lang: CodeLanguages.dart,
-                  theme: ShikiThemeConfig.dual(
+                  theme: .dual(
                     light: ShikiThemes.githubLight,
                     dark: ShikiThemes.githubDark,
                   ),
@@ -256,11 +255,12 @@ void main() {
             highlighter: ShikiHighlighter(),
             code: 'void main() {}',
             lang: CodeLanguages.dart,
-            theme: ShikiThemeConfig.dual(
+            theme: .dual(
               light: ShikiThemes.githubLight,
               dark: ShikiThemes.githubDark,
             ),
-            brightness: Brightness.dark, // override wins
+            brightness: Brightness.dark,
+            // override wins
             async: false,
           ),
         ),
@@ -275,7 +275,7 @@ void main() {
       final previous = ShikiHighlighter.config;
       addTearDown(() => ShikiHighlighter.config = previous);
       ShikiHighlighter.config = previous.copyWith(
-        defaultTheme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+        defaultTheme: ShikiThemes.githubDark,
       );
 
       await tester.pumpWidget(
@@ -335,7 +335,7 @@ void main() {
                 highlighter: hl,
                 code: code,
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 showLineNumbers: true,
                 gutterStyle: gutter,
                 padding: padding,
@@ -422,7 +422,7 @@ void main() {
             highlighter: hl,
             code: code,
             lang: _jsLang,
-            theme: _darkThemeConfig,
+            theme: _darkTheme,
             async: false,
           ),
         ),
@@ -524,7 +524,7 @@ void main() {
               highlighter: hl,
               code: 'const answer = x;',
               lang: _jsLang,
-              theme: _darkThemeConfig,
+              theme: _darkTheme,
             ),
           ),
         ),
@@ -548,7 +548,7 @@ void main() {
               highlighter: hl,
               code: 'const a = x;\nconst b = y;\nconst c = z;',
               lang: _jsLang,
-              theme: _darkThemeConfig,
+              theme: _darkTheme,
               showLineNumbers: true,
             ),
           ),
@@ -578,7 +578,7 @@ void main() {
                 highlighter: hl,
                 code: code,
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 showLineNumbers: true,
                 shrinkWrap: true,
                 async: false,
@@ -616,7 +616,7 @@ void main() {
                 highlighter: hl,
                 code: code,
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 textStyle: const TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 20,
@@ -652,7 +652,7 @@ void main() {
                 highlighter: hl,
                 code: 'const a = x;\nconst b = y;',
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 showLineNumbers: true,
                 gutterStyle: const GutterStyle(spacing: 37),
                 shrinkWrap: true,
@@ -686,7 +686,7 @@ void main() {
                 highlighter: hl,
                 code: 'const a = x;\nconst b = y;\nconst c = z;',
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 showLineNumbers: true,
                 paintBackground: false,
                 padding: const EdgeInsets.symmetric(
@@ -757,7 +757,7 @@ void main() {
                 highlighter: hl,
                 code: 'const a = x;\nconst b = y;',
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 showLineNumbers: true,
                 gutterStyle: const GutterStyle(dividerColor: dividerColor),
                 async: false,
@@ -790,7 +790,7 @@ void main() {
                 highlighter: hl,
                 code: 'const a = x;',
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 selectionColor: color,
                 async: false,
                 shrinkWrap: true,
@@ -819,7 +819,7 @@ void main() {
               highlighter: hl,
               code: 'const a = x;\nconst b = y;',
               lang: _jsLang,
-              theme: _darkThemeConfig,
+              theme: _darkTheme,
               showLineNumbers: true,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -840,7 +840,7 @@ void main() {
           highlighter: hl,
           code: 'x',
           lang: _jsLang,
-          theme: _darkThemeConfig,
+          theme: _darkTheme,
           showLineNumbers: true,
           softWrap: true,
         ),
@@ -860,7 +860,7 @@ void main() {
             highlighter: hl,
             code: 'const answer = x;',
             lang: _jsLang,
-            theme: _darkThemeConfig,
+            theme: _darkTheme,
             selectable: true,
           ),
         ),
@@ -879,7 +879,7 @@ void main() {
             highlighter: hl,
             code: 'const answer = x;',
             lang: _jsLang,
-            theme: _darkThemeConfig,
+            theme: _darkTheme,
           ),
         ),
       );
@@ -898,7 +898,7 @@ void main() {
                 highlighter: hl,
                 code: 'const answer = x;',
                 lang: _jsLang,
-                theme: _darkThemeConfig,
+                theme: _darkTheme,
                 selectable: true,
               ),
             ),
@@ -923,7 +923,7 @@ void main() {
               highlighter: hl,
               code: 'const a = x;\nconst b = y;',
               lang: _jsLang,
-              theme: _darkThemeConfig,
+              theme: _darkTheme,
               selectable: true,
             ),
           ),
@@ -947,7 +947,7 @@ void main() {
                   highlighter: hl,
                   code: 'const a = x;\nconst b = y;',
                   lang: _jsLang,
-                  theme: _darkThemeConfig,
+                  theme: _darkTheme,
                   selectable: true,
                 ),
               ),
@@ -988,7 +988,7 @@ void main() {
                   highlighter: hl,
                   code: code,
                   lang: _jsLang,
-                  theme: _darkThemeConfig,
+                  theme: _darkTheme,
                   textStyle: TextStyle(
                     fontFamily: 'monospace',
                     fontSize: fontSize,
@@ -1040,7 +1040,7 @@ void main() {
                     highlighter: hl,
                     code: code,
                     lang: _jsLang,
-                    theme: _darkThemeConfig,
+                    theme: _darkTheme,
                     textStyle: TextStyle(
                       fontFamily: 'monospace',
                       fontSize: fontSize,
@@ -1093,7 +1093,7 @@ void main() {
               highlighter: hl,
               code: 'void main() {}',
               lang: CodeLanguages.dart,
-              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+              theme: ShikiThemes.githubDark,
               async: true,
             ),
           ),

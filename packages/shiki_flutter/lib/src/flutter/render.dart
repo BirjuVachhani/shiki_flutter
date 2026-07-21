@@ -278,4 +278,4 @@ List<List<TextSpan>> codeToLineSpans(
 /// A convenience for callers who prefer a `List<TextSpan>` (one span per line)
 /// over a `List<List<TextSpan>>`:
 /// `codeToLineSpans(...).map(lineToTextSpan).toList()`.
-TextSpan lineToTextSpan(List<TextSpan> spans) => TextSpan(children: spans);
+TextSpan lineToTextSpan(List<InlineSpan> spans) => TextSpan(children: spans);

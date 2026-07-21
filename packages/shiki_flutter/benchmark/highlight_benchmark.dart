@@ -228,7 +228,7 @@ void main() {
               highlighter: highlighter,
               code: source,
               lang: CodeLanguages.dart,
-              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+              theme: ShikiThemes.githubDark,
               textStyle: _baseStyle,
             ),
           ),

@@ -547,8 +547,9 @@ class _WidgetPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    const config = HighlighterService.defaultThemeConfig;
-    final themeId = config.resolve(Theme.brightnessOf(context)).id;
+    final bool isDark = Theme.brightnessOf(context) == .dark;
+    final theme = ShikiHighlighter.config.defaultTheme.resolve(isDark: isDark);
+    final themeId = theme.id;
     // Fill the whole card with the theme background and let ShikiCodeView paint
     // only the text - otherwise its background spans just the text width and
     // leaves a mismatched strip on the right.
@@ -567,7 +568,7 @@ class _WidgetPreview extends StatelessWidget {
         highlighter: HighlighterService.instance.highlighter,
         code: Snippets.widgetSample.trim(),
         lang: CodeLanguages.dart,
-        theme: config,
+        theme: theme,
         paintBackground: false,
         textStyle: const TextStyle(
           fontFamily: AppFonts.mono,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
-import 'src/highlight/engine_config.dart';
 import 'src/router/app_router.dart';
 import 'src/theme/app_theme.dart';
 import 'src/theme/theme_controller.dart';
@@ -21,7 +21,16 @@ void main() {
   //     (web/shiki_tokenize_worker.js, from `dart run shiki_flutter:install`).
   // The engine/async split lives in engine_config.dart so the web build never
   // pulls in the native engine's WebAssembly.
-  ShikiHighlighter.config = siteHighlighterConfig();
+  ShikiHighlighter.config = const ShikiHighlighterConfig(
+    ioEngine: ShikiHighlighterNativeEngine(),
+    webEngine: ShikiHighlighterEmbeddedEngine(),
+    asyncIO: true,
+    asyncWeb: true,
+    defaultTheme: .dual(
+      light: PierreThemes.pierreLight,
+      dark: PierreThemes.pierreDark,
+    ),
+  );
   runApp(const ShikiSite());
 }
 

@@ -99,7 +99,7 @@ void main() {
               highlighter: jankH,
               code: src,
               lang: CodeLanguages.dart,
-              theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+              theme: ShikiThemes.githubDark,
               textStyle: _base.copyWith(color: fg),
               async: true,
             ),

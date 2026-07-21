@@ -31,9 +31,9 @@ export 'pierre_themes.dart' show PierreThemes;
 export 'src/core/code_language.dart';
 // Flutter-only surface not provided by `engine.dart`.
 export 'src/core/colors.dart' show applyColorReplacements, splitLines;
+export 'src/core/config.dart';
 export 'src/core/highlighter.dart';
 export 'src/core/shiki_theme.dart';
-export 'src/core/shiki_theme_config.dart';
 export 'src/core/theme_registration.dart'
     show ThemeRegistration, normalizeTheme;
 export 'src/flutter/code_list_view.dart';

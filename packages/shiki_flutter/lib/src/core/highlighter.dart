@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
-
 import '../async/lang_descriptor.dart';
 import '../async/protocol.dart';
 import '../async/token_cache.dart';
@@ -15,8 +13,8 @@ import '../textmate/registry.dart';
 import '../textmate/theme.dart';
 import 'code_language.dart';
 import 'colors.dart';
+import 'config.dart';
 import 'shiki_theme.dart';
-import 'shiki_theme_config.dart';
 import 'theme_registration.dart';
 import 'themed_token.dart';
 
@@ -45,7 +43,7 @@ ShikiHighlighter createHighlighter({
   ShikiHighlighterEngine? engine,
   TokenCache? cache,
 }) {
-  final hl = ShikiHighlighter(engine: engine, cache: cache);
+  final hl = ShikiHighlighter(engine: engine, tokenCache: cache);
   for (final lang in langs) {
     hl.loadBundledLanguage(lang);
   }
@@ -100,79 +98,6 @@ class _ResolvedTheme {
   final List<String> colorMap;
 }
 
-/// Global defaults for [ShikiHighlighter], split by platform so IO and web can
-/// be configured independently.
-///
-/// Set it once (e.g. in `main`) via [ShikiHighlighter.config]. Every field has a
-/// platform-appropriate default, so override only what you need, usually with
-/// [copyWith]:
-///
-/// ```dart
-/// void main() {
-///   ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
-///     ioEngine: const ShikiHighlighterNativeEngine(), // faster on IO
-///     asyncWeb: true, // after `dart run shiki_flutter:install`
-///   );
-///   runApp(const MyApp());
-/// }
-/// ```
-class ShikiHighlighterConfig {
-  const ShikiHighlighterConfig({
-    this.ioEngine = const ShikiHighlighterDartEngine(),
-    this.webEngine = const ShikiHighlighterEmbeddedEngine(),
-    this.asyncIO = true,
-    this.asyncWeb = false,
-    this.defaultTheme,
-  });
-
-  /// The regex engine used on native/VM (IO). Defaults to the pure-Dart
-  /// [ShikiHighlighterDartEngine] (full parity, zero setup, works everywhere).
-  /// Set it to `const ShikiHighlighterNativeEngine()` (from
-  /// `shiki_flutter_native_engine`, after `flutter config --enable-native-assets`)
-  /// for ~2.4x faster tokenization.
-  final ShikiHighlighterEngine ioEngine;
-
-  /// The regex engine used on web. Defaults to the built-in pure-Dart
-  /// [ShikiHighlighterEmbeddedEngine], the fastest engine on web (no WASM).
-  final ShikiHighlighterEngine webEngine;
-
-  /// Whether the rendering widgets highlight asynchronously on native/VM,
-  /// tokenizing on a background isolate so the UI thread never blocks on the
-  /// one-time grammar compile. Defaults to `true`.
-  final bool asyncIO;
-
-  /// Whether the rendering widgets highlight asynchronously on web. Web has no
-  /// isolates; when `true` and the Web Worker is installed
-  /// (`dart run shiki_flutter:install`) tokenization runs in that
-  /// worker, otherwise it runs inline on the main thread. Defaults to `false`.
-  final bool asyncWeb;
-
-  /// The theme the rendering widgets use when their `theme:` argument is omitted.
-  ///
-  /// Either a single theme ([ShikiThemeConfig.single]) or a light/dark pair
-  /// ([ShikiThemeConfig.dual]) resolved from the ambient `Theme.of(context)`
-  /// brightness. When null, each widget must supply its own `theme:`.
-  ///
-  /// The widgets load the resolved theme (and language) on demand, so a global
-  /// default works without pre-loading it into every highlighter.
-  final ShikiThemeConfig? defaultTheme;
-
-  /// Returns a copy with the given fields replaced.
-  ShikiHighlighterConfig copyWith({
-    ShikiHighlighterEngine? ioEngine,
-    ShikiHighlighterEngine? webEngine,
-    bool? asyncIO,
-    bool? asyncWeb,
-    ShikiThemeConfig? defaultTheme,
-  }) => ShikiHighlighterConfig(
-    ioEngine: ioEngine ?? this.ioEngine,
-    webEngine: webEngine ?? this.webEngine,
-    asyncIO: asyncIO ?? this.asyncIO,
-    asyncWeb: asyncWeb ?? this.asyncWeb,
-    defaultTheme: defaultTheme ?? this.defaultTheme,
-  );
-}
-
 /// A synchronous, TextMate-grammar based syntax highlighter.
 ///
 /// Load one or more languages and themes, then call [codeToTokens].
@@ -190,31 +115,15 @@ class ShikiHighlighter {
   /// highlighter; a widget's `async:` argument overrides async per widget.
   static ShikiHighlighterConfig config = const ShikiHighlighterConfig();
 
-  /// The engine [config] resolves to for the current platform:
-  /// [ShikiHighlighterConfig.webEngine] on web, else
-  /// [ShikiHighlighterConfig.ioEngine].
-  static ShikiHighlighterEngine get engineDefault =>
-      _kIsWeb ? config.webEngine : config.ioEngine;
-
-  /// Whether async highlighting is on by default for the current platform:
-  /// [ShikiHighlighterConfig.asyncWeb] on web, else
-  /// [ShikiHighlighterConfig.asyncIO]. A widget's `async:` argument overrides it.
-  static bool get asyncDefault => _kIsWeb ? config.asyncWeb : config.asyncIO;
-
-  /// The global default theme selection (see [ShikiHighlighterConfig.defaultTheme]),
-  /// used by the widgets when their `theme:` argument is omitted. May be null.
-  static ShikiThemeConfig? get defaultTheme => config.defaultTheme;
-
-  /// Creates a highlighter. [engine] overrides the global [engine] default for
-  /// this instance only; when null [ShikiHighlighter.engineDefault] is used.
-  /// [cache] overrides the token cache used for async highlighting.
-  ShikiHighlighter({ShikiHighlighterEngine? engine, TokenCache? cache})
-    : this._(engine ?? ShikiHighlighter.engineDefault, cache ?? TokenCache());
-
-  ShikiHighlighter._(this._engine, this._tokenCache)
-    : _registry = SyncRegistry(
+  /// Creates a highlighter. [engine] overrides the global engine default
+  /// (`ShikiHighlighter.config.engine`) for this instance only.
+  /// [tokenCache] overrides the token cache used for async highlighting.
+  ShikiHighlighter({ShikiHighlighterEngine? engine, TokenCache? tokenCache})
+    : _engine = engine ?? ShikiHighlighter.config.engine,
+      _tokenCache = tokenCache ?? TokenCache(),
+      _registry = SyncRegistry(
         Theme.createFromRawTheme(RawTheme(settings: [])),
-        _engine,
+        engine ?? ShikiHighlighter.config.engine,
       );
 
   final ShikiHighlighterEngine _engine;

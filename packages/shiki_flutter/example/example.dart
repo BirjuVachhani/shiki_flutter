@@ -25,7 +25,7 @@ void main() {
             highlighter: highlighter,
             code: _code.trim(),
             lang: CodeLanguages.dart,
-            theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+            theme: ShikiThemes.githubDark,
             textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 16),
           ),
         ),

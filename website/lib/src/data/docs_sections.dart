@@ -32,6 +32,7 @@ const docsGroups = <DocsSectionGroup>[
   DocsSectionGroup('Themes & languages', [
     DocsSection('themes', 'Themes'),
     DocsSection('extra-themes', 'Extra themes'),
+    DocsSection('custom-themes', 'Custom themes'),
     DocsSection('languages', 'Languages'),
   ]),
   DocsSectionGroup('Performance & platforms', [

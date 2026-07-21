@@ -35,7 +35,7 @@ class CodeBlock extends StatelessWidget {
   /// The theme(s) to render with. Defaults to the site's Pierre light/dark
   /// pair ([HighlighterService.defaultThemeConfig]), resolved against the
   /// ambient brightness by the widget.
-  final ShikiThemeConfig? theme;
+  final ShikiThemeBase? theme;
 
   /// When set, renders a header bar showing this file name and a file-code
   /// icon. The copy button moves into the header instead of floating.
@@ -54,10 +54,14 @@ class CodeBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final service = HighlighterService.instance;
-    final config = theme ?? HighlighterService.defaultThemeConfig;
+    final isDark = Theme.brightnessOf(context) == .dark;
+    final ShikiTheme theme =
+        (this.theme ?? ShikiHighlighter.config.defaultTheme).resolve(
+          isDark: isDark,
+        );
     // Resolve a concrete theme id for the background color; the widget resolves
     // the same brightness itself for the text.
-    final themeId = config.resolve(Theme.brightnessOf(context)).id;
+    final themeId = theme.id;
 
     final trimmed = code.trim();
     final bg = service.displayBackground(themeId, colors.surface);
@@ -79,7 +83,7 @@ class CodeBlock extends StatelessWidget {
         highlighter: service.highlighter,
         code: trimmed,
         lang: HighlighterService.languageForId(lang),
-        theme: config,
+        theme: theme,
         textStyle: TextStyle(
           fontFamily: AppFonts.mono,
           fontSize: fontSize,

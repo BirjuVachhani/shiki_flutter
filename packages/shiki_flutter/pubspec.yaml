@@ -11,7 +11,7 @@ repository: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/sh
 resolution: workspace
 
 environment:
-  sdk: ^3.12.2
+  sdk: ^3.12.0
   # Wide-gamut color support (Color.from + ColorSpace.displayP3, used to render
   # `color(display-p3 ...)` theme colors) landed in Flutter 3.27.
   flutter: ">=3.27.0"

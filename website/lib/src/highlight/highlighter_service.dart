@@ -80,10 +80,6 @@ class HighlighterService {
       ShikiThemes.vitesseDark,
       ShikiThemes.vitesseLight,
       ShikiThemes.vesper,
-      // Site-wide defaults for code blocks. These are the custom Pierre themes
-      // (package:shiki_flutter/pierre_themes/, an opt-in collection, not part
-      // of the package's `allThemes`). Only the two defaults are registered
-      // here; the other variants are tree-shaken out of the build.
       PierreThemes.pierreDark,
       PierreThemes.pierreLight,
     ],
@@ -114,16 +110,6 @@ class HighlighterService {
     DemoLanguage(CodeLanguages.rust, 'Rust', 'lib.rs'),
     DemoLanguage(CodeLanguages.go, 'Go', 'main.go'),
   ];
-
-  /// The default theme(s) for code blocks: the custom Pierre light/dark pair
-  /// (the opt-in package:shiki_flutter/pierre_themes collection). The widgets
-  /// resolve the pair against the ambient brightness themselves; the
-  /// theme-switcher showcase overrides this to demo the package's bundled
-  /// themes.
-  static const ShikiThemeConfig defaultThemeConfig = ShikiThemeConfig.dual(
-    light: PierreThemes.pierreLight,
-    dark: PierreThemes.pierreDark,
-  );
 
   /// The background color declared by [theme], falling back to [fallback].
   Color backgroundOf(String theme, Color fallback) {

@@ -550,9 +550,9 @@ List<Widget> _content(BuildContext context, String id) {
         ),
         DocH3('Using a bundled theme'),
         DocProse(
-          'Import a theme by symbol, pass it to `createHighlighter`, and '
-          'reference it by id when you render. Load several and switch per '
-          'render:',
+          'Import a theme by symbol and pass it where you render; the '
+          'highlighter loads it on demand. Load several and switch between '
+          'them per render:',
         ),
         CodeBlock(
           code: Snippets.themesUsage,
@@ -565,48 +565,32 @@ List<Widget> _content(BuildContext context, String id) {
           '`themes/all.dart` only for playgrounds that genuinely need every '
           'theme.',
         ),
-        DocH3('Bring your own theme'),
+        DocH3('Light and dark'),
         DocProse(
-          'Themes are plain VS Code theme JSON, so any theme works: grab one '
-          'from a VS Code marketplace extension, the textmate-grammars-themes '
-          'source, or hand-write your own, and load it live. Four entry points '
-          'take a theme and return its id:',
-        ),
-        DocTable(
-          headers: ['Method', 'Accepts', 'Use when'],
-          rows: [
-            [
-              '`loadShikiTheme(t)`',
-              '`ShikiTheme`',
-              'Using a theme that ships with the package.',
-            ],
-            [
-              '`loadThemeFromJson(s)`',
-              '`String`',
-              'You have raw theme JSON (asset, network, a `.json` file).',
-            ],
-            [
-              '`loadTheme(m)`',
-              '`Map<String, dynamic>`',
-              'You already decoded the JSON to a map.',
-            ],
-            [
-              '`loadThemeRegistration(r)`',
-              '`ThemeRegistration`',
-              'You built a theme programmatically.',
-            ],
-          ],
+          'The widgets take a `ShikiThemeConfig`: either a single theme, or a '
+          'light/dark pair that follows the ambient brightness.',
         ),
         CodeBlock(
-          code: Snippets.themesBringYourOwn,
+          code: Snippets.themesLightDark,
           lang: 'dart',
-          filename: 'byo_theme.dart',
+          filename: 'light_dark.dart',
+        ),
+        DocProse(
+          'Set a **default** once and omit `theme:` on individual widgets. This '
+          'is the natural home for a light/dark pair, so every code block '
+          'follows the app:',
+        ),
+        CodeBlock(
+          code: Snippets.defaultTheme,
+          lang: 'dart',
+          filename: 'default_theme.dart',
         ),
         DocH3('Browse all 65 themes'),
         DocProse(
           'Every bundled theme, tokenizing the same Dart sample live. Search '
-          'by name and pick one to preview. The id shown is the exact value '
-          'you pass as `theme:`.',
+          'by name and pick one to preview. Each id identifies a theme; '
+          'reference the matching `ShikiThemes.<name>` object (e.g. the id '
+          '`one-dark-pro` is `ShikiThemes.oneDarkPro`).',
         ),
         ThemeGallery(),
       ];
@@ -648,13 +632,55 @@ List<Widget> _content(BuildContext context, String id) {
           'Pierre Computer Company.',
         ),
       ];
+    case 'custom-themes':
+      return const [
+        DocProse(
+          'Themes are plain VS Code theme JSON, so any theme works: grab one '
+          'from a VS Code marketplace extension, the textmate-grammars-themes '
+          'source, or hand-write your own. Wrap the raw JSON in a `ShikiTheme` '
+          'and pass it where you render (shown below); the highlighter loads it '
+          'on demand. If you would rather load a theme into the highlighter '
+          'yourself (handy for the raw token API, by id), four entry points '
+          'take a theme and return its id:',
+        ),
+        DocTable(
+          headers: ['Method', 'Accepts', 'Use when'],
+          rows: [
+            [
+              '`loadShikiTheme(t)`',
+              '`ShikiTheme`',
+              'Using a theme that ships with the package.',
+            ],
+            [
+              '`loadThemeFromJson(s)`',
+              '`String`',
+              'You have raw theme JSON (asset, network, a `.json` file).',
+            ],
+            [
+              '`loadTheme(m)`',
+              '`Map<String, dynamic>`',
+              'You already decoded the JSON to a map.',
+            ],
+            [
+              '`loadThemeRegistration(r)`',
+              '`ThemeRegistration`',
+              'You built a theme programmatically.',
+            ],
+          ],
+        ),
+        CodeBlock(
+          code: Snippets.themesBringYourOwn,
+          lang: 'dart',
+          filename: 'byo_theme.dart',
+        ),
+      ];
     case 'languages':
       return const [
         DocProse(
           'Each bundled grammar is its own library exporting a single symbol '
           '(e.g. `dart`, `typescript`, `python`). Import the ones you use and '
-          'list them in `createHighlighter`. The value you pass to `lang` is '
-          "the language's id (shown in the list below).",
+          'pass them as `CodeLanguage` objects; the highlighter loads them on '
+          "demand. The id shown in the list below is each language's `.id`.",
         ),
         DocH3('Embedded languages'),
         DocProse(
@@ -900,6 +926,13 @@ List<Widget> _content(BuildContext context, String id) {
               '`false`',
               'Highlight off the UI thread on web (Web Worker; opt-in).',
             ],
+            [
+              '`defaultTheme`',
+              '`ShikiThemeConfig?`',
+              '`null`',
+              'Theme(s) the widgets use when `theme:` is omitted: a single '
+                  'theme or a light/dark pair.',
+            ],
           ],
         ),
         DocProse(
@@ -983,8 +1016,9 @@ List<Widget> _content(BuildContext context, String id) {
       return const [
         DocProse(
           'shiki_flutter ships two widgets for rendering highlighted code. '
-          'Both take the same core inputs (a loaded `highlighter`, the `code`, '
-          'and a `lang`/`theme` id) and share the same optional features: a '
+          'Both take the same core inputs (a `highlighter`, the `code`, a '
+          '`lang` object, and an optional `theme`) and share the same optional '
+          'features: a '
           'line-number gutter (`showLineNumbers` + `gutterStyle`), text '
           'selection, and async highlighting. Pick the one that fits how much '
           'code you are showing.',
@@ -1019,10 +1053,29 @@ List<Widget> _content(BuildContext context, String id) {
         DocTable(
           headers: ['Property', 'Type', 'Description'],
           rows: [
-            ['`highlighter`', '`ShikiHighlighter`', 'Loaded highlighter.'],
+            [
+              '`highlighter`',
+              '`ShikiHighlighter`',
+              'Highlighter to render with; loads `lang`/`theme` on demand.',
+            ],
             ['`code`', '`String`', 'Source to render.'],
-            ['`lang`', '`String`', 'Language id, e.g. `dart`.'],
-            ['`theme`', '`String`', 'Theme id, e.g. `github-dark`.'],
+            [
+              '`lang`',
+              '`CodeLanguage`',
+              'Language to highlight, e.g. `CodeLanguages.dart`.',
+            ],
+            [
+              '`theme`',
+              '`ShikiThemeConfig?`',
+              'A single theme or a light/dark pair. Omit to use the global '
+                  '`ShikiHighlighter.config.defaultTheme`.',
+            ],
+            [
+              '`brightness`',
+              '`Brightness?`',
+              'Overrides the brightness used to pick a `dual` theme '
+                  '(default: `Theme.of(context)`).',
+            ],
             [
               '`textStyle`',
               '`TextStyle?`',

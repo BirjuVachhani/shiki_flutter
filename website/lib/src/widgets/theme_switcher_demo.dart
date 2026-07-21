@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shiki_flutter/shiki_flutter.dart';
 
 import '../data/snippets.dart';
 import '../highlight/highlighter_service.dart';
@@ -42,7 +41,7 @@ class _ThemeSwitcherDemoState extends State<ThemeSwitcherDemo> {
         CodeBlock(
           code: Snippets.byLanguage['dart']!,
           lang: 'dart',
-          theme: ShikiThemeConfig.single(theme.theme),
+          theme: theme.theme,
         ),
       ],
     );

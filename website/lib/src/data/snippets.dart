@@ -291,20 +291,57 @@ final light = codeToTextSpan(
 );
 ''';
 
+  static const String themesLightDark = r'''
+// One theme, always.
+ShikiCodeView(
+  highlighter: highlighter,
+  code: source,
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+);
+
+// A light/dark pair. The widget reads Theme.of(context).brightness and
+// re-highlights when the app toggles light/dark. Override which side is
+// picked with the widget's brightness: argument.
+ShikiCodeView(
+  highlighter: highlighter,
+  code: source,
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.dual(
+    light: ShikiThemes.githubLight,
+    dark: ShikiThemes.githubDark,
+  ),
+);
+''';
+
+  static const String defaultTheme = r'''
+void main() {
+  ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+    defaultTheme: ShikiThemeConfig.dual(
+      light: ShikiThemes.githubLight,
+      dark: ShikiThemes.githubDark,
+    ),
+  );
+  runApp(const MyApp());
+}
+
+// No theme: needed; it falls back to the default. A widget's own theme:
+// overrides it, and if neither is set the widget throws a ShikiError.
+ShikiCodeView(highlighter: highlighter, code: source, lang: CodeLanguages.dart);
+''';
+
   static const String themesBringYourOwn = r'''
-// A theme is just VS Code / TextMate theme JSON. Load one at runtime from an
+// A theme is just VS Code / TextMate theme JSON, loaded at runtime from an
 // asset, the network, or a VS Code extension. No codegen, no rebuild.
 final json = await rootBundle.loadString('assets/aurora.json');
-// loadThemeFromJson returns the theme's id.
-final themeId = highlighter.loadThemeFromJson(json);
+final aurora = ShikiTheme(id: 'aurora', type: 'dark', json: json);
 
-// Render a runtime-loaded theme by id through the tokens API: codeToTextSpan
-// takes a ShikiTheme object, while TokenizeOptions still selects by id.
-final lines = highlighter.codeToTokens(
+final span = codeToTextSpan(
+  highlighter,
   code,
-  TokenizeOptions(lang: 'dart', theme: themeId),
+  lang: CodeLanguages.dart,
+  theme: aurora, // for the widgets: ShikiThemeConfig.single(aurora)
 );
-final span = tokensToTextSpan(lines);
 ''';
 
   static const String extraThemes = r'''
@@ -360,16 +397,22 @@ final highlighter = createHighlighter(
 ''';
 
   static const String customGrammar = r'''
-// Load any TextMate grammar or VS Code theme JSON at runtime.
-highlighter.loadLanguageFromJson(myGrammarJsonString);
-final themeName = highlighter.loadThemeFromJson(myThemeJsonString);
-
-// Both were loaded by id, so render them through the tokens API.
-final lines = highlighter.codeToTokens(
-  code,
-  TokenizeOptions(lang: 'my-lang', theme: themeName),
+// Wrap a TextMate grammar / VS Code theme JSON in a CodeLanguage / ShikiTheme
+// and hand them straight to the renderer; the highlighter loads them on demand.
+final myLang = CodeLanguage(
+  id: 'my-lang',
+  scopeName: 'source.my-lang', // the grammar's own scopeName
+  displayName: 'My Language',
+  json: myGrammarJsonString,
 );
-final span = tokensToTextSpan(lines);
+final myTheme = ShikiTheme(id: 'aurora', type: 'dark', json: myThemeJsonString);
+
+final span = codeToTextSpan(
+  highlighter,
+  code,
+  lang: myLang,
+  theme: myTheme,
+);
 ''';
 
   // ---- Async, engines, web setup, configuration ---------------------------

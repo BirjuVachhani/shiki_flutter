@@ -37,7 +37,7 @@ flutter pub add shiki_flutter
 
 ## Quick start
 
-Import the specific bundled languages and themes you need, create a highlighter, and hand it to `ShikiCodeView`:
+Import the specific bundled languages and themes you need, create a highlighter, and hand it to `ShikiCodeView`. Languages and themes are passed as objects (`CodeLanguage` and `ShikiThemeConfig`), which the highlighter loads on demand:
 
 **`main.dart`**
 
@@ -63,8 +63,8 @@ class CodeCard extends StatelessWidget {
     return ShikiCodeView(
       highlighter: highlighter,
       code: source,
-      lang: dart.id,        // 'dart'
-      theme: githubDark.id, // 'github-dark'
+      lang: dart,
+      theme: ShikiThemeConfig.single(githubDark),
       textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
     );
   }
@@ -82,11 +82,13 @@ Use `codeToTextSpan` to build an `InlineSpan` for any `Text.rich` or `RichText`:
 **`text_span.dart`**
 
 ```dart
+// codeToTextSpan takes a concrete ShikiTheme (it has no BuildContext to
+// resolve a light/dark pair). Both objects are loaded on demand.
 final span = codeToTextSpan(
   highlighter,
   sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemes.githubDark,
   baseStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
 );
 
@@ -104,8 +106,8 @@ Text.rich(span);
 ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
   textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
 )
 ```
@@ -131,7 +133,7 @@ for (final line in lines) {
 
 ## Widgets
 
-shiki_flutter ships two widgets for rendering highlighted code. Both take the same core inputs (a loaded `highlighter`, the `code`, and a `lang`/`theme` id) and share the same optional features: a line-number gutter (`showLineNumbers` + `gutterStyle`), text selection, and async highlighting. Pick the one that fits how much code you are showing.
+shiki_flutter ships two widgets for rendering highlighted code. Both take the same core inputs (a `highlighter`, the `code`, a `lang` object, and an optional `theme`) and share the same optional features: a line-number gutter (`showLineNumbers` + `gutterStyle`), text selection, and async highlighting. Pick the one that fits how much code you are showing.
 
 ### ShikiCodeView
 
@@ -143,8 +145,8 @@ The quickest way to display a snippet. It builds the whole document as a single 
 ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
   textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
 )
 ```
@@ -161,8 +163,8 @@ Expanded(
   child: ShikiCodeListView(
     highlighter: highlighter,
     code: sourceCode,
-    lang: 'dart',
-    theme: 'github-dark',
+    lang: CodeLanguages.dart,
+    theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
     textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
   ),
 )
@@ -174,10 +176,11 @@ Both widgets accept these core properties:
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `highlighter` | `ShikiHighlighter` | Loaded highlighter. |
+| `highlighter` | `ShikiHighlighter` | Highlighter to render with; loads `lang`/`theme` on demand. |
 | `code` | `String` | Source to render. |
-| `lang` | `String` | Language id, e.g. `dart`. |
-| `theme` | `String` | Theme id, e.g. `github-dark`. |
+| `lang` | `CodeLanguage` | Language to highlight, e.g. `CodeLanguages.dart`. |
+| `theme` | `ShikiThemeConfig?` | A single theme or a light/dark pair. Omit to use the global `ShikiHighlighter.config.defaultTheme`. |
+| `brightness` | `Brightness?` | Overrides the brightness used to pick a `dual` theme (default: `Theme.of(context)`). |
 | `textStyle` | `TextStyle?` | Base style; use a monospace font. |
 | `padding` | `EdgeInsetsGeometry` | Defaults to `16` all round. |
 | `paintBackground` | `bool` | Paint the theme's background. |
@@ -214,8 +217,8 @@ Rendering a whole file as one `TextSpan` (via `codeToTextSpan` or `ShikiCodeView
 ShikiCodeListView(
   highlighter: highlighter,
   code: sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
   showLineNumbers: true,
   textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
 )
@@ -234,8 +237,8 @@ Prefer to build the list yourself? `codeToLineSpans` returns the spans grouped b
 final lines = codeToLineSpans(
   highlighter,
   sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemes.githubDark,
   baseStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
 );
 
@@ -253,7 +256,7 @@ A theme is a real VS Code / TextMate theme: foreground, background, and font sty
 
 ### Using a bundled theme
 
-Import a theme by symbol, pass it to `createHighlighter`, and reference it by id when you render. Load several and switch per render:
+Import a theme by symbol and pass it where you render; the highlighter loads it on demand. Load several and switch between them per render:
 
 **`themes.dart`**
 
@@ -266,54 +269,75 @@ final highlighter = createHighlighter(
   themes: [oneDarkPro, vitesseLight],
 );
 
-// Switch themes per render by id.
+// Switch themes per render by passing the theme object.
 final dark = codeToTextSpan(
   highlighter,
   code,
-  lang: 'dart',
-  theme: oneDarkPro.id,
+  lang: dart,
+  theme: oneDarkPro,
 );
 final light = codeToTextSpan(
   highlighter,
   code,
-  lang: 'dart',
-  theme: vitesseLight.id,
+  lang: dart,
+  theme: vitesseLight,
 );
 ```
 
 > **Note:** Each theme is its own library, so importing one pulls in only that theme. The other 64 are tree-shaken away. Import `themes/all.dart` only for playgrounds that genuinely need every theme.
 
-### Bring your own theme
+### Light and dark
 
-Themes are plain VS Code theme JSON, so any theme works: grab one from a VS Code marketplace extension, the textmate-grammars-themes source, or hand-write your own, and load it live. Four entry points take a theme and return its id:
+The widgets take a `ShikiThemeConfig`: either a single theme, or a light/dark pair that follows the ambient brightness.
 
-| Method | Accepts | Use when |
-| --- | --- | --- |
-| `loadShikiTheme(t)` | `ShikiTheme` | Using a theme that ships with the package. |
-| `loadThemeFromJson(s)` | `String` | You have raw theme JSON (asset, network, a `.json` file). |
-| `loadTheme(m)` | `Map<String, dynamic>` | You already decoded the JSON to a map. |
-| `loadThemeRegistration(r)` | `ThemeRegistration` | You built a theme programmatically. |
-
-**`byo_theme.dart`**
+**`light_dark.dart`**
 
 ```dart
-// A theme is just VS Code / TextMate theme JSON. Load one at runtime from an
-// asset, the network, or a VS Code extension. No codegen, no rebuild.
-final json = await rootBundle.loadString('assets/aurora.json');
-// loadThemeFromJson returns the theme's id.
-final themeId = highlighter.loadThemeFromJson(json);
-
-final span = codeToTextSpan(
-  highlighter,
-  code,
-  lang: 'dart',
-  theme: themeId,
+// One theme, always.
+ShikiCodeView(
+  highlighter: highlighter,
+  code: source,
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
 );
+
+// A light/dark pair. The widget reads Theme.of(context).brightness and
+// re-highlights when the app toggles light/dark. Override which side is
+// picked with the widget's brightness: argument.
+ShikiCodeView(
+  highlighter: highlighter,
+  code: source,
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.dual(
+    light: ShikiThemes.githubLight,
+    dark: ShikiThemes.githubDark,
+  ),
+);
+```
+
+Set a **default** once and omit `theme:` on individual widgets. This is the natural home for a light/dark pair, so every code block follows the app:
+
+**`default_theme.dart`**
+
+```dart
+void main() {
+  ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+    defaultTheme: ShikiThemeConfig.dual(
+      light: ShikiThemes.githubLight,
+      dark: ShikiThemes.githubDark,
+    ),
+  );
+  runApp(const MyApp());
+}
+
+// No theme: needed; it falls back to the default. A widget's own theme:
+// overrides it, and if neither is set the widget throws a ShikiError.
+ShikiCodeView(highlighter: highlighter, code: source, lang: CodeLanguages.dart);
 ```
 
 ### Browse all 65 themes
 
-Every bundled theme tokenizes the same Dart sample live in the interactive gallery on the docs page. The id shown is the exact value you pass as `theme:`. The 65 bundled theme ids:
+Every bundled theme tokenizes the same Dart sample live in the interactive gallery on the docs page. Each id identifies a theme; reference the matching `ShikiThemes.<name>` object (e.g. the id `one-dark-pro` is `ShikiThemes.oneDarkPro`). The 65 bundled theme ids:
 
 ```text
 andromeeda, aurora-x, ayu-dark, ayu-light, ayu-mirage, catppuccin-frappe,
@@ -355,16 +379,45 @@ final highlighter = createHighlighter(
   themes: [pierreDark, pierreLight],
 );
 
-// Reference a theme by its id when you render.
+// Pass the theme object when you render.
 final span = codeToTextSpan(
   highlighter,
   code,
-  lang: 'dart',
-  theme: pierreDark.id, // 'pierre-dark'
+  lang: dart,
+  theme: pierreDark,
 );
 ```
 
 > **Note:** An opt-in collection: these are separate from the 65 bundled themes and not part of `themes/all.dart`, so they add nothing to your build unless you import them. The Pierre themes are MIT-licensed, © The Pierre Computer Company.
+
+## Custom themes
+
+Themes are plain VS Code theme JSON, so any theme works: grab one from a VS Code marketplace extension, the textmate-grammars-themes source, or hand-write your own. Wrap the raw JSON in a `ShikiTheme` and pass it where you render; the highlighter loads it on demand:
+
+**`byo_theme.dart`**
+
+```dart
+// A theme is just VS Code / TextMate theme JSON, loaded at runtime from an
+// asset, the network, or a VS Code extension. No codegen, no rebuild.
+final json = await rootBundle.loadString('assets/aurora.json');
+final aurora = ShikiTheme(id: 'aurora', type: 'dark', json: json);
+
+final span = codeToTextSpan(
+  highlighter,
+  code,
+  lang: CodeLanguages.dart,
+  theme: aurora, // for the widgets: ShikiThemeConfig.single(aurora)
+);
+```
+
+If you would rather load a theme into the highlighter yourself (handy for the raw token API, where you pass the theme by id), four entry points take a theme and return its id:
+
+| Method | Accepts | Use when |
+| --- | --- | --- |
+| `loadShikiTheme(t)` | `ShikiTheme` | Using a theme that ships with the package. |
+| `loadThemeFromJson(s)` | `String` | You have raw theme JSON (asset, network, a `.json` file). |
+| `loadTheme(m)` | `Map<String, dynamic>` | You already decoded the JSON to a map. |
+| `loadThemeRegistration(r)` | `ThemeRegistration` | You built a theme programmatically. |
 
 ## Languages
 
@@ -444,8 +497,8 @@ Both view widgets take an optional `async:` flag that overrides the global defau
 ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
-  lang: 'dart',
-  theme: 'github-dark',
+  lang: CodeLanguages.dart,
+  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
   async: true, // force off-thread; omit to follow the global default
 )
 ```
@@ -600,6 +653,7 @@ void main() {
 | `webEngine` | `ShikiHighlighterEngine` | `ShikiHighlighterEmbeddedEngine` | Engine used on web. |
 | `asyncIO` | `bool` | `true` | Highlight off the UI thread on IO (background isolate). |
 | `asyncWeb` | `bool` | `false` | Highlight off the UI thread on web (Web Worker; opt-in). |
+| `defaultTheme` | `ShikiThemeConfig?` | `null` | Theme(s) the widgets use when `theme:` is omitted: a single theme or a light/dark pair (see **Themes**). |
 
 Two narrower overrides sit on top of the global config: `createHighlighter(engine: ...)` sets the engine for a single highlighter, and a widget's `async:` argument sets async for a single widget.
 
@@ -677,15 +731,21 @@ Beyond the bundled catalog, you can load any TextMate grammar or VS Code theme J
 **`custom.dart`**
 
 ```dart
-// Load any TextMate grammar or VS Code theme JSON at runtime.
-highlighter.loadLanguageFromJson(myGrammarJsonString);
-final themeName = highlighter.loadThemeFromJson(myThemeJsonString);
+// Wrap a TextMate grammar / VS Code theme JSON in a CodeLanguage / ShikiTheme
+// and hand them straight to the renderer; the highlighter loads them on demand.
+final myLang = CodeLanguage(
+  id: 'my-lang',
+  scopeName: 'source.my-lang', // the grammar's own scopeName
+  displayName: 'My Language',
+  json: myGrammarJsonString,
+);
+final myTheme = ShikiTheme(id: 'aurora', type: 'dark', json: myThemeJsonString);
 
 final span = codeToTextSpan(
   highlighter,
   code,
-  lang: 'my-lang',
-  theme: themeName,
+  lang: myLang,
+  theme: myTheme,
 );
 ```
 

@@ -1946,8 +1946,9 @@ String? _emitDart(_Node node, _EmitCtx ctx) {
   }
   if (node is _GroupNode) {
     if (node.atomic) {
-      if (!ctx.emulate)
+      if (!ctx.emulate) {
         return null; // can't add helper groups when back-refs exist
+      }
       final n = ++ctx.groups; // helper is the next capturing group
       final child = _emitDart(node.child, ctx);
       if (child == null) return null;
