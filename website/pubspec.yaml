@@ -34,6 +34,11 @@ dependencies:
 
   flutter_svg: ^2.3.0
 
+  # Browser interop for the docs "Copy as Markdown" control: fetch the served
+  # web/docs.md and trigger a download. Web-only (guarded behind a conditional
+  # import), so it never enters the IO/desktop build.
+  web: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

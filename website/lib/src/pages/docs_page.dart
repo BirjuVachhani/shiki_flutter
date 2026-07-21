@@ -5,6 +5,7 @@ import '../data/snippets.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/code_block.dart';
+import '../widgets/docs_md_actions.dart';
 import '../widgets/footer.dart';
 import '../widgets/language_grid.dart';
 import '../widgets/nav_sheet.dart';
@@ -211,6 +212,11 @@ class _DocsPageState extends State<DocsPage> implements DocsSectionNavigator {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Copy the whole page as Markdown (for feeding to an LLM) / download
+          // it. Sits above the first section; web-only, and self-contained
+          // (renders nothing, no spacing, off web). See web/docs.md, which this
+          // page is kept in sync with.
+          const DocsMarkdownActions(),
           for (var i = 0; i < docsSections.length; i++)
             Padding(
               key: _keys[i],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import 'app_dropdown.dart';
 import 'app_icon.dart';
 
 /// One selectable theme in a [ThemeDropdown].
@@ -69,114 +70,30 @@ class ThemeDropdown extends StatefulWidget {
   State<ThemeDropdown> createState() => _ThemeDropdownState();
 }
 
-class _ThemeDropdownState extends State<ThemeDropdown>
-    with SingleTickerProviderStateMixin {
-  final LayerLink _link = LayerLink();
-  final OverlayPortalController _portal = OverlayPortalController();
-  // Initialized in initState (not as a `late final` inline field) so the Ticker
-  // is created while the element is active - otherwise disposing the dropdown
-  // without ever opening it lazily builds the controller during teardown, which
-  // throws (a Ticker can't look up TickerMode on a deactivated element).
-  late final AnimationController _anim;
-  bool _open = false;
-
+class _ThemeDropdownState extends State<ThemeDropdown> {
   ThemeChoice get _selected => widget.choices.firstWhere(
     (c) => c.id == widget.selectedId,
     orElse: () => widget.choices.first,
   );
 
   @override
-  void initState() {
-    super.initState();
-    _anim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 130),
-    );
-  }
-
-  @override
-  void dispose() {
-    _anim.dispose();
-    super.dispose();
-  }
-
-  void _openMenu() {
-    setState(() => _open = true);
-    _portal.show();
-    _anim.forward(from: 0);
-  }
-
-  void _closeMenu() {
-    if (!_open) return;
-    _anim.reverse().then((_) {
-      if (mounted) {
-        _portal.hide();
-        setState(() => _open = false);
-      }
-    });
-  }
-
-  void _select(String id) {
-    widget.onSelected(id);
-    _closeMenu();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return CompositedTransformTarget(
-      link: _link,
-      child: OverlayPortal(
-        controller: _portal,
-        overlayChildBuilder: (context) => Positioned.fill(
-          child: Stack(
-            children: [
-              // Outside-tap barrier.
-              Positioned.fill(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _closeMenu,
-                ),
-              ),
-              CompositedTransformFollower(
-                link: _link,
-                targetAnchor: Alignment.bottomLeft,
-                followerAnchor: Alignment.topLeft,
-                offset: const Offset(0, 6),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: AnimatedBuilder(
-                    animation: _anim,
-                    builder: (context, child) {
-                      final t = Curves.easeOutCubic.transform(_anim.value);
-                      return Opacity(
-                        opacity: t,
-                        child: Transform.translate(
-                          offset: Offset(0, (1 - t) * 4),
-                          child: Transform.scale(
-                            scale: 0.98 + 0.02 * t,
-                            alignment: Alignment.topLeft,
-                            child: child,
-                          ),
-                        ),
-                      );
-                    },
-                    child: ThemeDropdownPanel(
-                      choices: widget.choices,
-                      selectedId: widget.selectedId,
-                      width: widget.menuWidth,
-                      onSelected: _select,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        child: ThemeDropdownTrigger(
-          choice: _selected,
-          open: _open,
-          onTap: () => _open ? _closeMenu() : _openMenu(),
-        ),
+    // The shared dropdown shell handles the overlay, outside-tap close, and the
+    // fade/scale open animation; this widget only supplies the trigger + panel.
+    return AppDropdown(
+      triggerBuilder: (context, open, toggle) => ThemeDropdownTrigger(
+        choice: _selected,
+        open: open,
+        onTap: toggle,
+      ),
+      overlayBuilder: (context, close) => ThemeDropdownPanel(
+        choices: widget.choices,
+        selectedId: widget.selectedId,
+        width: widget.menuWidth,
+        onSelected: (id) {
+          widget.onSelected(id);
+          close();
+        },
       ),
     );
   }

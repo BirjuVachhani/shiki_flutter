@@ -1,10 +1,4 @@
 include: package:flutter_lints/flutter.yaml
 
-analyzer:
-  exclude:
-    # Generated bundled grammar/theme libraries (see tool/generate_bundled.dart).
-    - lib/langs/**
-    - lib/themes/**
-
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+formatter:
+  trailing_commas: preserve
