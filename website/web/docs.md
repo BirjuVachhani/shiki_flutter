@@ -603,6 +603,49 @@ void main() {
 
 Two narrower overrides sit on top of the global config: `createHighlighter(engine: ...)` sets the engine for a single highlighter, and a widget's `async:` argument sets async for a single widget.
 
+## Pre-warming
+
+The first time you highlight with a given grammar, the highlighter pays a one-time cost: it decodes the grammar JSON, builds its model, then lazily compiles the TextMate regexes as tokenization reaches them. On native and desktop that already runs off the UI thread (see **Async highlighting**), but a synchronous first highlight (raw `codeToTokens`, `async: false`, or web without the worker) pays it on the main isolate, where a large grammar can drop a frame.
+
+Pre-warming moves that cost to a moment where a brief pause is invisible, such as app startup or behind a splash screen, so the first real render is instant.
+
+- **Create the highlighter once** and keep it alive. `createHighlighter` already decodes and builds every grammar you pass it, so constructing it early does that work up front. Rebuilding it per frame or per screen throws the warm state away.
+- **Run one throwaway tokenize** per `(lang, theme)` you will show, to force the lazy regex compile before the first real highlight. Use `codeToTokensAsync` so it runs in the background isolate on IO; the grammar then stays warm on the highlighter.
+
+**`main.dart`**
+
+```dart
+// Create the highlighter once, at startup, and keep it alive for the app's
+// lifetime - don't rebuild it per frame or per screen. Constructing it already
+// decodes each grammar's JSON and builds its model.
+final highlighter = createHighlighter(
+  langs: [dart, python],
+  themes: [githubDark],
+);
+
+// The only cost left for the first highlight is the lazy TextMate regex
+// compile. Force it ahead of time with one throwaway tokenize per (lang, theme)
+// you'll show. codeToTokensAsync runs it in the background isolate on IO, so
+// startup never drops a frame; the grammar then stays warm on the highlighter.
+Future<void> warmUpHighlighter() async {
+  await highlighter.codeToTokensAsync(
+    'void main() {}',
+    const TokenizeOptions(lang: 'dart', theme: 'github-dark'),
+  );
+  await highlighter.codeToTokensAsync(
+    'def main(): pass',
+    const TokenizeOptions(lang: 'python', theme: 'github-dark'),
+  );
+}
+
+void main() {
+  warmUpHighlighter(); // fire-and-forget behind your splash / first frame
+  runApp(const MyApp());
+}
+```
+
+> **Note:** Tokens are also cached (LRU) per `(code, lang, theme)`, so warming with the exact source you will render turns that first paint into a cache hit too. On web, pre-warming pairs well with the Web Worker (see **Web setup**); without a worker the warm-up still runs, just inline on the main thread.
+
 ## Bundle size
 
 Even though the whole catalog ships in the package, only the languages and themes you actually import end up in your app. Each grammar and theme is a separate Dart library referenced by symbol, so the compiler tree-shakes away everything unreferenced.

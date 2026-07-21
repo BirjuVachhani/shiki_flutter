@@ -41,6 +41,7 @@ const docsGroups = <DocsSectionGroup>[
     DocsSection('configuration', 'Configuration'),
   ]),
   DocsSectionGroup('Advanced', [
+    DocsSection('pre-warming', 'Pre-warming'),
     DocsSection('bundle-size', 'Bundle size'),
     DocsSection('custom', 'Custom grammars'),
     DocsSection('limitations', 'Limitations'),

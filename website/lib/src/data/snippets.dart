@@ -402,6 +402,36 @@ final span = tokensToTextSpan(
 );
 ''';
 
+  static const String preWarm = r'''
+// Create the highlighter once, at startup, and keep it alive for the app's
+// lifetime - don't rebuild it per frame or per screen. Constructing it already
+// decodes each grammar's JSON and builds its model.
+final highlighter = createHighlighter(
+  langs: [dart, python],
+  themes: [githubDark],
+);
+
+// The only cost left for the first highlight is the lazy TextMate regex
+// compile. Force it ahead of time with one throwaway tokenize per (lang, theme)
+// you'll show. codeToTokensAsync runs it in the background isolate on IO, so
+// startup never drops a frame; the grammar then stays warm on the highlighter.
+Future<void> warmUpHighlighter() async {
+  await highlighter.codeToTokensAsync(
+    'void main() {}',
+    const TokenizeOptions(lang: 'dart', theme: 'github-dark'),
+  );
+  await highlighter.codeToTokensAsync(
+    'def main(): pass',
+    const TokenizeOptions(lang: 'python', theme: 'github-dark'),
+  );
+}
+
+void main() {
+  warmUpHighlighter(); // fire-and-forget behind your splash / first frame
+  runApp(const MyApp());
+}
+''';
+
   static const String engineNative = r'''
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shiki_flutter/shiki_flutter.dart';
