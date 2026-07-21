@@ -205,9 +205,9 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> {
         'ShikiHighlighter.config.defaultTheme.',
       );
     }
-    final isDark =
-        (widget.brightness ?? Theme.of(context).brightness) == Brightness.dark;
-    _resolvedTheme = config.resolve(isDark: isDark);
+    _resolvedTheme = config.resolve(
+      widget.brightness ?? Theme.brightnessOf(context),
+    );
     widget.highlighter.ensureShikiTheme(_resolvedTheme!);
     if (widget.lines == null) {
       widget.highlighter.ensureLanguage(widget.lang);

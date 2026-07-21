@@ -57,8 +57,7 @@ class CodeBlock extends StatelessWidget {
     final config = theme ?? HighlighterService.defaultThemeConfig;
     // Resolve a concrete theme id for the background color; the widget resolves
     // the same brightness itself for the text.
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final themeId = config.resolve(isDark: isDark).id;
+    final themeId = config.resolve(Theme.brightnessOf(context)).id;
 
     final trimmed = code.trim();
     final bg = service.displayBackground(themeId, colors.surface);

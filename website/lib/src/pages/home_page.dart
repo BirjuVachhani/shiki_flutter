@@ -548,8 +548,7 @@ class _WidgetPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     const config = HighlighterService.defaultThemeConfig;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final themeId = config.resolve(isDark: isDark).id;
+    final themeId = config.resolve(Theme.brightnessOf(context)).id;
     // Fill the whole card with the theme background and let ShikiCodeView paint
     // only the text - otherwise its background spans just the text width and
     // leaves a mismatched strip on the right.

@@ -4,6 +4,8 @@
 // re-exported from the Flutter-free `engine.dart`. The Flutter layer maps
 // `Theme.of(context).brightness` to the [isDark] flag that [resolve] takes.
 
+import 'dart:ui';
+
 import 'shiki_theme.dart';
 
 /// Selects the theme(s) a highlighter renders with: either a single [ShikiTheme]
@@ -37,7 +39,7 @@ sealed class ShikiThemeConfig {
 
   /// The concrete theme for the given brightness. A [ShikiThemeConfig.dual]
   /// picks by [isDark]; a [ShikiThemeConfig.single] ignores it.
-  ShikiTheme resolve({required bool isDark});
+  ShikiTheme resolve(Brightness brightness);
 
   /// Every theme this config references, for eager or on-demand loading.
   List<ShikiTheme> get themes;
@@ -50,7 +52,7 @@ final class SingleThemeConfig extends ShikiThemeConfig {
   final ShikiTheme theme;
 
   @override
-  ShikiTheme resolve({required bool isDark}) => theme;
+  ShikiTheme resolve(Brightness brightness) => theme;
 
   @override
   List<ShikiTheme> get themes => [theme];
@@ -64,7 +66,8 @@ final class DualThemeConfig extends ShikiThemeConfig {
   final ShikiTheme dark;
 
   @override
-  ShikiTheme resolve({required bool isDark}) => isDark ? dark : light;
+  ShikiTheme resolve(Brightness brightness) =>
+      brightness == .dark ? dark : light;
 
   @override
   List<ShikiTheme> get themes => [light, dark];
