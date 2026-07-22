@@ -37,8 +37,10 @@ class NavBar extends StatelessWidget {
     final row = ContentContainer(
       child: Row(
         children: [
-          Brand(onTap: () => context.go('/')),
-          const Spacer(),
+          // Expanded (not Brand + Spacer) so the brand takes the leading space
+          // and its tagline ellipsizes under pressure, keeping the links pinned
+          // right without the row overflowing when space is tight.
+          Expanded(child: Brand(onTap: () => context.go('/'))),
           if (!compact) ...[
             _NavLink(
               label: 'Home',

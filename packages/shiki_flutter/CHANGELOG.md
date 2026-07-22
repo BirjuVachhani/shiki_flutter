@@ -1,16 +1,17 @@
 ## 1.0.0
 
-* Light/dark theme support. `ShikiCodeView` / `ShikiCodeListView` now take a
-  `ShikiThemeConfig`: either `ShikiThemeConfig.single(theme)` for one theme, or
-  `ShikiThemeConfig.dual(light:, dark:)` for a pair that follows the ambient
-  `Theme.of(context).brightness` and re-highlights when the app toggles light /
-  dark (override the picked side with the widget's `brightness:` argument).
+* Light/dark theme support. `ShikiCodeView` / `ShikiCodeListView` take a
+  `ShikiThemeBase` as `theme:`: either a single `ShikiTheme` (e.g.
+  `ShikiThemes.githubDark`), or a `ShikiDualTheme(light:, dark:)` pair that
+  follows the ambient `Theme.of(context).brightness` and re-highlights when the
+  app toggles light / dark (override the picked side with the widget's
+  `brightness:` argument).
 * Global default theme. Set `ShikiHighlighter.config.defaultTheme` (a
-  `ShikiThemeConfig`) once and omit `theme:` on individual widgets; a widget's
-  own `theme:` overrides it. If neither is set, the widget throws a `ShikiError`.
+  `ShikiThemeBase`) once and omit `theme:` on individual widgets; a widget's own
+  `theme:` overrides it. If neither is set, the widget throws a `ShikiError`.
 * The rendering API now takes objects instead of string ids: widgets and
   `codeToTextSpan` / `codeToLineSpans` take a `CodeLanguage` for `lang:` (and a
-  `ShikiTheme` / `ShikiThemeConfig` for `theme:`) rather than name strings. The
+  `ShikiTheme` / `ShikiThemeBase` for `theme:`) rather than name strings. The
   widgets load the language and resolved theme into the highlighter on demand
   (new idempotent `ShikiHighlighter.ensureLanguage` / `ensureShikiTheme`), so a
   global default works without pre-loading every highlighter.

@@ -83,14 +83,14 @@ final highlighter = createHighlighter(
 ```
 
 Render with the widget. Pass the language and theme as objects (`CodeLanguage`
-and `ShikiThemeConfig`); the widget loads them into the highlighter on demand:
+and `ShikiThemeBase`); the widget loads them into the highlighter on demand:
 
 ```dart
 ShikiCodeView(
   highlighter: highlighter,
   code: "void main() => print('Hello');",
   lang: CodeLanguages.dart,
-  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+  theme: ShikiThemes.githubDark,
   textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
 )
 ```
@@ -122,23 +122,24 @@ TextMate `scopes`.
 
 ## Themes
 
-The widgets take a `ShikiThemeConfig`: either a single theme, or a light/dark
-pair that follows the ambient brightness.
+The widgets take a `ShikiThemeBase`: either a single `ShikiTheme`, or a
+`ShikiDualTheme` light/dark pair that follows the ambient brightness.
 
 ```dart
 // One theme everywhere.
-theme: ShikiThemeConfig.single(ShikiThemes.githubDark)
+theme: ShikiThemes.githubDark
 
 // Light in light mode, dark in dark mode, chosen from Theme.of(context).
-theme: ShikiThemeConfig.dual(
+theme: ShikiDualTheme(
   light: ShikiThemes.githubLight,
   dark: ShikiThemes.githubDark,
 )
 ```
 
-A `dual` config resolves from `Theme.of(context).brightness` and re-highlights
-when the app toggles between light and dark. Override which side is picked with
-the widget's `brightness:` argument.
+A `ShikiDualTheme` resolves from `Theme.of(context).brightness` and re-highlights
+when the app toggles between light and dark; override which side is picked with
+the widget's `brightness:` argument. (`ShikiThemeBase.dual(light:, dark:)` is an
+equivalent `const` factory if you prefer.)
 
 Set a **default theme** once and omit `theme:` on individual widgets. This is
 the natural home for a light/dark pair, so every code block follows the app:
@@ -146,7 +147,7 @@ the natural home for a light/dark pair, so every code block follows the app:
 ```dart
 void main() {
   ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
-    defaultTheme: ShikiThemeConfig.dual(
+    defaultTheme: ShikiDualTheme(
       light: ShikiThemes.githubLight,
       dark: ShikiThemes.githubDark,
     ),
@@ -154,7 +155,7 @@ void main() {
   runApp(const MyApp());
 }
 
-// Later, no theme: needed — it falls back to the default.
+// Later, no theme: needed; it falls back to the default.
 ShikiCodeView(highlighter: highlighter, code: code, lang: CodeLanguages.dart)
 ```
 
@@ -199,7 +200,7 @@ ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
 | `webEngine` | `ShikiHighlighterEngine`| `ShikiHighlighterEmbeddedEngine()` | Engine used on web. |
 | `asyncIO`   | `bool`                  | `true`                           | Highlight off the UI thread on IO (background isolate). |
 | `asyncWeb`  | `bool`                  | `false`                          | Highlight off the UI thread on web (Web Worker; opt-in, see [Web async setup](#web-async-setup-off-the-main-thread)). |
-| `defaultTheme` | `ShikiThemeConfig?`  | `null`                           | Theme(s) the widgets use when `theme:` is omitted: a single theme or a light/dark pair (see [Themes](#themes)). |
+| `defaultTheme` | `ShikiThemeBase?`  | `null`                           | Theme(s) the widgets use when `theme:` is omitted: a single theme or a light/dark pair (see [Themes](#themes)). |
 
 `createHighlighter(engine: ...)` overrides the engine for a single highlighter; a
 widget's `async:` argument overrides async for a single widget.

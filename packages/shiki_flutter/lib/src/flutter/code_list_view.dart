@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/widgets.dart';
-import 'package:shiki_flutter/src/flutter/base.dart';
+import 'base.dart';
 
 import '../core/code_language.dart';
 import '../core/colors.dart';
@@ -13,11 +13,11 @@ import 'render_cache.dart';
 /// Displays [code] highlighted with [lang]/[theme], rendering **one line per
 /// row** via a lazily-built [ListView] so large files stay smooth.
 ///
-/// Like [ShikiCodeView], [lang] and [theme] are objects ([CodeLanguage] and
-/// [ShikiThemeConfig]) loaded into the [highlighter] on demand; [theme] falls
-/// back to `ShikiHighlighter.config.defaultTheme` when omitted, and a
-/// [ShikiThemeConfig.dual] pair is resolved from `Theme.of(context)` brightness
-/// (override via [brightness]).
+/// Like [ShikiCodeView], [lang] is a [CodeLanguage] and [theme] is a single
+/// `ShikiTheme` or a `ShikiDualTheme` pair, loaded into the [highlighter]
+/// on demand; [theme] falls back to `ShikiHighlighter.config.defaultTheme` when
+/// omitted (throwing a `ShikiError` if that is also unset), and a dual pair is
+/// resolved from `Theme.of(context)` brightness (override via [brightness]).
 ///
 /// Unlike [ShikiCodeView], which builds the entire document as a single
 /// `Text.rich`, this widget renders one line per row. In the default

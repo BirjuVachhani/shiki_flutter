@@ -257,21 +257,28 @@ class _SheetNavItem extends StatelessWidget {
                 AppIcon(leading!, size: 18, color: colors.foreground),
                 const SizedBox(width: 12),
               ],
-              Text(
-                label,
-                style: TextStyle(
-                  color: active ? colors.foreground : colors.mutedForeground,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              // Flex the label so it fills the row and ellipsizes on tight
+              // widths instead of overflowing; the trailing icon stays pinned
+              // right (this replaces the old Text + Spacer pairing).
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: active ? colors.foreground : colors.mutedForeground,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-              const Spacer(),
-              if (external)
+              if (external) ...[
+                const SizedBox(width: 12),
                 AppIcon(
                   DiffIcon.arrowUpRight,
                   size: 16,
                   color: colors.mutedForeground,
                 ),
+              ],
             ],
           ),
         ),

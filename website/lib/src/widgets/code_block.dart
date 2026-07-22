@@ -33,7 +33,7 @@ class CodeBlock extends StatelessWidget {
   final String lang;
 
   /// The theme(s) to render with. Defaults to the site's Pierre light/dark
-  /// pair ([HighlighterService.defaultThemeConfig]), resolved against the
+  /// pair ([HighlighterService.defaultTheme]), resolved against the
   /// ambient brightness by the widget.
   final ShikiThemeBase? theme;
 
@@ -55,10 +55,8 @@ class CodeBlock extends StatelessWidget {
     final colors = context.colors;
     final service = HighlighterService.instance;
     final isDark = Theme.brightnessOf(context) == .dark;
-    final ShikiTheme theme =
-        (this.theme ?? ShikiHighlighter.config.defaultTheme).resolve(
-          isDark: isDark,
-        );
+    final ShikiTheme theme = (this.theme ?? HighlighterService.defaultTheme)
+        .resolve(isDark: isDark);
     // Resolve a concrete theme id for the background color; the widget resolves
     // the same brightness itself for the text.
     final themeId = theme.id;
@@ -78,34 +76,36 @@ class CodeBlock extends StatelessWidget {
     // line view gives a real (non-faked) line-number gutter that stays
     // row-aligned, plus horizontal scrolling for long lines. Shrink-wrapped so
     // the block grows to fit and never traps the page's vertical scroll.
-    final body = SelectionArea(
-      child: ShikiCodeView(
-        highlighter: service.highlighter,
-        code: trimmed,
-        lang: HighlighterService.languageForId(lang),
-        theme: theme,
-        textStyle: TextStyle(
-          fontFamily: AppFonts.mono,
-          fontSize: fontSize,
-          height: 20 / fontSize,
-          fontFeatures: [.tabularFigures()],
-        ),
-        gutterStyle: GutterStyle(
-          spacing: 15.6,
-          dividerColor: showDividers ? border : null,
-          textColor: onBg.withValues(alpha: 0.32),
-          textScale: 0.9,
-        ),
-        showLineNumbers: showLineNumbers,
-        paintBackground: false,
-        // shrinkWrap: true,
-        // physics: const NeverScrollableScrollPhysics(),
-        padding: .only(
-          left: 15.6,
-          top: hasHeader && !showDividers ? 0 : 12,
-          bottom: 12,
-          right: 15.6,
-        ),
+    // No wrapping SelectionArea here: `selectable: true` lets ShikiCodeView add
+    // one itself only when there is no ancestor SelectionArea (its internal
+    // `SelectionContainer.maybeOf` guard). The pages already provide a page-level
+    // SelectionArea, so wrapping again would nest them, which breaks keyboard
+    // copy (Cmd/Ctrl+C) on a manual selection.
+    final body = ShikiCodeView(
+      highlighter: service.highlighter,
+      code: trimmed,
+      lang: HighlighterService.languageForId(lang),
+      theme: theme,
+      selectable: true,
+      textStyle: TextStyle(
+        fontFamily: AppFonts.mono,
+        fontSize: fontSize,
+        height: 20 / fontSize,
+        fontFeatures: [.tabularFigures()],
+      ),
+      gutterStyle: GutterStyle(
+        spacing: 15.6,
+        dividerColor: showDividers ? border : null,
+        textColor: onBg.withValues(alpha: 0.32),
+        textScale: 0.9,
+      ),
+      showLineNumbers: showLineNumbers,
+      paintBackground: false,
+      padding: .only(
+        left: 15.6,
+        top: hasHeader && !showDividers ? 0 : 12,
+        bottom: 12,
+        right: 15.6,
       ),
     );
 

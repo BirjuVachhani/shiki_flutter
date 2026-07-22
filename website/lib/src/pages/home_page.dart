@@ -548,7 +548,7 @@ class _WidgetPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final bool isDark = Theme.brightnessOf(context) == .dark;
-    final theme = ShikiHighlighter.config.defaultTheme.resolve(isDark: isDark);
+    final theme = HighlighterService.defaultTheme.resolve(isDark: isDark);
     final themeId = theme.id;
     // Fill the whole card with the theme background and let ShikiCodeView paint
     // only the text - otherwise its background spans just the text width and

@@ -200,7 +200,7 @@ TextSpan tokensToTextSpan(
 /// Highlights [code] and returns a ready-to-use [TextSpan].
 ///
 /// [lang] and [theme] are loaded into [highlighter] on demand; [theme] is a
-/// concrete [ShikiTheme] (resolve a light/dark [ShikiThemeConfig] yourself
+/// concrete [ShikiTheme] (resolve a light/dark [ShikiDualTheme] yourself
 /// first, since these helpers have no `BuildContext`).
 TextSpan codeToTextSpan(
   ShikiHighlighter highlighter,

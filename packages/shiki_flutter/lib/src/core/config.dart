@@ -1,5 +1,7 @@
-import 'package:shiki_flutter/shiki_flutter.dart';
 import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
+
+import '../onig/onig.dart';
+import 'shiki_theme.dart';
 
 /// Web vs. native without importing `package:flutter/foundation.dart`, whose
 /// `kIsWeb` pulls in `dart:ui` and would break the Flutter-free `engine.dart`
@@ -30,10 +32,7 @@ class ShikiHighlighterConfig {
     this.webEngine = const ShikiHighlighterEmbeddedEngine(),
     this.asyncIO = true,
     this.asyncWeb = false,
-    this.defaultTheme = const .dual(
-      light: ShikiThemes.githubLight,
-      dark: ShikiThemes.githubDark,
-    ),
+    this.defaultTheme,
   });
 
   /// The regex engine used on native/VM (IO). Defaults to the pure-Dart
@@ -60,13 +59,13 @@ class ShikiHighlighterConfig {
 
   /// The theme the rendering widgets use when their `theme:` argument is omitted.
   ///
-  /// Either a single theme ([ShikiThemeConfig.single]) or a light/dark pair
-  /// ([ShikiThemeConfig.dual]) resolved from the ambient `Theme.of(context)`
-  /// brightness. When null, each widget must supply its own `theme:`.
+  /// Either a single [ShikiTheme] or a light/dark pair ([ShikiDualTheme]),
+  /// resolved from the ambient `Theme.of(context)` brightness. When null (the
+  /// default), a widget with no `theme:` of its own throws a `ShikiError`.
   ///
   /// The widgets load the resolved theme (and language) on demand, so a global
   /// default works without pre-loading it into every highlighter.
-  final ShikiThemeBase defaultTheme;
+  final ShikiThemeBase? defaultTheme;
 
   bool get async => _kIsWeb ? asyncWeb : asyncIO;
 

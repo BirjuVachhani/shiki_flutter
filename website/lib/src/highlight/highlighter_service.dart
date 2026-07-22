@@ -41,6 +41,13 @@ class HighlighterService {
   //
   // The languages a code block can reference by id (see [languageForId]); the
   // shared highlighter registers exactly this set.
+  /// The site-wide default theme for code blocks: the Pierre light/dark pair.
+  /// Used when a [CodeBlock]/widget is not given an explicit `theme:`.
+  static const ShikiThemeBase defaultTheme = ShikiDualTheme(
+    light: PierreThemes.pierreLight,
+    dark: PierreThemes.pierreDark,
+  );
+
   static final List<CodeLanguage> _bundledLanguages = [
     CodeLanguages.dart,
     CodeLanguages.typescript,

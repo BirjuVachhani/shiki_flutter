@@ -351,40 +351,45 @@ class _ThemePreview extends StatelessWidget {
       color: onBg.withValues(alpha: 0.32),
     );
 
-    final code = SelectionArea(
-      child: SingleChildScrollView(
-        // Vertical: the sample can be taller than the fixed pane.
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SelectionContainer.disabled(
+    final scroller = SingleChildScrollView(
+      // Vertical: the sample can be taller than the fixed pane.
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SelectionContainer.disabled(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    for (var i = 1; i <= lineCount; i++)
+                      Text('$i', style: numberStyle),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      for (var i = 1; i <= lineCount; i++)
-                        Text('$i', style: numberStyle),
-                    ],
-                  ),
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Text.rich(span, softWrap: false),
                 ),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Text.rich(span, softWrap: false),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+
+    // Only add our own SelectionArea when there isn't one already above us (e.g.
+    // the docs page's). Nesting SelectionAreas breaks keyboard copy (Cmd/Ctrl+C),
+    // so an ancestor SelectionArea keeps driving selection here.
+    final code = SelectionContainer.maybeOf(context) == null
+        ? SelectionArea(child: scroller)
+        : scroller;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

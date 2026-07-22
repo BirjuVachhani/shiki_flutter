@@ -176,7 +176,7 @@ void main() {
     });
   });
 
-  group('ShikiThemeConfig resolution', () {
+  group('theme resolution', () {
     Color codeViewBg(WidgetTester tester) => tester
         .widget<ColoredBox>(
           find.descendant(

@@ -317,7 +317,13 @@ class _StickyBox extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, sticky) {
-        final offset = controller.hasClients ? controller.offset : 0.0;
+        // Guard on exactly one attached position: while resizing across the
+        // compact/wide breakpoint the old and new scroll views can both be
+        // attached to this controller for a frame, and `offset` throws when
+        // more than one position exists.
+        final offset = controller.positions.length == 1
+            ? controller.offset
+            : 0.0;
         return Transform.translate(offset: Offset(0, offset), child: sticky);
       },
       child: child,
@@ -412,9 +418,11 @@ List<Widget> _content(BuildContext context, String id) {
           '**off the UI thread by default**, so the one-time grammar compile never '
           'freezes a frame (see **Async highlighting**).',
         ),
-        Row(
-          mainAxisSize: .min,
+        // Wrap (not Row) so the two fixed-width stat cards stack instead of
+        // overflowing once the reading column is narrower than both side by side.
+        Wrap(
           spacing: 8,
+          runSpacing: 8,
           children: [
             Container(
               width: 200,
@@ -550,9 +558,9 @@ List<Widget> _content(BuildContext context, String id) {
         ),
         DocH3('Using a bundled theme'),
         DocProse(
-          'Import a theme by symbol and pass it where you render; the '
-          'highlighter loads it on demand. Load several and switch between '
-          'them per render:',
+          'Reference a bundled theme via `ShikiThemes` and pass it where you '
+          'render; the highlighter loads it on demand. Load several and switch '
+          'between them per render:',
         ),
         CodeBlock(
           code: Snippets.themesUsage,
@@ -560,15 +568,16 @@ List<Widget> _content(BuildContext context, String id) {
           filename: 'themes.dart',
         ),
         DocNote(
-          'Each theme is its own library, so importing one pulls in only that '
-          'theme. The other 64 are tree-shaken away. Import '
-          '`themes/all.dart` only for playgrounds that genuinely need every '
-          'theme.',
+          'Referencing a theme like `ShikiThemes.oneDarkPro` pulls in only that '
+          'theme; the other 64 are tree-shaken away. Use `ShikiThemes.all` only '
+          'for playgrounds that genuinely need every theme.',
         ),
         DocH3('Light and dark'),
         DocProse(
-          'The widgets take a `ShikiThemeConfig`: either a single theme, or a '
-          'light/dark pair that follows the ambient brightness.',
+          'The widgets take a `ShikiThemeBase`: either a single `ShikiTheme`, '
+          'or a `ShikiDualTheme` light/dark pair that follows the ambient '
+          'brightness. (`ShikiThemeBase.dual(light:, dark:)` is an equivalent '
+          '`const` factory.)',
         ),
         CodeBlock(
           code: Snippets.themesLightDark,
@@ -627,8 +636,8 @@ List<Widget> _content(BuildContext context, String id) {
         ),
         DocNote(
           'An opt-in collection: these are separate from the 65 bundled themes '
-          'and not part of `themes/all.dart`, so they add nothing to your build '
-          'unless you import them. The Pierre themes are MIT-licensed, © The '
+          'and not part of `ShikiThemes.all`, so they add nothing to your build '
+          'unless you reference them. The Pierre themes are MIT-licensed, © The '
           'Pierre Computer Company.',
         ),
       ];
@@ -677,10 +686,11 @@ List<Widget> _content(BuildContext context, String id) {
     case 'languages':
       return const [
         DocProse(
-          'Each bundled grammar is its own library exporting a single symbol '
-          '(e.g. `dart`, `typescript`, `python`). Import the ones you use and '
-          'pass them as `CodeLanguage` objects; the highlighter loads them on '
-          "demand. The id shown in the list below is each language's `.id`.",
+          'Each bundled grammar is its own library, referenced via the '
+          '`CodeLanguages` facade (e.g. `CodeLanguages.dart`, '
+          '`CodeLanguages.python`); the highlighter loads them on demand and the '
+          "rest tree-shake away. The id shown in the list below is each "
+          "language's `.id`.",
         ),
         DocH3('Embedded languages'),
         DocProse(
@@ -928,7 +938,7 @@ List<Widget> _content(BuildContext context, String id) {
             ],
             [
               '`defaultTheme`',
-              '`ShikiThemeConfig?`',
+              '`ShikiThemeBase?`',
               '`null`',
               'Theme(s) the widgets use when `theme:` is omitted: a single '
                   'theme or a light/dark pair.',
@@ -985,18 +995,20 @@ List<Widget> _content(BuildContext context, String id) {
       return const [
         DocProse(
           'Even though the whole catalog ships in the package, only the '
-          'languages and themes you actually import end up in your app. Each '
+          'languages and themes you actually reference end up in your app. Each '
           'grammar and theme is a separate Dart library referenced by symbol, '
           'so the compiler tree-shakes away everything unreferenced.',
         ),
         DocBullets([
-          '**Do** import specific entries: `import '
-              "'package:shiki_flutter/langs/dart.dart';`.",
-          "**Don't** import the `all.dart` barrels unless you truly want every "
-              'grammar. They reference everything and defeat tree-shaking.',
+          '**Do** reference specific members: `CodeLanguages.dart`, '
+              '`ShikiThemes.githubDark`. Only those (and their embedded deps) '
+              'are bundled.',
+          "**Don't** use the `.all` lists (`CodeLanguages.all` / "
+              '`ShikiThemes.all`) unless you truly want every grammar/theme. '
+              'They reference everything and defeat tree-shaking.',
         ]),
         DocProse(
-          'The barrels exist for tools and playgrounds that genuinely need '
+          'The `.all` lists exist for tools and playgrounds that genuinely need '
           'everything:',
         ),
         CodeBlock(
@@ -1066,7 +1078,7 @@ List<Widget> _content(BuildContext context, String id) {
             ],
             [
               '`theme`',
-              '`ShikiThemeConfig?`',
+              '`ShikiThemeBase?`',
               'A single theme or a light/dark pair. Omit to use the global '
                   '`ShikiHighlighter.config.defaultTheme`.',
             ],

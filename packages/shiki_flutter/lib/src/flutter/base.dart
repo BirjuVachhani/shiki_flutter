@@ -50,7 +50,7 @@ abstract class ShikiBaseWidget extends StatefulWidget {
   /// null a [ShikiError] is thrown.
   final ShikiThemeBase? theme;
 
-  /// Overrides the brightness used to pick a [ShikiThemeConfig.dual] theme. When
+  /// Overrides the brightness used to pick a [ShikiDualTheme] theme. When
   /// null, the ambient `Theme.of(context).brightness` is used.
   final Brightness? brightness;
 
@@ -138,8 +138,15 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
 
   @protected
   void resolveTheme() {
+    final theme = widget.theme ?? ShikiHighlighter.config.defaultTheme;
+    if (theme == null) {
+      throw ShikiError(
+        'No theme to render with: pass a `theme:` to the widget or set '
+        'ShikiHighlighter.config.defaultTheme.',
+      );
+    }
     final isDark = (widget.brightness ?? Theme.brightnessOf(context)) == .dark;
-    resolvedTheme = (widget.theme ?? ShikiHighlighter.config.defaultTheme).resolve(isDark: isDark);
+    resolvedTheme = theme.resolve(isDark: isDark);
     widget.highlighter.ensureShikiTheme(resolvedTheme!);
   }
 

@@ -37,7 +37,7 @@ flutter pub add shiki_flutter
 
 ## Quick start
 
-Import the specific bundled languages and themes you need, create a highlighter, and hand it to `ShikiCodeView`. Languages and themes are passed as objects (`CodeLanguage` and `ShikiThemeConfig`), which the highlighter loads on demand:
+Import the specific bundled languages and themes you need, create a highlighter, and hand it to `ShikiCodeView`. Languages and themes are passed as objects (`CodeLanguage` and `ShikiThemeBase`), which the highlighter loads on demand:
 
 **`main.dart`**
 
@@ -45,13 +45,11 @@ Import the specific bundled languages and themes you need, create a highlighter,
 import 'package:flutter/material.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 
-// Import ONLY what you use. The rest is tree-shaken away.
-import 'package:shiki_flutter/langs/dart.dart';
-import 'package:shiki_flutter/themes/github_dark.dart';
-
+// Reference only what you use via CodeLanguages/ShikiThemes; the rest is
+// tree-shaken away.
 final highlighter = createHighlighter(
-  langs: [dart],
-  themes: [githubDark],
+  langs: [CodeLanguages.dart],
+  themes: [ShikiThemes.githubDark],
 );
 
 class CodeCard extends StatelessWidget {
@@ -63,8 +61,8 @@ class CodeCard extends StatelessWidget {
     return ShikiCodeView(
       highlighter: highlighter,
       code: source,
-      lang: dart,
-      theme: ShikiThemeConfig.single(githubDark),
+      lang: CodeLanguages.dart,
+      theme: ShikiThemes.githubDark,
       textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
     );
   }
@@ -107,7 +105,7 @@ ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
   lang: CodeLanguages.dart,
-  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+  theme: ShikiThemes.githubDark,
   textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
 )
 ```
@@ -146,7 +144,7 @@ ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
   lang: CodeLanguages.dart,
-  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+  theme: ShikiThemes.githubDark,
   textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
 )
 ```
@@ -164,7 +162,7 @@ Expanded(
     highlighter: highlighter,
     code: sourceCode,
     lang: CodeLanguages.dart,
-    theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+    theme: ShikiThemes.githubDark,
     textStyle: const TextStyle(fontFamily: 'FiraCode', fontSize: 14),
   ),
 )
@@ -179,7 +177,7 @@ Both widgets accept these core properties:
 | `highlighter` | `ShikiHighlighter` | Highlighter to render with; loads `lang`/`theme` on demand. |
 | `code` | `String` | Source to render. |
 | `lang` | `CodeLanguage` | Language to highlight, e.g. `CodeLanguages.dart`. |
-| `theme` | `ShikiThemeConfig?` | A single theme or a light/dark pair. Omit to use the global `ShikiHighlighter.config.defaultTheme`. |
+| `theme` | `ShikiThemeBase?` | A single theme or a light/dark pair. Omit to use the global `ShikiHighlighter.config.defaultTheme`. |
 | `brightness` | `Brightness?` | Overrides the brightness used to pick a `dual` theme (default: `Theme.of(context)`). |
 | `textStyle` | `TextStyle?` | Base style; use a monospace font. |
 | `padding` | `EdgeInsetsGeometry` | Defaults to `16` all round. |
@@ -218,7 +216,7 @@ ShikiCodeListView(
   highlighter: highlighter,
   code: sourceCode,
   lang: CodeLanguages.dart,
-  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+  theme: ShikiThemes.githubDark,
   showLineNumbers: true,
   textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
 )
@@ -256,39 +254,36 @@ A theme is a real VS Code / TextMate theme: foreground, background, and font sty
 
 ### Using a bundled theme
 
-Import a theme by symbol and pass it where you render; the highlighter loads it on demand. Load several and switch between them per render:
+Reference a bundled theme via `ShikiThemes` and pass it where you render; the highlighter loads it on demand. Load several and switch between them per render:
 
 **`themes.dart`**
 
 ```dart
-import 'package:shiki_flutter/themes/one_dark_pro.dart';
-import 'package:shiki_flutter/themes/vitesse_light.dart';
-
 final highlighter = createHighlighter(
-  langs: [dart],
-  themes: [oneDarkPro, vitesseLight],
+  langs: [CodeLanguages.dart],
+  themes: [ShikiThemes.oneDarkPro, ShikiThemes.vitesseLight],
 );
 
 // Switch themes per render by passing the theme object.
 final dark = codeToTextSpan(
   highlighter,
   code,
-  lang: dart,
-  theme: oneDarkPro,
+  lang: CodeLanguages.dart,
+  theme: ShikiThemes.oneDarkPro,
 );
 final light = codeToTextSpan(
   highlighter,
   code,
-  lang: dart,
-  theme: vitesseLight,
+  lang: CodeLanguages.dart,
+  theme: ShikiThemes.vitesseLight,
 );
 ```
 
-> **Note:** Each theme is its own library, so importing one pulls in only that theme. The other 64 are tree-shaken away. Import `themes/all.dart` only for playgrounds that genuinely need every theme.
+> **Note:** Referencing a theme like `ShikiThemes.oneDarkPro` pulls in only that theme; the other 64 are tree-shaken away. Use `ShikiThemes.all` only for playgrounds that genuinely need every theme.
 
 ### Light and dark
 
-The widgets take a `ShikiThemeConfig`: either a single theme, or a light/dark pair that follows the ambient brightness.
+The widgets take a `ShikiThemeBase`: either a single `ShikiTheme`, or a `ShikiDualTheme` light/dark pair that follows the ambient brightness. (`ShikiThemeBase.dual(light:, dark:)` is an equivalent `const` factory for `ShikiDualTheme`.)
 
 **`light_dark.dart`**
 
@@ -298,7 +293,7 @@ ShikiCodeView(
   highlighter: highlighter,
   code: source,
   lang: CodeLanguages.dart,
-  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+  theme: ShikiThemes.githubDark,
 );
 
 // A light/dark pair. The widget reads Theme.of(context).brightness and
@@ -308,7 +303,7 @@ ShikiCodeView(
   highlighter: highlighter,
   code: source,
   lang: CodeLanguages.dart,
-  theme: ShikiThemeConfig.dual(
+  theme: ShikiDualTheme(
     light: ShikiThemes.githubLight,
     dark: ShikiThemes.githubDark,
   ),
@@ -322,7 +317,7 @@ Set a **default** once and omit `theme:` on individual widgets. This is the natu
 ```dart
 void main() {
   ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
-    defaultTheme: ShikiThemeConfig.dual(
+    defaultTheme: ShikiDualTheme(
       light: ShikiThemes.githubLight,
       dark: ShikiThemes.githubDark,
     ),
@@ -369,22 +364,21 @@ They live under `pierre_themes/` and behave like any other bundled theme. Import
 **`pierre_themes.dart`**
 
 ```dart
-// Pierre themes live under pierre_themes/. Import individual themes…
-import 'package:shiki_flutter/pierre_themes/pierre_dark.dart';
-import 'package:shiki_flutter/pierre_themes/pierre_light.dart';
-// …or the whole set via the barrel, which exports a `pierreThemes` list.
+// Pierre themes are an opt-in set, exposed via the PierreThemes facade.
+import 'package:shiki_flutter/langs.dart';
+import 'package:shiki_flutter/pierre_themes.dart';
 
 final highlighter = createHighlighter(
-  langs: [dart],
-  themes: [pierreDark, pierreLight],
+  langs: [CodeLanguages.dart],
+  themes: [PierreThemes.pierreDark, PierreThemes.pierreLight],
 );
 
 // Pass the theme object when you render.
 final span = codeToTextSpan(
   highlighter,
   code,
-  lang: dart,
-  theme: pierreDark,
+  lang: CodeLanguages.dart,
+  theme: PierreThemes.pierreDark,
 );
 ```
 
@@ -406,7 +400,7 @@ final span = codeToTextSpan(
   highlighter,
   code,
   lang: CodeLanguages.dart,
-  theme: aurora, // for the widgets: ShikiThemeConfig.single(aurora)
+  theme: aurora, // a ShikiTheme is a ShikiThemeBase, so widgets take it directly
 );
 ```
 
@@ -430,13 +424,11 @@ Grammars that embed others load their dependencies automatically. Importing `htm
 **`embedded.dart`**
 
 ```dart
-// Importing html automatically pulls in css + javascript, so <style> and
+// CodeLanguages.html automatically pulls in css + javascript, so <style> and
 // <script> blocks inside the HTML are highlighted too.
-import 'package:shiki_flutter/langs/html.dart';
-
 final highlighter = createHighlighter(
-  langs: [html],
-  themes: [githubDark],
+  langs: [CodeLanguages.html],
+  themes: [ShikiThemes.githubDark],
 );
 ```
 
@@ -498,7 +490,7 @@ ShikiCodeView(
   highlighter: highlighter,
   code: sourceCode,
   lang: CodeLanguages.dart,
-  theme: ShikiThemeConfig.single(ShikiThemes.githubDark),
+  theme: ShikiThemes.githubDark,
   async: true, // force off-thread; omit to follow the global default
 )
 ```
@@ -573,8 +565,8 @@ Or override the engine for a single highlighter:
 ```dart
 // Override the engine for a single highlighter instead of globally.
 final highlighter = createHighlighter(
-  langs: [dart],
-  themes: [githubDark],
+  langs: [CodeLanguages.dart],
+  themes: [ShikiThemes.githubDark],
   engine: const ShikiHighlighterNativeEngine(),
 );
 ```
@@ -653,7 +645,7 @@ void main() {
 | `webEngine` | `ShikiHighlighterEngine` | `ShikiHighlighterEmbeddedEngine` | Engine used on web. |
 | `asyncIO` | `bool` | `true` | Highlight off the UI thread on IO (background isolate). |
 | `asyncWeb` | `bool` | `false` | Highlight off the UI thread on web (Web Worker; opt-in). |
-| `defaultTheme` | `ShikiThemeConfig?` | `null` | Theme(s) the widgets use when `theme:` is omitted: a single theme or a light/dark pair (see **Themes**). |
+| `defaultTheme` | `ShikiThemeBase?` | `null` | Theme(s) the widgets use when `theme:` is omitted: a single theme or a light/dark pair (see **Themes**). |
 
 Two narrower overrides sit on top of the global config: `createHighlighter(engine: ...)` sets the engine for a single highlighter, and a widget's `async:` argument sets async for a single widget.
 
@@ -673,8 +665,8 @@ Pre-warming moves that cost to a moment where a brief pause is invisible, such a
 // lifetime - don't rebuild it per frame or per screen. Constructing it already
 // decodes each grammar's JSON and builds its model.
 final highlighter = createHighlighter(
-  langs: [dart, python],
-  themes: [githubDark],
+  langs: [CodeLanguages.dart, CodeLanguages.python],
+  themes: [ShikiThemes.githubDark],
 );
 
 // The only cost left for the first highlight is the lazy TextMate regex
@@ -702,23 +694,21 @@ void main() {
 
 ## Bundle size
 
-Even though the whole catalog ships in the package, only the languages and themes you actually import end up in your app. Each grammar and theme is a separate Dart library referenced by symbol, so the compiler tree-shakes away everything unreferenced.
+Even though the whole catalog ships in the package, only the languages and themes you actually reference end up in your app. Each grammar and theme is a separate Dart library referenced by symbol, so the compiler tree-shakes away everything unreferenced.
 
-- **Do** import specific entries: `import 'package:shiki_flutter/langs/dart.dart';`.
-- **Don't** import the `all.dart` barrels unless you truly want every grammar. They reference everything and defeat tree-shaking.
+- **Do** reference specific members: `CodeLanguages.dart`, `ShikiThemes.githubDark`. Only those (and their embedded deps) are bundled.
+- **Don't** use the `.all` lists (`CodeLanguages.all` / `ShikiThemes.all`) unless you truly want every grammar/theme. They reference everything and defeat tree-shaking.
 
-The barrels exist for tools and playgrounds that genuinely need everything:
+The `.all` lists exist for tools and playgrounds that genuinely need everything:
 
 **`everything.dart`**
 
 ```dart
-// Only when you truly want EVERYTHING (playgrounds, tooling):
-import 'package:shiki_flutter/langs/all.dart';
-import 'package:shiki_flutter/themes/all.dart';
-
+// Only when you truly want EVERYTHING (playgrounds, tooling). The `.all` lists
+// reference the whole catalog, so nothing is tree-shaken away.
 final highlighter = createHighlighter(
-  langs: allLanguages,
-  themes: allThemes,
+  langs: CodeLanguages.all,
+  themes: ShikiThemes.all,
 );
 ```
 

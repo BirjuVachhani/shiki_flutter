@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/widgets.dart';
-import 'package:shiki_flutter/src/flutter/base.dart';
+import 'base.dart';
 
 import '../core/code_language.dart';
 import '../core/colors.dart';
@@ -12,13 +12,14 @@ import 'render_cache.dart';
 
 /// Displays [code] highlighted with the given [lang] and [theme].
 ///
-/// [lang] and [theme] are passed as objects ([CodeLanguage] and
-/// [ShikiThemeConfig]); the widget loads them into the [highlighter] on demand,
-/// so no pre-loading is required. When [theme] is omitted it falls back to the
-/// global `ShikiHighlighter.config.defaultTheme`. A [ShikiThemeConfig.dual] pair is
-/// resolved from the ambient `Theme.of(context)` brightness (override it with
-/// [brightness]). The widget paints the resolved theme's background color behind
-/// the code and applies its foreground as the default text color.
+/// [lang] is a [CodeLanguage] and [theme] is a single `ShikiTheme` or a
+/// `ShikiDualTheme` light/dark pair; the widget loads them into the
+/// [highlighter] on demand, so no pre-loading is required. When [theme] is
+/// omitted it falls back to the global `ShikiHighlighter.config.defaultTheme`,
+/// throwing a `ShikiError` if that is also unset. A dual pair is resolved from
+/// the ambient `Theme.of(context)` brightness (override it with [brightness]).
+/// The widget paints the resolved theme's background color behind the code and
+/// applies its foreground as the default text color.
 ///
 /// When [async] highlighting is active (see `ShikiHighlighter.config.async`), the code
 /// first appears as plain text in the theme's base color while it is tokenized

@@ -71,29 +71,34 @@ class _BrandState extends State<Brand> {
         word,
         if (showTagline) ...[
           const SizedBox(width: 6),
-          Text.rich(
-            TextSpan(
-              style: TextStyle(
-                fontFamily: AppFonts.sans,
-                fontSize: 14,
-                height: 20 / 14,
-                color: colors.mutedForeground,
-              ),
-              children: [
-                const TextSpan(text: 'for flutter by '),
-                TextSpan(
-                  text: 'Birju Vachhani',
-                  recognizer: _authorTap,
-                  onEnter: (_) => setState(() => _authorHovered = true),
-                  onExit: (_) => setState(() => _authorHovered = false),
-                  mouseCursor: SystemMouseCursors.click,
-                  style: TextStyle(
-                    color: _authorHovered
-                        ? colors.foreground.withValues(alpha: 0.8)
-                        : colors.mutedForeground,
-                  ),
+          // Flexible so the tagline ellipsizes instead of overflowing when the
+          // nav row is tight (e.g. near the compact/wide breakpoint).
+          Flexible(
+            child: Text.rich(
+              TextSpan(
+                style: TextStyle(
+                  fontFamily: AppFonts.sans,
+                  fontSize: 14,
+                  height: 20 / 14,
+                  color: colors.mutedForeground,
                 ),
-              ],
+                children: [
+                  const TextSpan(text: 'for flutter by '),
+                  TextSpan(
+                    text: 'Birju Vachhani',
+                    recognizer: _authorTap,
+                    onEnter: (_) => setState(() => _authorHovered = true),
+                    onExit: (_) => setState(() => _authorHovered = false),
+                    mouseCursor: SystemMouseCursors.click,
+                    style: TextStyle(
+                      color: _authorHovered
+                          ? colors.foreground.withValues(alpha: 0.8)
+                          : colors.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -165,29 +170,33 @@ class _FooterBrandState extends State<FooterBrand> {
       children: [
         word,
         const SizedBox(width: 6),
-        Text.rich(
-          TextSpan(
-            style: TextStyle(
-              fontFamily: AppFonts.sans,
-              fontSize: 14,
-              height: 20 / 14,
-              color: colors.mutedForeground,
-            ),
-            children: [
-              const TextSpan(text: 'for flutter by '),
-              TextSpan(
-                text: 'Birju Vachhani',
-                recognizer: _authorTap,
-                onEnter: (_) => setState(() => _authorHovered = true),
-                onExit: (_) => setState(() => _authorHovered = false),
-                mouseCursor: SystemMouseCursors.click,
-                style: TextStyle(
-                  color: _authorHovered
-                      ? colors.foreground.withValues(alpha: 0.8)
-                      : colors.mutedForeground,
-                ),
+        // Flexible so the tagline wraps instead of overflowing when the brand
+        // is laid out in a narrow column (mobile footer).
+        Flexible(
+          child: Text.rich(
+            TextSpan(
+              style: TextStyle(
+                fontFamily: AppFonts.sans,
+                fontSize: 14,
+                height: 20 / 14,
+                color: colors.mutedForeground,
               ),
-            ],
+              children: [
+                const TextSpan(text: 'for flutter by '),
+                TextSpan(
+                  text: 'Birju Vachhani',
+                  recognizer: _authorTap,
+                  onEnter: (_) => setState(() => _authorHovered = true),
+                  onExit: (_) => setState(() => _authorHovered = false),
+                  mouseCursor: SystemMouseCursors.click,
+                  style: TextStyle(
+                    color: _authorHovered
+                        ? colors.foreground.withValues(alpha: 0.8)
+                        : colors.mutedForeground,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
