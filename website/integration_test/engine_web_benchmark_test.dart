@@ -62,15 +62,15 @@ void main() {
         // single-threaded web this cold call is the UI-blocking cost that
         // matters, since there is no isolate to hide it behind.
         final h = name == 'oniguruma_native'
-            ? createHighlighter(
+            ? (ShikiHighlighter(engine: const ShikiHighlighterNativeEngine())
+                ..preload(
+                  langs: [CodeLanguages.dart],
+                  themes: [ShikiThemes.githubDark],
+                ))
+            : (ShikiHighlighter()..preload(
                 langs: [CodeLanguages.dart],
                 themes: [ShikiThemes.githubDark],
-                engine: const ShikiHighlighterNativeEngine(),
-              )
-            : createHighlighter(
-                langs: [CodeLanguages.dart],
-                themes: [ShikiThemes.githubDark],
-              );
+              ));
 
         final cold = Stopwatch()..start();
         final first = h.codeToTokens(src, opts);

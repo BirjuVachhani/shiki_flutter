@@ -40,6 +40,7 @@ const docsGroups = <DocsSectionGroup>[
     DocsSection('engines', 'Engines'),
     DocsSection('web', 'Web setup'),
     DocsSection('configuration', 'Configuration'),
+    DocsSection('best-practices', 'Best practices'),
   ]),
   DocsSectionGroup('Advanced', [
     DocsSection('pre-warming', 'Pre-warming'),

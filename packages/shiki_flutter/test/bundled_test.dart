@@ -10,9 +10,10 @@ const ruby = CodeLanguages.ruby;
 const githubDark = ShikiThemes.githubDark;
 
 void main() {
-  group('bundled createHighlighter', () {
+  group('bundled languages/themes', () {
     test('loads a bundled language and theme and highlights', () {
-      final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+      final hl = ShikiHighlighter()
+        ..preload(langs: [dart], themes: [githubDark]);
       final tokens = hl.codeToTokens(
         'void main() => print("hi");',
         TokenizeOptions(lang: dart.id, theme: githubDark.id),
@@ -30,7 +31,8 @@ void main() {
     });
 
     test('embedded languages are loaded automatically (html -> css + js)', () {
-      final hl = createHighlighter(langs: [html], themes: [githubDark]);
+      final hl = ShikiHighlighter()
+        ..preload(langs: [html], themes: [githubDark]);
       expect(hl.loadedLanguages, contains('text.html.basic'));
       expect(hl.loadedLanguages, contains('source.css'));
       expect(hl.loadedLanguages, contains('source.js'));
@@ -54,7 +56,8 @@ void main() {
     });
 
     test('aliases resolve (js -> javascript)', () {
-      final hl = createHighlighter(langs: [javascript], themes: [githubDark]);
+      final hl = ShikiHighlighter()
+        ..preload(langs: [javascript], themes: [githubDark]);
       final viaAlias = hl.codeToTokens(
         'const x = 1;',
         TokenizeOptions(lang: 'js', theme: githubDark.id),
@@ -85,7 +88,8 @@ void main() {
       // ruby embeds haml and haml embeds ruby; the loader must break the cycle
       // instead of recursing forever (regression: StackOverflowError in
       // loadBundledLanguage on the richer tm-grammars embed graph).
-      final hl = createHighlighter(langs: [ruby], themes: [githubDark]);
+      final hl = ShikiHighlighter()
+        ..preload(langs: [ruby], themes: [githubDark]);
       expect(hl.loadedLanguages, contains('source.ruby'));
       final tokens = hl.codeToTokens(
         'puts "hi"',

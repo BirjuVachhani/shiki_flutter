@@ -53,10 +53,11 @@ void main() {
     await Future<void>.delayed(const Duration(seconds: 4));
   });
 
-  final highlighter = createHighlighter(
-    langs: [CodeLanguages.dart],
-    themes: [ShikiThemes.githubDark],
-  );
+  final highlighter = ShikiHighlighter()
+    ..preload(
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
+    );
   const langId = 'dart';
   final themeName = ShikiThemes.githubDark.id;
   final fg = parseColor(highlighter.getThemeRegistration(themeName).fg);
@@ -131,10 +132,11 @@ void main() {
     // one-time grammar/regex compile (off-thread), which is the case the isolate
     // is meant to fix; scroll jank is then measured after the swap settles.
     testWidgets('frames · isolate · ${size.label}', (tester) async {
-      final asyncHighlighter = createHighlighter(
-        langs: [CodeLanguages.dart],
-        themes: [ShikiThemes.githubDark],
-      );
+      final asyncHighlighter = ShikiHighlighter()
+        ..preload(
+          langs: [CodeLanguages.dart],
+          themes: [ShikiThemes.githubDark],
+        );
       addTearDown(asyncHighlighter.dispose);
       await _runCase(
         tester,

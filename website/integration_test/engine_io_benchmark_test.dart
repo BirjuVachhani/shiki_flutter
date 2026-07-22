@@ -55,21 +55,16 @@ void main() {
     await loadWasm(); // no-op on IO
 
     // Golden oracle: the pure-Dart embedded engine (golden-proven).
-    final embedded = createHighlighter(
-      langs: langs,
-      themes: [ShikiThemes.githubDark],
+    final embedded = ShikiHighlighter(
       engine: const ShikiHighlighterEmbeddedEngine(),
-    );
+    )..preload(langs: langs, themes: [ShikiThemes.githubDark]);
     // The two async-worker candidates.
-    final port = createHighlighter(
-      langs: langs,
-      themes: [ShikiThemes.githubDark],
-    ); // default = dart-port
-    final native = createHighlighter(
-      langs: langs,
-      themes: [ShikiThemes.githubDark],
+    final port =
+        ShikiHighlighter() // default = dart-port
+          ..preload(langs: langs, themes: [ShikiThemes.githubDark]);
+    final native = ShikiHighlighter(
       engine: const ShikiHighlighterNativeEngine(),
-    );
+    )..preload(langs: langs, themes: [ShikiThemes.githubDark]);
 
     // --- Parity vs the golden embedded engine, per language.
     final parity = <String, dynamic>{};
@@ -93,15 +88,15 @@ void main() {
         final opts = TokenizeOptions(lang: 'dart', theme: theme);
         // Fresh highlighter so the first call pays the full compile.
         final h = name == 'native'
-            ? createHighlighter(
+            ? (ShikiHighlighter(engine: const ShikiHighlighterNativeEngine())
+                ..preload(
+                  langs: [CodeLanguages.dart],
+                  themes: [ShikiThemes.githubDark],
+                ))
+            : (ShikiHighlighter()..preload(
                 langs: [CodeLanguages.dart],
                 themes: [ShikiThemes.githubDark],
-                engine: const ShikiHighlighterNativeEngine(),
-              )
-            : createHighlighter(
-                langs: [CodeLanguages.dart],
-                themes: [ShikiThemes.githubDark],
-              );
+              ));
 
         final cold = Stopwatch()..start();
         h.codeToTokens(code, opts);

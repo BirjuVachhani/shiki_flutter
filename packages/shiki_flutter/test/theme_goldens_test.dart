@@ -79,10 +79,11 @@ void main() {
 
   setUpAll(() async {
     await _loadFont();
-    hl = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: ShikiThemes.all,
-    );
+    hl = ShikiHighlighter()
+      ..preload(
+        langs: [CodeLanguages.dart],
+        themes: ShikiThemes.all,
+      );
   });
 
   for (final theme in ShikiThemes.all) {

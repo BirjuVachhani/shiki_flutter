@@ -17,11 +17,11 @@
 library;
 
 // Flutter-free core: the TextMate tokenizer and the pluggable regex-engine
-// seam (ShikiHighlighter, createHighlighter, ThemedToken, the OnigScanner
-// types, CodeLanguage / ShikiTheme, and more). Set `ShikiHighlighter.config`
-// (ioEngine / webEngine) or pass `createHighlighter(engine: …)` to swap the
-// pure-Dart default for a native backend such as `ShikiHighlighterNativeEngine`
-// from `shiki_flutter_native_engine`.
+// seam (ShikiHighlighter, ThemedToken, the OnigScanner types, CodeLanguage /
+// ShikiTheme, and more). Set `ShikiHighlighter.config` (ioEngine / webEngine)
+// or pass `ShikiHighlighter(engine: …)` to swap the pure-Dart default for a
+// native backend such as `ShikiHighlighterNativeEngine` from
+// `shiki_flutter_native_engine`.
 export 'engine.dart';
 // Bundled, tree-shakeable grammars and themes. Referencing a member (e.g.
 // `CodeLanguages.dart` / `ShikiThemes.githubDark` / `PierreThemes.pierreDark`)

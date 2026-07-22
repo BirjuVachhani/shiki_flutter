@@ -35,7 +35,7 @@ import 'render_cache.dart';
 class ShikiCodeView extends ShikiBaseWidget {
   const ShikiCodeView({
     super.key,
-    required super.highlighter,
+    super.highlighter,
     required super.code,
     required super.lang,
     super.theme,
@@ -54,7 +54,8 @@ class ShikiCodeView extends ShikiBaseWidget {
   State<ShikiCodeView> createState() => _ShikiCodeViewState();
 }
 
-class _ShikiCodeViewState extends State<ShikiCodeView> with ShikiStateMixin<ShikiCodeView> {
+class _ShikiCodeViewState extends State<ShikiCodeView>
+    with ShikiStateMixin<ShikiCodeView> {
   // Per-build memoization (see render_cache.dart). Each recomputes only when its
   // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
   @protected
@@ -63,7 +64,7 @@ class _ShikiCodeViewState extends State<ShikiCodeView> with ShikiStateMixin<Shik
   @override
   Widget build(BuildContext context) {
     final base = widget.textStyle ?? const TextStyle(fontFamily: 'monospace');
-    final registration = widget.highlighter.getThemeRegistration(
+    final registration = effectiveHighlighter.getThemeRegistration(
       resolvedTheme!.id,
     );
     final fg = parseColor(registration.fg);

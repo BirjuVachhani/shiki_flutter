@@ -63,12 +63,12 @@ void main() {
   test(
     'codeToTokensAsync matches synchronous codeToTokens byte-for-byte',
     () async {
-      final sync = createHighlighter(
-        langs: [dart],
-        themes: [githubDark],
-      ).codeToTokens(_code, _options);
+      final sync =
+          (ShikiHighlighter()..preload(langs: [dart], themes: [githubDark]))
+              .codeToTokens(_code, _options);
 
-      final asyncHl = createHighlighter(langs: [dart], themes: [githubDark]);
+      final asyncHl = ShikiHighlighter()
+        ..preload(langs: [dart], themes: [githubDark]);
       addTearDown(asyncHl.dispose);
       final result = await asyncHl.codeToTokensAsync(_code, _options);
 
@@ -79,7 +79,8 @@ void main() {
   test(
     'results are cached: peek hits and repeat calls return the same list',
     () async {
-      final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+      final hl = ShikiHighlighter()
+        ..preload(langs: [dart], themes: [githubDark]);
       addTearDown(hl.dispose);
 
       expect(hl.peekTokens(_code, _options), isNull); // cold
@@ -112,7 +113,7 @@ void main() {
         ],
       );
 
-      final hl = createHighlighter(langs: [dart]);
+      final hl = ShikiHighlighter()..preload(langs: [dart]);
       addTearDown(hl.dispose);
       final themeName = hl.loadThemeRegistration(custom);
       final options = TokenizeOptions(lang: 'dart', theme: themeName);
@@ -132,7 +133,7 @@ void main() {
   );
 
   test('plain language is served synchronously without a worker', () {
-    final hl = createHighlighter(themes: [githubDark]);
+    final hl = ShikiHighlighter()..preload(themes: [githubDark]);
     addTearDown(hl.dispose);
     const plain = TokenizeOptions(lang: 'text', theme: 'github-dark');
     // peek returns immediately (no round trip) for a plain language.
@@ -144,7 +145,8 @@ void main() {
   testWidgets(
     'async miss shows the plain code as a placeholder on the first frame',
     (tester) async {
-      final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+      final hl = ShikiHighlighter()
+        ..preload(langs: [dart], themes: [githubDark]);
       addTearDown(hl.dispose); // non-blocking; safe even with a spawn in flight
 
       await tester.pumpWidget(
@@ -171,7 +173,7 @@ void main() {
   testWidgets('a warm cache highlights on the first frame (no placeholder)', (
     tester,
   ) async {
-    final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+    final hl = ShikiHighlighter()..preload(langs: [dart], themes: [githubDark]);
     await tester.runAsync(() => hl.codeToTokensAsync(_code, _options));
 
     await tester.pumpWidget(
@@ -196,7 +198,7 @@ void main() {
   testWidgets('async: false tokenizes synchronously on the first frame', (
     tester,
   ) async {
-    final hl = createHighlighter(langs: [dart], themes: [githubDark]);
+    final hl = ShikiHighlighter()..preload(langs: [dart], themes: [githubDark]);
     addTearDown(hl.dispose);
 
     await tester.pumpWidget(
@@ -215,4 +217,27 @@ void main() {
         tester.widget<RichText>(find.byType(RichText)).text as TextSpan;
     expect(_leafCount(span), greaterThan(1));
   });
+
+  test(
+    'preload(warmAsync: true) awaits worker warm-up without tokenizing',
+    () async {
+      final expected =
+          (ShikiHighlighter()..preload(langs: [dart], themes: [githubDark]))
+              .codeToTokens(_code, _options);
+
+      final hl = ShikiHighlighter();
+      addTearDown(hl.dispose);
+
+      // Awaiting resolves once the background worker is spawned and loaded; it
+      // does not tokenize, so the token cache stays cold.
+      await hl.preload(langs: [dart], themes: [githubDark], warmAsync: true);
+      expect(hl.peekTokens(_code, _options), isNull);
+
+      // The synchronous parse ran up front, so the sync path is warm too.
+      _expectTokensEqual(hl.codeToTokens(_code, _options), expected);
+
+      // The pre-warmed worker produces byte-identical tokens.
+      _expectTokensEqual(await hl.codeToTokensAsync(_code, _options), expected);
+    },
+  );
 }

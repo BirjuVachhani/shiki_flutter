@@ -43,19 +43,20 @@ void main() {
     final src = corpusFor(CorpusSize.l); // 2,000 lines - the freeze case
 
     // Reference tokens: the default (dart-port) engine, synchronous.
-    final refH = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: [ShikiThemes.githubDark],
-    );
+    final refH = ShikiHighlighter()
+      ..preload(
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
+      );
     final refFp = _fp(refH.codeToTokens(src, opts));
 
     // Native engine. codeToTokensAsync routes through the worker isolate with
     // the native (FFI) engine forwarded to it.
-    final nativeH = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: [ShikiThemes.githubDark],
-      engine: const ShikiHighlighterNativeEngine(),
-    );
+    final nativeH =
+        ShikiHighlighter(engine: const ShikiHighlighterNativeEngine())..preload(
+          langs: [CodeLanguages.dart],
+          themes: [ShikiThemes.githubDark],
+        );
     final asyncTokens = await nativeH.codeToTokensAsync(src, opts);
     final asyncFp = _fp(asyncTokens);
     final asyncCount = _count(asyncTokens);
@@ -74,11 +75,11 @@ void main() {
     // off-thread while we watch the UI thread. If the FFI work leaked onto the
     // main isolate (e.g. silent inline fallback), the ~cold compile would show
     // up as one big frame here.
-    final jankH = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: [ShikiThemes.githubDark],
-      engine: const ShikiHighlighterNativeEngine(),
-    );
+    final jankH = ShikiHighlighter(engine: const ShikiHighlighterNativeEngine())
+      ..preload(
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
+      );
     final reg = jankH.getThemeRegistration(theme);
     final fg = parseColor(reg.fg);
     final bg = parseColor(reg.bg);

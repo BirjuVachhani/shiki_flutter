@@ -76,21 +76,22 @@ class HighlighterService {
   /// through here.
   static CodeLanguage languageForId(String id) => _languagesById[id]!;
 
-  late final ShikiHighlighter _highlighter = createHighlighter(
-    langs: _bundledLanguages,
-    themes: [
-      ShikiThemes.githubDark,
-      ShikiThemes.githubLight,
-      ShikiThemes.oneDarkPro,
-      ShikiThemes.dracula,
-      ShikiThemes.nord,
-      ShikiThemes.vitesseDark,
-      ShikiThemes.vitesseLight,
-      ShikiThemes.vesper,
-      PierreThemes.pierreDark,
-      PierreThemes.pierreLight,
-    ],
-  );
+  late final ShikiHighlighter _highlighter = ShikiHighlighter()
+    ..preload(
+      langs: _bundledLanguages,
+      themes: [
+        ShikiThemes.githubDark,
+        ShikiThemes.githubLight,
+        ShikiThemes.oneDarkPro,
+        ShikiThemes.dracula,
+        ShikiThemes.nord,
+        ShikiThemes.vitesseDark,
+        ShikiThemes.vitesseLight,
+        ShikiThemes.vesper,
+        PierreThemes.pierreDark,
+        PierreThemes.pierreLight,
+      ],
+    );
 
   /// The shared highlighter, e.g. for passing straight to a [ShikiCodeView].
   ShikiHighlighter get highlighter => _highlighter;
@@ -140,11 +141,12 @@ class HighlighterService {
   // can preview all of them. It's `late final`, so it isn't built until the
   // gallery is first rendered. The shared [_highlighter] above stays lean.
 
-  late final ShikiHighlighter _galleryHighlighter = createHighlighter(
-    // Only Dart is needed: the gallery always previews one Dart sample.
-    langs: [CodeLanguages.dart],
-    themes: ShikiThemes.all,
-  );
+  late final ShikiHighlighter _galleryHighlighter = ShikiHighlighter()
+    ..preload(
+      // Only Dart is needed: the gallery always previews one Dart sample.
+      langs: [CodeLanguages.dart],
+      themes: ShikiThemes.all,
+    );
 
   final Map<String, TextSpan> _gallerySpanCache = {};
 

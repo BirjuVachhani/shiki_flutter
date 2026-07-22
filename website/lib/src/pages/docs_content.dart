@@ -261,37 +261,63 @@ class DocNote extends StatelessWidget {
 }
 
 /// Parses a small subset of Markdown inline syntax: `` `code` `` becomes plain
-/// mono (no background box) and `**bold**` becomes semibold.
+/// mono (no background box) and `**bold**` becomes semibold. Bold may wrap
+/// inline code (`` **`code`** ``); the code then renders mono *and* semibold,
+/// because a `TextSpan`'s style cascades to its children.
 List<InlineSpan> inlineSpans(String text, AppColors colors) {
+  // Match a bold run or an inline-code run, whichever starts first. `allMatches`
+  // scans left to right, so a `**` that sits *inside* an earlier code run is
+  // consumed as part of that run and never treated as bold (and vice versa).
+  final pattern = RegExp(r'\*\*(.+?)\*\*|`([^`]+)`');
   final spans = <InlineSpan>[];
-  final pattern = RegExp(r'\*\*[^*]+\*\*|`[^`]+`');
   var last = 0;
   for (final m in pattern.allMatches(text)) {
     if (m.start > last) {
       spans.add(TextSpan(text: text.substring(last, m.start)));
     }
-    final token = m.group(0)!;
-    if (token.startsWith('`')) {
+    final boldInner = m.group(1);
+    if (boldInner != null) {
+      // Recurse into the bold text for inline code; the w600 on this parent
+      // cascades onto the code (and plain) children, keeping them bold.
       spans.add(
         TextSpan(
-          text: token.substring(1, token.length - 1),
-          style: TextStyle(
-            fontFamily: AppFonts.mono,
-            fontSize: 14.5,
-            color: colors.foreground,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+          children: _inlineCode(boldInner, colors),
         ),
       );
     } else {
-      spans.add(
-        TextSpan(
-          text: token.substring(2, token.length - 2),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-      );
+      spans.add(_codeSpan(m.group(2)!, colors));
     }
     last = m.end;
   }
   if (last < text.length) spans.add(TextSpan(text: text.substring(last)));
   return spans;
 }
+
+/// Splits [text] into plain runs and inline-`code` runs. Sets no weight of its
+/// own, so an enclosing bold [TextSpan] (see [inlineSpans]) cascades through.
+List<InlineSpan> _inlineCode(String text, AppColors colors) {
+  final code = RegExp(r'`([^`]+)`');
+  final spans = <InlineSpan>[];
+  var last = 0;
+  for (final m in code.allMatches(text)) {
+    if (m.start > last) {
+      spans.add(TextSpan(text: text.substring(last, m.start)));
+    }
+    spans.add(_codeSpan(m.group(1)!, colors));
+    last = m.end;
+  }
+  if (last < text.length) spans.add(TextSpan(text: text.substring(last)));
+  return spans;
+}
+
+/// A single inline-code span: plain mono, no background box. Leaves `fontWeight`
+/// unset so it inherits any enclosing bold.
+TextSpan _codeSpan(String content, AppColors colors) => TextSpan(
+  text: content,
+  style: TextStyle(
+    fontFamily: AppFonts.mono,
+    fontSize: 14.5,
+    color: colors.foreground,
+  ),
+);

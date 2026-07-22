@@ -7,11 +7,9 @@ abstract final class Snippets {
   static const String hero = r'''
 import 'package:shiki_flutter/shiki_flutter.dart';
 
-// Batteries included: reference bundled languages and themes via the facades.
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.dart],
-  themes: [ShikiThemes.githubDark],
-);
+// Batteries included: a shared highlighter loads bundled languages and themes
+// (referenced via the facades) on demand.
+final highlighter = ShikiHighlighter();
 
 // Source in, styled TextSpan out. Pure Dart, nothing to bundle.
 final span = codeToTextSpan(
@@ -159,12 +157,13 @@ dependencies:
 import 'package:flutter/material.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 
-// Reference only what you use via CodeLanguages/ShikiThemes; the rest is
-// tree-shaken away.
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.dart],
-  themes: [ShikiThemes.githubDark],
-);
+void main() {
+  // Optional: an app-wide default theme so widgets can omit `theme:`.
+  ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+    defaultTheme: ShikiThemes.githubDark,
+  );
+  runApp(const MyApp());
+}
 
 class CodeCard extends StatelessWidget {
   const CodeCard({super.key, required this.source});
@@ -172,11 +171,11 @@ class CodeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // No highlighter and no theme: the shared default and config.defaultTheme
+    // supply them. Only the languages/themes you reference are bundled.
     return ShikiCodeView(
-      highlighter: highlighter,
       code: source,
       lang: CodeLanguages.dart,
-      theme: ShikiThemes.githubDark,
       textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
     );
   }
@@ -198,7 +197,6 @@ Text.rich(span);
 
   static const String renderWidget = r'''
 ShikiCodeView(
-  highlighter: highlighter,
   code: sourceCode,
   lang: CodeLanguages.dart,
   theme: ShikiThemes.githubDark,
@@ -210,7 +208,6 @@ ShikiCodeView(
 // Give it a bounded height, like any ListView (here, an Expanded parent).
 Expanded(
   child: ShikiCodeListView(
-    highlighter: highlighter,
     code: sourceCode,
     lang: CodeLanguages.dart,
     theme: ShikiThemes.githubDark,
@@ -254,7 +251,6 @@ ListView.builder(
 // A drop-in virtualized view: renders one line per row and only lays out
 // the lines on screen. Give it a bounded height, like any ListView.
 ShikiCodeListView(
-  highlighter: highlighter,
   code: sourceCode,
   lang: CodeLanguages.dart,
   theme: ShikiThemes.githubDark,
@@ -264,12 +260,10 @@ ShikiCodeListView(
 ''';
 
   static const String themesUsage = r'''
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.dart],
-  themes: [ShikiThemes.oneDarkPro, ShikiThemes.vitesseLight],
-);
+final highlighter = ShikiHighlighter();
 
-// Switch themes per render by passing a different theme object.
+// Switch themes per render by passing a different theme object; each is
+// loaded on demand.
 final dark = codeToTextSpan(
   highlighter,
   code,
@@ -287,7 +281,6 @@ final light = codeToTextSpan(
   static const String themesLightDark = r'''
 // One theme, always.
 ShikiCodeView(
-  highlighter: highlighter,
   code: source,
   lang: CodeLanguages.dart,
   theme: ShikiThemes.githubDark,
@@ -297,7 +290,6 @@ ShikiCodeView(
 // re-highlights when the app toggles light/dark. Override which side is
 // picked with the widget's brightness: argument.
 ShikiCodeView(
-  highlighter: highlighter,
   code: source,
   lang: CodeLanguages.dart,
   theme: ShikiDualTheme(
@@ -320,7 +312,7 @@ void main() {
 
 // No theme: needed; it falls back to the default. A widget's own theme:
 // overrides it, and if neither is set the widget throws a ShikiError.
-ShikiCodeView(highlighter: highlighter, code: source, lang: CodeLanguages.dart);
+ShikiCodeView(code: source, lang: CodeLanguages.dart);
 ''';
 
   static const String themesBringYourOwn = r'''
@@ -342,44 +334,28 @@ final span = codeToTextSpan(
 import 'package:shiki_flutter/langs.dart';
 import 'package:shiki_flutter/pierre_themes.dart';
 
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.dart],
-  themes: [PierreThemes.pierreDark, PierreThemes.pierreLight],
-);
-
-// Reference a theme object when you render.
-final span = codeToTextSpan(
-  highlighter,
-  code,
-  lang: CodeLanguages.dart,
-  theme: PierreThemes.pierreDark,
-);
+// Use a Pierre theme like any other bundled theme: pass it to a widget
+// (or set it as the default). It is loaded on demand.
+ShikiCodeView(code: code, lang: CodeLanguages.dart, theme: PierreThemes.pierreDark);
 ''';
 
   static const String embedded = r'''
 // CodeLanguages.html automatically pulls in css + javascript, so <style> and
 // <script> blocks inside the HTML are highlighted too.
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.html],
-  themes: [ShikiThemes.githubDark],
-);
+ShikiCodeView(code: html, lang: CodeLanguages.html, theme: ShikiThemes.githubDark);
 ''';
 
   static const String treeShakeGood = r'''
 // GOOD: reference only the languages/themes you use; the rest tree-shake away.
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.dart],
-  themes: [ShikiThemes.githubDark],
-);
+final highlighter = ShikiHighlighter()
+  ..preload(langs: [CodeLanguages.dart], themes: [ShikiThemes.githubDark]);
 ''';
 
   static const String treeShakeAll = r'''
 // Only when you truly want EVERYTHING (playgrounds, tooling). The `.all` lists
 // reference the whole catalog, so nothing is tree-shaken away.
-final highlighter = createHighlighter(
-  langs: CodeLanguages.all,
-  themes: ShikiThemes.all,
-);
+final highlighter = ShikiHighlighter()
+  ..preload(langs: CodeLanguages.all, themes: ShikiThemes.all);
 ''';
 
   static const String customGrammar = r'''
@@ -409,7 +385,6 @@ final span = codeToTextSpan(
 // the background isolate is done - the UI thread never freezes. Pass async:
 // explicitly to override the global default for a single widget.
 ShikiCodeView(
-  highlighter: highlighter,
   code: sourceCode,
   lang: CodeLanguages.dart,
   theme: ShikiThemes.githubDark,
@@ -432,33 +407,33 @@ final span = tokensToTextSpan(
 ''';
 
   static const String preWarm = r'''
-// Create the highlighter once, at startup, and keep it alive for the app's
-// lifetime - don't rebuild it per frame or per screen. Constructing it already
-// decodes each grammar's JSON and builds its model.
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.dart, CodeLanguages.python],
-  themes: [ShikiThemes.githubDark],
-);
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-// The only cost left for the first highlight is the lazy TextMate regex
-// compile. Force it ahead of time with one throwaway tokenize per (lang, theme)
-// you'll show. codeToTokensAsync runs it in the background isolate on IO, so
-// startup never drops a frame; the grammar then stays warm on the highlighter.
-Future<void> warmUpHighlighter() async {
-  await highlighter.codeToTokensAsync(
-    'void main() {}',
-    const TokenizeOptions(lang: 'dart', theme: 'github-dark'),
+  // 1. Set your global defaults once: the theme every widget falls back to and
+  //    a single shared highlighter to reuse across the whole app. Keep it alive
+  //    for the app's lifetime; don't rebuild it per frame or per screen.
+  final highlighter = ShikiHighlighter();
+  ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+    defaultTheme: ShikiThemes.githubDark,
+    defaultHighlighter: highlighter,
   );
-  await highlighter.codeToTokensAsync(
-    'def main(): pass',
-    const TokenizeOptions(lang: 'python', theme: 'github-dark'),
-  );
-}
 
-void main() {
-  warmUpHighlighter(); // fire-and-forget behind your splash / first frame
+  // 2. Warm it up before the first real render. preload decodes each grammar's
+  //    and theme's JSON and builds its model up front; warmAsync also spins up
+  //    the background worker that async widgets use, so awaiting it means the
+  //    first render pays no parse, isolate-spawn, or grammar-build cost.
+  await highlighter.preload(
+    langs: [CodeLanguages.dart, CodeLanguages.python],
+    themes: [ShikiThemes.githubDark],
+    warmAsync: true,
+  );
+
   runApp(const MyApp());
 }
+
+// Widgets need no highlighter: or theme: now; they use the config defaults.
+// ShikiCodeView(code: source, lang: CodeLanguages.dart)
 ''';
 
   static const String engineNative = r'''
@@ -480,9 +455,7 @@ void main() {
 
   static const String enginePerHighlighter = r'''
 // Override the engine for a single highlighter instead of globally.
-final highlighter = createHighlighter(
-  langs: [CodeLanguages.dart],
-  themes: [ShikiThemes.githubDark],
+final highlighter = ShikiHighlighter(
   engine: const ShikiHighlighterNativeEngine(),
 );
 ''';
@@ -521,6 +494,63 @@ void main() {
   );
   runApp(const MyApp());
 }
+''';
+
+  // ---- Best practices ----------------------------------------------------
+
+  static const String recommendedSetup = r'''
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:shiki_flutter/shiki_flutter.dart';
+import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Fastest engine per platform. The pure-Dart default works everywhere with
+  // zero setup; on IO the native engine is ~2.4x faster (optional dependency).
+  // Web keeps the embedded engine, which is the fastest engine there.
+  if (!kIsWeb) {
+    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+      ioEngine: const ShikiHighlighterNativeEngine(),
+    );
+  }
+
+  // Off-thread highlighting plus app-wide defaults. asyncIO is on by default;
+  // asyncWeb needs the installed worker (see Web setup). defaultHighlighter is
+  // the shared instance every widget reuses; defaultTheme is its fallback.
+  final highlighter = ShikiHighlighter();
+  ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+    asyncWeb: true,
+    defaultTheme: ShikiThemes.githubDark,
+    defaultHighlighter: highlighter,
+  );
+
+  // Warm exactly the languages and themes you render. Naming them here is also
+  // what keeps everything else tree-shaken out of the build.
+  await highlighter.preload(
+    langs: [CodeLanguages.dart, CodeLanguages.python],
+    themes: [ShikiThemes.githubDark],
+    warmAsync: true,
+  );
+
+  runApp(const MyApp());
+}
+''';
+
+  static const String tabularFigures = r'''
+// A monospace font keeps columns aligned; tabular figures keep every digit the
+// same width, so line numbers and the gutter never jitter while scrolling.
+ShikiCodeView(
+  code: source,
+  lang: CodeLanguages.dart,
+  textStyle: const TextStyle(
+    fontFamily: 'JetBrains Mono',
+    fontFeatures: [FontFeature.tabularFigures()],
+    fontSize: 14,
+    height: 1.5,
+  ),
+);
 ''';
 
   /// A small sample rendered live by the drop-in-widget demo.

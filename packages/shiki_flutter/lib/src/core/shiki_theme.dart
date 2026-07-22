@@ -7,6 +7,11 @@ sealed class ShikiThemeBase {
   }) = ShikiDualTheme;
 
   ShikiTheme resolve({required bool isDark});
+
+  /// Every concrete [ShikiTheme] this references, for eager loading (see
+  /// `ShikiHighlighter.preload`): a single theme yields itself; a
+  /// [ShikiDualTheme] yields both its light and dark themes.
+  List<ShikiTheme> get themes;
 }
 
 // Value type describing a theme that ships with the package.
@@ -31,6 +36,9 @@ class ShikiTheme extends ShikiThemeBase {
 
   @override
   ShikiTheme resolve({required bool isDark}) => this;
+
+  @override
+  List<ShikiTheme> get themes => [this];
 }
 
 class ShikiDualTheme extends ShikiThemeBase {
@@ -41,4 +49,7 @@ class ShikiDualTheme extends ShikiThemeBase {
 
   @override
   ShikiTheme resolve({required bool isDark}) => isDark ? dark : light;
+
+  @override
+  List<ShikiTheme> get themes => [light, dark];
 }

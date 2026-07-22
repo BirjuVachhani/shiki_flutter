@@ -1,3 +1,5 @@
+![shiki_flutter](https://raw.githubusercontent.com/BirjuVachhani/shiki_flutter/main/website/assets/banner.webp)
+
 # shiki_flutter_dart_engine
 
 A pure-Dart [Oniguruma](https://github.com/kkos/oniguruma) engine backend for

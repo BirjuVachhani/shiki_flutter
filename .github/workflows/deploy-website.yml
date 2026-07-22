@@ -67,6 +67,13 @@ jobs:
       - name: Build web (WASM)
         run: flutter build web --wasm --base-href "/"
 
+      # SPA deep-link fallback for GitHub Pages: it has no /docs/index.html, so
+      # a hard load or social scrape of https://shiki.birju.dev/docs would 404.
+      # Serving the built shell as 404.html hands those requests the same app
+      # (and identical meta tags) and lets go_router resolve the path.
+      - name: SPA fallback for deep links
+        run: cp build/web/index.html build/web/404.html
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

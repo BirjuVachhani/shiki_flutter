@@ -5,10 +5,11 @@ import 'package:shiki_flutter/shiki_flutter.dart';
 /// including the two "vibrant" themes, whose wide-gamut `color(display-p3 …)`
 /// values are parsed natively by `parseColor`.
 void main() {
-  final hl = createHighlighter(
-    langs: [CodeLanguages.dart],
-    themes: [...PierreThemes.all],
-  );
+  final hl = ShikiHighlighter()
+    ..preload(
+      langs: [CodeLanguages.dart],
+      themes: [...PierreThemes.all],
+    );
 
   const snippet = '''
 class Greeter {

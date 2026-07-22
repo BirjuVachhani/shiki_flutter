@@ -499,8 +499,11 @@ List<Widget> _content(BuildContext context, String id) {
     case 'quick-start':
       return const [
         DocProse(
-          'Import the specific bundled languages and themes you need, create a '
-          'highlighter, and hand it to `ShikiCodeView`:',
+          'Reference the specific bundled languages and themes you need and '
+          'pass them to `ShikiCodeView`. A `highlighter:` is optional (widgets '
+          'fall back to a shared default), and an app-wide default theme set at '
+          '`ShikiHighlighter.config.defaultTheme` lets you omit `theme:` as '
+          'well:',
         ),
         CodeBlock(
           code: Snippets.quickStart,
@@ -626,8 +629,8 @@ List<Widget> _content(BuildContext context, String id) {
         ]),
         DocProse(
           'They live under `pierre_themes/` and behave like any other bundled '
-          'theme. Import one (or the whole set) and pass it to '
-          '`createHighlighter`:',
+          "theme. Import one (or the whole set) and pass it to a widget's "
+          '`theme:` (or set it as the default), like any bundled theme:',
         ),
         CodeBlock(
           code: Snippets.extraThemes,
@@ -943,13 +946,92 @@ List<Widget> _content(BuildContext context, String id) {
               'Theme(s) the widgets use when `theme:` is omitted: a single '
                   'theme or a light/dark pair.',
             ],
+            [
+              '`defaultHighlighter`',
+              '`ShikiHighlighter?`',
+              '`null`',
+              'The shared highlighter the widgets use when no `highlighter:` is '
+                  'passed. When null, a lazily-created shared instance is used.',
+            ],
           ],
         ),
         DocProse(
           'Two narrower overrides sit on top of the global config: '
-          '`createHighlighter(engine: ...)` sets the engine for a single '
+          '`ShikiHighlighter(engine: ...)` sets the engine for a single '
           "highlighter, and a widget's `async:` argument sets async for a single "
           'widget.',
+        ),
+      ];
+    case 'best-practices':
+      return const [
+        DocProse(
+          'The pure-Dart defaults work everywhere with zero setup, so none of '
+          'this is required. These are the settings we recommend for a '
+          'production app: a little startup configuration buys the fastest, '
+          'smoothest rendering. Each practice links to its full section.',
+        ),
+        DocBullets([
+          '**Pre-warm at startup.** Build one shared highlighter, set it as '
+              '`config.defaultHighlighter`, and '
+              '`await highlighter.preload(..., warmAsync: true)` before '
+              '`runApp`, so the first render pays no parse, isolate-spawn, or '
+              'grammar-build cost. See **Pre-warming**.',
+          '**Use a monospace font with tabular figures.** A fixed-width font '
+              'keeps columns aligned; tabular figures keep every digit the same '
+              'width, so line numbers and the gutter never jitter as content '
+              "scrolls. Pass it through the widget's `textStyle:`.",
+          '**Reference only the languages and themes you use.** Name them '
+              'explicitly (e.g. `CodeLanguages.dart`, `ShikiThemes.githubDark`) '
+              'in `preload` or the config, never the `.all` lists, so the '
+              'compiler tree-shakes the rest out of your build. See '
+              '**Bundle size**.',
+          '**Install the Web Worker.** On web, run '
+              '`dart run shiki_flutter:install` and set `asyncWeb: true` to move '
+              'the one-time grammar compile off the main thread. Without it, web '
+              'async falls back to inline, so nothing breaks. See **Web setup**.',
+          '**Match the engine and async to each platform** (table below) for '
+              'the best throughput and a UI thread that never blocks.',
+        ]),
+        DocTable(
+          headers: ['Platform', 'Engine', 'Async', 'Why'],
+          rows: [
+            [
+              'IO (mobile / desktop)',
+              '`ShikiHighlighterNativeEngine` (optional)',
+              '`asyncIO: true` (default)',
+              'The native engine is ~2.4x faster; async keeps its one-time '
+                  'compile off the UI thread. The pure-Dart default is the '
+                  'zero-setup fallback.',
+            ],
+            [
+              'Web',
+              '`ShikiHighlighterEmbeddedEngine` (default)',
+              '`asyncWeb: true` + installed worker',
+              'The embedded engine is the fastest on web; the worker moves the '
+                  'compile off the main thread (web has no isolates).',
+            ],
+          ],
+        ),
+        DocProse(
+          'Putting it together, a production `main` sets the engine and async '
+          'per platform, registers a shared pre-warmed highlighter and a '
+          'default theme, then awaits the warm-up:',
+        ),
+        CodeBlock(
+          code: Snippets.recommendedSetup,
+          lang: 'dart',
+          filename: 'main.dart',
+        ),
+        DocProse(
+          'For the tabular-figures tip, pass a monospace font with the '
+          '`tabularFigures` feature through the widget:',
+        ),
+        CodeBlock(code: Snippets.tabularFigures, lang: 'dart'),
+        DocNote(
+          'Start with just pre-warming and tree-shaking, the two that help '
+          'every app, then add the native engine and Web Worker if you render '
+          'large files or want to move the last of the compile off the main '
+          'thread.',
         ),
       ];
     case 'pre-warming':
@@ -966,17 +1048,21 @@ List<Widget> _content(BuildContext context, String id) {
         DocProse(
           'Pre-warming moves that cost to a moment where a brief pause is '
           'invisible, such as app startup or behind a splash screen, so the '
-          'first real render is instant.',
+          'first real render is instant. The pattern is two steps: set your '
+          'global defaults, then warm the shared highlighter and `await` it '
+          'before `runApp`.',
         ),
         DocBullets([
-          '**Create the highlighter once** and keep it alive. '
-              '`createHighlighter` already decodes and builds every grammar you '
-              'pass it, so constructing it early does that work up front. '
-              'Rebuilding it per frame or per screen throws the warm state away.',
-          '**Run one throwaway tokenize** per `(lang, theme)` you will show, to '
-              'force the lazy regex compile before the first real highlight. Use '
-              '`codeToTokensAsync` so it runs in the background isolate on IO; '
-              'the grammar then stays warm on the highlighter.',
+          '**Set the config once.** Point `config.defaultHighlighter` at a '
+              'single shared highlighter (and `config.defaultTheme` at your '
+              'theme) so every widget reuses it with no `highlighter:` or '
+              '`theme:`. Keep it alive for the app\'s lifetime; rebuilding it '
+              'per frame or per screen throws the warm state away.',
+          '**`await highlighter.preload(...)`.** It decodes each grammar\'s and '
+              "theme's JSON and builds its model up front. Passing "
+              '`warmAsync: true` also spawns the background worker that `async` '
+              'widgets use, so awaiting the call means the first render pays no '
+              'parse, isolate-spawn, or grammar-build cost.',
         ]),
         CodeBlock(
           code: Snippets.preWarm,
@@ -984,11 +1070,12 @@ List<Widget> _content(BuildContext context, String id) {
           filename: 'main.dart',
         ),
         DocNote(
-          'Tokens are also cached (LRU) per `(code, lang, theme)`, so warming '
-          'with the exact source you will render turns that first paint into a '
-          'cache hit too. On web, pre-warming pairs well with the Web Worker '
-          '(see **Web setup**); without a worker the warm-up still runs, just '
-          'inline on the main thread.',
+          'Tokens are also cached (LRU) per `(code, lang, theme)`, so a later '
+          'throwaway `codeToTokensAsync` with the exact source you will render '
+          'turns that first paint into a cache hit too. On web, `warmAsync` '
+          'warms the Web Worker (see **Web setup**) when one is installed; '
+          'without a worker the warm-up still runs, just inline on the main '
+          'thread.',
         ),
       ];
     case 'bundle-size':
@@ -1028,8 +1115,9 @@ List<Widget> _content(BuildContext context, String id) {
       return const [
         DocProse(
           'shiki_flutter ships two widgets for rendering highlighted code. '
-          'Both take the same core inputs (a `highlighter`, the `code`, a '
-          '`lang` object, and an optional `theme`) and share the same optional '
+          'Both take the same core inputs (the `code`, a `lang` object, and an '
+          'optional `theme`; the `highlighter:` is optional too and falls back '
+          'to a shared default) and share the same optional '
           'features: a '
           'line-number gutter (`showLineNumbers` + `gutterStyle`), text '
           'selection, and async highlighting. Pick the one that fits how much '

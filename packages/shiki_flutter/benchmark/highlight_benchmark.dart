@@ -50,10 +50,11 @@ void main() {
   testWidgets(
     'shiki_flutter performance sweep (Dart / GitHub Dark)',
     (tester) async {
-      final highlighter = createHighlighter(
-        langs: [CodeLanguages.dart],
-        themes: [ShikiThemes.githubDark],
-      );
+      final highlighter = ShikiHighlighter()
+        ..preload(
+          langs: [CodeLanguages.dart],
+          themes: [ShikiThemes.githubDark],
+        );
       const langId = 'dart';
       final themeName = ShikiThemes.githubDark.id; // 'github-dark'
       final fg = parseColor(highlighter.getThemeRegistration(themeName).fg);
@@ -64,10 +65,11 @@ void main() {
       // Captures the one-time grammar-load + Oniguruma regex-compile latency that
       // a user pays on the very first highlight of a session.
       final coldStartMicros = measureOnce(() {
-        final fresh = createHighlighter(
-          langs: [CodeLanguages.dart],
-          themes: [ShikiThemes.githubDark],
-        );
+        final fresh = ShikiHighlighter()
+          ..preload(
+            langs: [CodeLanguages.dart],
+            themes: [ShikiThemes.githubDark],
+          );
         fresh.codeToTokens(
           corpusFor(CorpusSize.s),
           TokenizeOptions(lang: langId, theme: themeName),

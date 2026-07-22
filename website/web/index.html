@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -18,8 +18,41 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A TextMate-grammar syntax highlighter for Flutter, ported from Shiki in pure Dart.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary SEO. The site is a client-rendered Flutter (WASM) app, so this
+       static metadata is what search engines and social scrapers actually read
+       before any Dart runs. Per-route titles/descriptions are updated at
+       runtime for real users and JS crawlers (see lib/src/seo/). -->
+  <title>shiki_flutter: syntax highlighting for Flutter</title>
+  <meta name="description" content="A syntax highlighter for Flutter, ported from Shiki in pure Dart. Real VS Code grammars and themes, rendered as native TextSpans on every platform.">
+  <meta name="author" content="Birju Vachhani">
+  <meta name="keywords" content="Flutter syntax highlighting, Shiki, Dart, TextMate grammar, VS Code themes, code highlighter, TextSpan, Oniguruma">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://shiki.birju.dev/">
   <meta name="theme-color" content="#0A0A0A">
+
+  <!-- Open Graph (Facebook, LinkedIn, Slack, Discord). Absolute URLs are
+       required by scrapers. Since scrapers do not run JS, every route shares
+       this one static preview. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="shiki_flutter">
+  <meta property="og:title" content="shiki_flutter: syntax highlighting for Flutter">
+  <meta property="og:description" content="A syntax highlighter for Flutter, ported from Shiki in pure Dart. Real VS Code grammars and themes, rendered as native TextSpans on every platform.">
+  <meta property="og:url" content="https://shiki.birju.dev/">
+  <meta property="og:image" content="https://shiki.birju.dev/banner.png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta property="og:image:alt" content="shiki_flutter: syntax highlighting for Flutter">
+  <meta property="og:locale" content="en_US">
+
+  <!-- X (Twitter) card. TODO: add twitter:site / twitter:creator once the
+       project X handle exists. -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="shiki_flutter: syntax highlighting for Flutter">
+  <meta name="twitter:description" content="A syntax highlighter for Flutter, ported from Shiki in pure Dart. Real VS Code grammars and themes, rendered as native TextSpans on every platform.">
+  <meta name="twitter:image" content="https://shiki.birju.dev/banner.png">
+  <meta name="twitter:image:alt" content="shiki_flutter: syntax highlighting for Flutter">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -32,8 +65,56 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>shiki_flutter: syntax highlighting for Flutter</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- AI assistants and crawlers: this is a client-rendered Flutter (WASM) app,
+       so the rendered page text lives in a canvas, not the DOM. The full
+       documentation is available as plain text at /llms.txt and /docs.md. -->
+  <link rel="alternate" type="text/markdown" href="/docs.md"
+        title="shiki_flutter documentation (Markdown)">
+
+  <!-- Structured data. Static in the DOM, so Google reads it even though the
+       app itself renders to a canvas. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://shiki.birju.dev/#website",
+        "url": "https://shiki.birju.dev/",
+        "name": "shiki_flutter",
+        "description": "A syntax highlighter for Flutter, ported from Shiki in pure Dart. Real VS Code grammars and themes, rendered as native TextSpans on every platform.",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://shiki.birju.dev/#software",
+        "name": "shiki_flutter",
+        "description": "A syntax highlighter for Flutter, ported from Shiki in pure Dart. It tokenizes source code with real VS Code TextMate grammars and themes and renders it as styled TextSpans on iOS, Android, web, macOS, Windows, and Linux.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "iOS, Android, Web, macOS, Windows, Linux",
+        "programmingLanguage": "Dart",
+        "softwareVersion": "1.0.0",
+        "url": "https://shiki.birju.dev/",
+        "image": "https://shiki.birju.dev/banner.png",
+        "downloadUrl": "https://pub.dev/packages/shiki_flutter",
+        "codeRepository": "https://github.com/BirjuVachhani/shiki_flutter",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Birju Vachhani",
+          "url": "https://github.com/BirjuVachhani",
+          "sameAs": "https://github.com/BirjuVachhani"
+        }
+      }
+    ]
+  }
+  </script>
 
   <style>
     /* Dark background before Flutter boots, to avoid a white flash. */
@@ -71,6 +152,29 @@
   </style>
 </head>
 <body>
+  <!-- Crawlable fallback for bots and AI assistants that do not run the Flutter
+       (WASM) app: real text plus links to the plain-text docs. Only shown when
+       JavaScript is disabled, so it never reaches real users and cannot be seen
+       as hidden or cloaked content. -->
+  <noscript>
+    <main>
+      <h1>shiki_flutter</h1>
+      <p>A syntax highlighter for Flutter, ported from Shiki in pure Dart. It
+         tokenizes source code with real VS Code TextMate grammars and themes and
+         renders it as styled TextSpans on iOS, Android, web, macOS, Windows, and
+         Linux.</p>
+      <p>This site is a Flutter web application rendered to a canvas. Read the
+         documentation as plain text instead:</p>
+      <ul>
+        <li><a href="/docs.md">Complete documentation (Markdown)</a></li>
+        <li><a href="/llms.txt">llms.txt (for AI assistants)</a></li>
+        <li><a href="/docs">Interactive documentation</a></li>
+        <li><a href="https://pub.dev/packages/shiki_flutter">Package on pub.dev</a></li>
+        <li><a href="https://github.com/BirjuVachhani/shiki_flutter">Source on GitHub</a></li>
+      </ul>
+    </main>
+  </noscript>
+
   <!-- Branded loader: the shiki_flutter logo mark (inlined from favicon.svg so
        it needs no network fetch) above a thin indeterminate rainbow bar. The
        inline script below removes it once Flutter paints. -->

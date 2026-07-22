@@ -34,11 +34,11 @@ import 'package:shiki_flutter/langs/dart.dart';
 import 'package:shiki_flutter/themes/github_dark.dart';
 const _code = 'void main() => print("hello");';
 void main() {
-  final h = createHighlighter(langs: [dart], themes: [githubDark]);
+  final h = ShikiHighlighter()..preload(langs: [dart], themes: [githubDark]);
   runApp(MaterialApp(home: Scaffold(body: Center(
       child: ShikiCodeView(
           highlighter: h, code: _code, lang: dart,
-          theme: ShikiThemeConfig.single(githubDark))))));
+          theme: githubDark)))));
 }
 ''',
   'one_large': '''
@@ -48,11 +48,11 @@ import 'package:shiki_flutter/langs/javascript.dart';
 import 'package:shiki_flutter/themes/github_dark.dart';
 const _code = 'const x = 1;';
 void main() {
-  final h = createHighlighter(langs: [javascript], themes: [githubDark]);
+  final h = ShikiHighlighter()..preload(langs: [javascript], themes: [githubDark]);
   runApp(MaterialApp(home: Scaffold(body: Center(
       child: ShikiCodeView(
           highlighter: h, code: _code, lang: javascript,
-          theme: ShikiThemeConfig.single(githubDark))))));
+          theme: githubDark)))));
 }
 ''',
   'catalog': '''
@@ -63,13 +63,13 @@ import 'package:shiki_flutter/themes/all.dart';
 const _code = 'void main() => print("hello");';
 void main() {
   // Reference every bundled symbol so none are tree-shaken.
-  final h = createHighlighter(langs: allLanguages, themes: allThemes);
+  final h = ShikiHighlighter()..preload(langs: allLanguages, themes: allThemes);
   final lang = allLanguages.firstWhere((l) => l.id == 'dart');
   final theme = allThemes.firstWhere((t) => t.id == 'github-dark');
   runApp(MaterialApp(home: Scaffold(body: Center(
       child: ShikiCodeView(
           highlighter: h, code: _code, lang: lang,
-          theme: ShikiThemeConfig.single(theme))))));
+          theme: theme)))));
 }
 ''',
 };

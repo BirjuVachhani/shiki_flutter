@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
+
 import '../async/lang_descriptor.dart';
 import '../async/protocol.dart';
 import '../async/token_cache.dart';
@@ -23,35 +25,6 @@ import 'themed_token.dart';
 /// entrypoint under plain `dart` and `dart compile js`. This is the same
 /// compile-time predicate Dart's own conditional imports use.
 const bool _kIsWeb = !bool.fromEnvironment('dart.library.io');
-
-/// Creates a highlighter with the given bundled [langs] and [themes] loaded.
-///
-/// Because [langs]/[themes] are passed by symbol (e.g. `dart`, `githubDark`
-/// imported from `package:shiki_flutter/langs/dart.dart`), any bundled grammar
-/// or theme your app never references is tree-shaken out of the final build.
-///
-/// ```dart
-/// import 'package:shiki_flutter/shiki_flutter.dart';
-/// import 'package:shiki_flutter/langs/dart.dart';
-/// import 'package:shiki_flutter/themes/github_dark.dart';
-///
-/// final hl = createHighlighter(langs: [dart], themes: [githubDark]);
-/// ```
-ShikiHighlighter createHighlighter({
-  List<CodeLanguage> langs = const [],
-  List<ShikiTheme> themes = const [],
-  ShikiHighlighterEngine? engine,
-  TokenCache? cache,
-}) {
-  final hl = ShikiHighlighter(engine: engine, tokenCache: cache);
-  for (final lang in langs) {
-    hl.loadBundledLanguage(lang);
-  }
-  for (final theme in themes) {
-    hl.loadShikiTheme(theme);
-  }
-  return hl;
-}
 
 /// Thrown for highlighter usage errors (unknown language/theme, etc.).
 class ShikiError implements Exception {
@@ -111,16 +84,25 @@ class ShikiHighlighter {
   /// );
   /// ```
   ///
-  /// A `createHighlighter(engine: …)` argument overrides the engine per
+  /// A `ShikiHighlighter(engine: …)` argument overrides the engine per
   /// highlighter; a widget's `async:` argument overrides async per widget.
   static ShikiHighlighterConfig config = const ShikiHighlighterConfig();
 
+  static ShikiHighlighter? _lazyDefault;
+
+  /// The highlighter the rendering widgets use when none is passed to them: the
+  /// one set on [ShikiHighlighterConfig.defaultHighlighter], or a lazily-created
+  /// shared instance. Set `ShikiHighlighter.config.defaultHighlighter` (e.g. a
+  /// [preload]ed highlighter) to control it.
+  static ShikiHighlighter get effectiveDefault =>
+      config.defaultHighlighter ?? (_lazyDefault ??= ShikiHighlighter());
+
   /// Creates a highlighter. [engine] overrides the global engine default
   /// (`ShikiHighlighter.config.engine`) for this instance only.
-  /// [tokenCache] overrides the token cache used for async highlighting.
-  ShikiHighlighter({ShikiHighlighterEngine? engine, TokenCache? tokenCache})
+  /// [cache] overrides the token cache used for async highlighting.
+  ShikiHighlighter({ShikiHighlighterEngine? engine, TokenCache? cache})
     : _engine = engine ?? ShikiHighlighter.config.engine,
-      _tokenCache = tokenCache ?? TokenCache(),
+      _tokenCache = cache ?? TokenCache(),
       _registry = SyncRegistry(
         Theme.createFromRawTheme(RawTheme(settings: [])),
         engine ?? ShikiHighlighter.config.engine,
@@ -164,6 +146,7 @@ class ShikiHighlighter {
   final Map<String, Future<List<List<ThemedToken>>>> _inflight = {};
 
   /// Loads a language grammar from a decoded JSON map.
+  @internal
   void loadLanguage(Map<String, dynamic> grammarJson) {
     final outermost = _langLoadDepth == 0;
     _langLoadDepth++;
@@ -187,6 +170,7 @@ class ShikiHighlighter {
   /// Accepts either a single grammar object or a JSON array of grammars (the
   /// format used by Shiki's bundled language modules, where the array contains
   /// the main grammar plus any embedded grammars).
+  @internal
   void loadLanguageFromJson(String json) {
     final outermost = _langLoadDepth == 0;
     _langLoadDepth++;
@@ -206,6 +190,7 @@ class ShikiHighlighter {
   }
 
   /// Registers an alias (e.g. `js` -> `javascript`).
+  @internal
   void addLanguageAlias(String alias, String target) {
     final scope = _langToScope[target.toLowerCase()] ?? target;
     _langToScope[alias.toLowerCase()] = scope;
@@ -213,6 +198,7 @@ class ShikiHighlighter {
 
   /// Loads a bundled language (from `package:shiki_flutter/langs/<id>.dart`),
   /// including any grammars it embeds and its aliases. Idempotent.
+  @internal
   void loadBundledLanguage(CodeLanguage lang) {
     if (_loadedScopes.contains(lang.scopeName)) return;
     // Break embed cycles: skip a scope already being loaded further up the
@@ -237,6 +223,7 @@ class ShikiHighlighter {
   }
 
   /// Loads a bundled theme (from `package:shiki_flutter/themes/<id>.dart`).
+  @internal
   String loadShikiTheme(ShikiTheme theme) {
     _loadedShikiThemeIds.add(theme.id);
     return loadThemeFromJson(theme.json);
@@ -255,7 +242,38 @@ class ShikiHighlighter {
     if (!_loadedScopes.contains(lang.scopeName)) loadBundledLanguage(lang);
   }
 
+  /// Eagerly loads [langs] and [themes] so the first render (or [codeToTokens]
+  /// call) that uses them pays no grammar/theme parse cost. Optional warm-up:
+  /// the rendering widgets and render helpers load their content on demand
+  /// anyway. A [ShikiDualTheme] warms both its light and dark sides.
+  ///
+  /// The synchronous parse runs before the returned future first suspends, so a
+  /// highlighter used synchronously right after `..preload(...)` is already warm
+  /// without awaiting.
+  ///
+  /// Pass [warmAsync] to also spawn and warm the background worker that backs
+  /// `async` widgets and [codeToTokensAsync] (a background isolate on native, a
+  /// Web Worker on web when installed). Then `await`ing the result waits for
+  /// that worker to finish loading the same grammars and themes, so the first
+  /// async render pays no isolate-spawn or grammar-build cost either.
+  Future<void> preload({
+    List<CodeLanguage> langs = const [],
+    List<ShikiThemeBase> themes = const [],
+    bool warmAsync = false,
+  }) async {
+    for (final lang in langs) {
+      ensureLanguage(lang);
+    }
+    for (final theme in themes) {
+      for (final concrete in theme.themes) {
+        ensureShikiTheme(concrete);
+      }
+    }
+    if (warmAsync) await _ensureWorker();
+  }
+
   /// Loads a theme from a decoded JSON map and returns its resolved name.
+  @internal
   String loadTheme(Map<String, dynamic> themeJson) {
     final outermost = _themeLoadDepth == 0;
     _themeLoadDepth++;
@@ -273,6 +291,7 @@ class ShikiHighlighter {
   }
 
   /// Loads a theme from a JSON string and returns its resolved name.
+  @internal
   String loadThemeFromJson(String json) {
     final outermost = _themeLoadDepth == 0;
     _themeLoadDepth++;
@@ -289,6 +308,7 @@ class ShikiHighlighter {
   /// The normalized theme is also serialized and forwarded to the async worker
   /// (see [_captureTheme]), so a theme registered as a Dart object works with
   /// [codeToTokensAsync] and `async` widgets just like [loadThemeFromJson].
+  @internal
   String loadThemeRegistration(ThemeRegistration registration) {
     final normalized = normalizeTheme(registration);
     // Normalizing is idempotent (colors already hex, leading default present),
@@ -360,7 +380,7 @@ class ShikiHighlighter {
   // --- Async offloading API --------------------------------------------------
 
   /// The token cache backing [codeToTokensAsync]. Exposed so callers can size it
-  /// (via `createHighlighter(cache: …)`) or clear it.
+  /// (via `ShikiHighlighter(cache: …)`) or clear it.
   TokenCache get tokenCache => _tokenCache;
 
   /// Whether a plain, un-highlighted result can be produced synchronously with no

@@ -15,6 +15,16 @@
   widgets load the language and resolved theme into the highlighter on demand
   (new idempotent `ShikiHighlighter.ensureLanguage` / `ensureShikiTheme`), so a
   global default works without pre-loading every highlighter.
+* Simpler highlighter model. The highlighter is engine-only: construct it with
+  `ShikiHighlighter(...)` (the top-level `createHighlighter` function is removed),
+  and warm grammars/themes up front with `highlighter.preload(langs:, themes:)`.
+  `preload` is now awaitable (returns a `Future`); pass `warmAsync: true` to also
+  spawn and warm the background worker, so `await`ing it makes the first async
+  render pay no isolate-spawn or grammar-build cost. A widget's `highlighter:` is
+  now optional and falls back to a shared default you can set via
+  `ShikiHighlighter.config.defaultHighlighter`. The low-level JSON loaders are
+  `@internal`; pass custom content as `CodeLanguage` / `ShikiTheme` objects
+  instead.
 * Async, non-blocking highlighting. `ShikiCodeView` / `ShikiCodeListView` can now
   tokenize off the UI thread: the code appears immediately in the theme's base
   color and swaps to the highlighted result when it is ready, so the UI thread no
@@ -39,7 +49,7 @@
   (`runTokenizeWorker`) + `worker_protocol.dart`.
 * Results are cached in a bounded LRU (`TokenCache`, keyed by code + lang + theme),
   so rebuilds and repeat views are instant with no isolate round trip. Size it via
-  `createHighlighter(cache: TokenCache(maxEntries: …, maxChars: …))`.
+  `ShikiHighlighter(cache: TokenCache(maxEntries: …, maxChars: …))`.
 * New highlighter API for custom async UIs: `codeToTokensAsync`, the synchronous
   cache probe `peekTokens`, and `dispose` (tears down the worker). On web (no
   isolates) the same API runs inline, reusing the loaded grammars.
@@ -52,7 +62,7 @@
   `asyncIO` / `asyncWeb`. The default engines are the faithful Oniguruma port
   (`ShikiHighlighterDartEngine`, from `shiki_flutter_dart_engine`) on native/VM and
   the built-in pure-Dart `ShikiHighlighterEmbeddedEngine` on web. Override per
-  platform in the config, or per highlighter with `createHighlighter(engine: ...)`.
+  platform in the config, or per highlighter with `ShikiHighlighter(engine: ...)`.
   (Replaces the former `ShikiHighlighter.engine` / `ShikiHighlighter.async`
   statics.)
 * Renamed the built-in engine class `ShikiHighlighterDartEngine` →

@@ -18,7 +18,7 @@ import 'render_cache.dart';
 abstract class ShikiBaseWidget extends StatefulWidget {
   const ShikiBaseWidget({
     super.key,
-    required this.highlighter,
+    this.highlighter,
     required this.code,
     required this.lang,
     this.theme,
@@ -34,10 +34,11 @@ abstract class ShikiBaseWidget extends StatefulWidget {
     this.selectionColor,
   });
 
-  /// The highligher instance to use for this widget. It must be pre-configured with the
-  /// languages and themes this widget will use. The widget loads the language and theme
-  /// into the highlighter on demand, so no pre-loading is required.
-  final ShikiHighlighter highlighter;
+  /// The highlighter to render with. Optional: when null, the widget uses the
+  /// shared default (`ShikiHighlighter.config.defaultHighlighter`, or a
+  /// lazily-created instance). The language and resolved theme are loaded into it
+  /// on demand, so no pre-loading is required.
+  final ShikiHighlighter? highlighter;
 
   /// The code to highlight. It is tokenized on demand, then cached for later rebuilds.
   final String code;
@@ -118,6 +119,13 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
   @protected
   final Memoized<String, int> lineCount = Memoized();
 
+  /// The highlighter this widget renders with: its own
+  /// [ShikiBaseWidget.highlighter], or the shared default
+  /// ([ShikiHighlighter.effectiveDefault]) when none was given.
+  @protected
+  ShikiHighlighter get effectiveHighlighter =>
+      widget.highlighter ?? ShikiHighlighter.effectiveDefault;
+
   @protected
   bool get asyncEffective => widget.async ?? ShikiHighlighter.config.async;
 
@@ -127,7 +135,8 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
   ShikiTheme? resolvedTheme;
 
   @protected
-  TokenizeOptions get options => TokenizeOptions(lang: widget.lang.id, theme: resolvedTheme!.id);
+  TokenizeOptions get options =>
+      TokenizeOptions(lang: widget.lang.id, theme: resolvedTheme!.id);
 
   /// Resolves the theme for the current brightness, loads the language and theme
   /// into the highlighter on demand, then (re)kicks tokenization.
@@ -147,14 +156,14 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
     }
     final isDark = (widget.brightness ?? Theme.brightnessOf(context)) == .dark;
     resolvedTheme = theme.resolve(isDark: isDark);
-    widget.highlighter.ensureShikiTheme(resolvedTheme!);
+    effectiveHighlighter.ensureShikiTheme(resolvedTheme!);
   }
 
   @protected
   void resolveLanguage() {
-    widget.highlighter.ensureLanguage(widget.lang);
+    effectiveHighlighter.ensureLanguage(widget.lang);
     resolver.resolve(
-      widget.highlighter,
+      effectiveHighlighter,
       widget.code,
       options,
       async: asyncEffective,

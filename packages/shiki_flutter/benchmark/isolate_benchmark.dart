@@ -86,10 +86,11 @@ void main() {
         final iters = size == CorpusSize.xl ? 2 : 3;
 
         // --- sync: cold (fresh highlighter) then warm (same highlighter) --------
-        final syncHl = createHighlighter(
-          langs: [CodeLanguages.dart],
-          themes: [ShikiThemes.githubDark],
-        );
+        final syncHl = ShikiHighlighter()
+          ..preload(
+            langs: [CodeLanguages.dart],
+            themes: [ShikiThemes.githubDark],
+          );
         final syncCold =
             measureOnce(() => syncHl.codeToTokens(code, _opts)) / 1000;
         final syncWarmSamples = [
@@ -105,10 +106,11 @@ void main() {
           runSamples.add(
             await _timeMicros(() async {
               await Isolate.run(() {
-                final h = createHighlighter(
-                  langs: [CodeLanguages.dart],
-                  themes: [ShikiThemes.githubDark],
-                );
+                final h = ShikiHighlighter()
+                  ..preload(
+                    langs: [CodeLanguages.dart],
+                    themes: [ShikiThemes.githubDark],
+                  );
                 return h.codeToTokens(variant, _opts);
               });
             }),
@@ -169,10 +171,11 @@ void main() {
           await _timeMicros(() async {
             for (final s in snippets) {
               await Isolate.run(() {
-                final h = createHighlighter(
-                  langs: [CodeLanguages.dart],
-                  themes: [ShikiThemes.githubDark],
-                );
+                final h = ShikiHighlighter()
+                  ..preload(
+                    langs: [CodeLanguages.dart],
+                    themes: [ShikiThemes.githubDark],
+                  );
                 return h.codeToTokens(s, _opts);
               });
             }
@@ -198,10 +201,11 @@ void main() {
 
       // --- Main-thread responsiveness (xl): sync freezes, worker stays live -----
       final xl = corpusFor(CorpusSize.xl);
-      final warmHl = createHighlighter(
-        langs: [CodeLanguages.dart],
-        themes: [ShikiThemes.githubDark],
-      );
+      final warmHl = ShikiHighlighter()
+        ..preload(
+          langs: [CodeLanguages.dart],
+          themes: [ShikiThemes.githubDark],
+        );
       warmHl.codeToTokens(xl, _opts); // warm so this measures work, not compile
       final syncGap = await _maxHeartbeatGapMs(
         () async => warmHl.codeToTokens('$xl\n//j', _opts),

@@ -193,9 +193,10 @@ void main() {
     testWidgets('dual config follows Theme brightness and swaps on flip', (
       tester,
     ) async {
-      final ref = createHighlighter(
-        themes: [ShikiThemes.githubLight, ShikiThemes.githubDark],
-      );
+      final ref = ShikiHighlighter()
+        ..preload(
+          themes: [ShikiThemes.githubLight, ShikiThemes.githubDark],
+        );
       final lightBg = parseColor(
         ref.getThemeRegistration(ShikiThemes.githubLight.id).bg,
       )!;
@@ -243,7 +244,7 @@ void main() {
     testWidgets('explicit brightness overrides the ambient Theme', (
       tester,
     ) async {
-      final ref = createHighlighter(themes: [ShikiThemes.githubDark]);
+      final ref = ShikiHighlighter()..preload(themes: [ShikiThemes.githubDark]);
       final darkBg = parseColor(
         ref.getThemeRegistration(ShikiThemes.githubDark.id).bg,
       )!;
@@ -312,6 +313,72 @@ void main() {
         ),
       );
       expect(tester.takeException(), isA<ShikiError>());
+    });
+  });
+
+  group('highlighter defaulting', () {
+    testWidgets('omitting highlighter uses config.defaultHighlighter', (
+      tester,
+    ) async {
+      final previous = ShikiHighlighter.config;
+      addTearDown(() => ShikiHighlighter.config = previous);
+      ShikiHighlighter.config = previous.copyWith(
+        defaultHighlighter: ShikiHighlighter(),
+        defaultTheme: ShikiThemes.githubDark,
+      );
+
+      // No highlighter and no theme on the widget: both come from config.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ShikiCodeView(
+            code: 'void main() {}',
+            lang: CodeLanguages.dart,
+            async: false,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.descendant(
+          of: find.byType(ShikiCodeView),
+          matching: find.byType(ColoredBox),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    test('preload warms languages and themes (single and dual)', () {
+      final hl = ShikiHighlighter()
+        ..preload(
+          langs: [CodeLanguages.dart],
+          themes: [
+            ShikiThemes.githubDark,
+            ShikiDualTheme(
+              light: ShikiThemes.githubLight,
+              dark: ShikiThemes.githubDark,
+            ),
+          ],
+        );
+
+      // The single theme and both sides of the dual resolve without throwing.
+      expect(
+        () => hl.getThemeRegistration(ShikiThemes.githubLight.id),
+        returnsNormally,
+      );
+      expect(
+        () => hl.getThemeRegistration(ShikiThemes.githubDark.id),
+        returnsNormally,
+      );
+      // The preloaded language tokenizes synchronously (grammar already loaded).
+      final tokens = hl.codeToTokens(
+        'void main() {}',
+        TokenizeOptions(
+          lang: CodeLanguages.dart.id,
+          theme: ShikiThemes.githubDark.id,
+        ),
+      );
+      expect(tokens, isNotEmpty);
     });
   });
 
@@ -1075,10 +1142,11 @@ void main() {
     testWidgets('disposing while an async tokenize is in flight does not throw', (
       tester,
     ) async {
-      final hl = createHighlighter(
-        langs: [CodeLanguages.dart],
-        themes: [ShikiThemes.githubDark],
-      );
+      final hl = ShikiHighlighter()
+        ..preload(
+          langs: [CodeLanguages.dart],
+          themes: [ShikiThemes.githubDark],
+        );
       addTearDown(hl.dispose);
 
       // Pump the async widget: first frame is the plain placeholder, an off-thread

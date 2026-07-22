@@ -1,5 +1,6 @@
 // A virtualized widget for displaying large highlighted files line-by-line.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:flutter/widgets.dart';
 import 'base.dart';
@@ -55,7 +56,7 @@ import 'render_cache.dart';
 class ShikiCodeListView extends ShikiBaseWidget {
   const ShikiCodeListView({
     super.key,
-    required super.highlighter,
+    super.highlighter,
     required super.code,
     required super.lang,
     super.theme,
@@ -106,17 +107,20 @@ class ShikiCodeListView extends ShikiBaseWidget {
   State<ShikiCodeListView> createState() => _ShikiCodeListViewState();
 }
 
-class _ShikiCodeListViewState extends State<ShikiCodeListView> with ShikiStateMixin<ShikiCodeListView> {
+class _ShikiCodeListViewState extends State<ShikiCodeListView>
+    with ShikiStateMixin<ShikiCodeListView> {
   ScrollController? _internalController;
 
   final Memoized<String, int> _maxLen = Memoized();
   final RenderMemo<List<List<InlineSpan>>> _spanMemo = RenderMemo();
 
-  ScrollController get _controller => widget.controller ?? (_internalController ??= ScrollController());
+  ScrollController get _controller =>
+      widget.controller ?? (_internalController ??= ScrollController());
 
   @override
   void resolveLanguage() {
     if (widget.lines != null) return;
+    kDebugMode;
     super.resolveLanguage();
   }
 
@@ -143,7 +147,7 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> with ShikiStateMi
     final textScaler = widget.textScaler ?? MediaQuery.textScalerOf(context);
     final base = widget.textStyle ?? const TextStyle(fontFamily: 'monospace');
 
-    final registration = widget.highlighter.getThemeRegistration(
+    final registration = effectiveHighlighter.getThemeRegistration(
       resolvedTheme!.id,
     );
     final fg = parseColor(registration.fg);
@@ -169,7 +173,8 @@ class _ShikiCodeListViewState extends State<ShikiCodeListView> with ShikiStateMi
           // preserving the line count (and thus height) so nothing jumps when
           // the highlighted result swaps in.
           placeholder: (code, b) => [
-            for (final line in splitLines(code)) [TextSpan(text: line.content, style: b)],
+            for (final line in splitLines(code))
+              [TextSpan(text: line.content, style: b)],
           ],
         );
 

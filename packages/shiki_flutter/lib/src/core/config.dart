@@ -1,6 +1,9 @@
 import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
 
 import '../onig/onig.dart';
+// Circular with highlighter.dart (which imports this file): legal in Dart since
+// `defaultHighlighter` is a nullable field with no const-eval cycle.
+import 'highlighter.dart';
 import 'shiki_theme.dart';
 
 /// Web vs. native without importing `package:flutter/foundation.dart`, whose
@@ -33,6 +36,7 @@ class ShikiHighlighterConfig {
     this.asyncIO = true,
     this.asyncWeb = false,
     this.defaultTheme,
+    this.defaultHighlighter,
   });
 
   /// The regex engine used on native/VM (IO). Defaults to the pure-Dart
@@ -67,6 +71,14 @@ class ShikiHighlighterConfig {
   /// default works without pre-loading it into every highlighter.
   final ShikiThemeBase? defaultTheme;
 
+  /// The highlighter the rendering widgets use when no `highlighter:` is passed.
+  ///
+  /// When null (the default), widgets fall back to a lazily-created shared
+  /// instance (see [ShikiHighlighter.effectiveDefault]). Set one here (e.g. a
+  /// [ShikiHighlighter] you have `preload`ed, or one with a custom engine) to
+  /// make it the app-wide default without passing `highlighter:` everywhere.
+  final ShikiHighlighter? defaultHighlighter;
+
   bool get async => _kIsWeb ? asyncWeb : asyncIO;
 
   ShikiHighlighterEngine get engine => _kIsWeb ? webEngine : ioEngine;
@@ -78,11 +90,13 @@ class ShikiHighlighterConfig {
     bool? asyncIO,
     bool? asyncWeb,
     ShikiThemeBase? defaultTheme,
+    ShikiHighlighter? defaultHighlighter,
   }) => ShikiHighlighterConfig(
     ioEngine: ioEngine ?? this.ioEngine,
     webEngine: webEngine ?? this.webEngine,
     asyncIO: asyncIO ?? this.asyncIO,
     asyncWeb: asyncWeb ?? this.asyncWeb,
     defaultTheme: defaultTheme ?? this.defaultTheme,
+    defaultHighlighter: defaultHighlighter ?? this.defaultHighlighter,
   );
 }

@@ -46,11 +46,11 @@ void main() {
     final src = corpusFor(CorpusSize.l); // 2,000 lines - the freeze case
 
     // Reference: the synchronous embedded engine (the engine the worker uses).
-    final ref = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: [ShikiThemes.githubDark],
-      engine: const ShikiHighlighterEmbeddedEngine(),
-    );
+    final ref = ShikiHighlighter(engine: const ShikiHighlighterEmbeddedEngine())
+      ..preload(
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
+      );
     final refFp = _fp(ref.codeToTokens(src, opts));
 
     // --- Spawn the browser Web Worker directly. isRemote == true proves a real
@@ -73,10 +73,11 @@ void main() {
 
     // --- Jank: drive the virtualized list with async on, so the highlighter's
     // own worker pays the cold compile off-thread while we watch the UI thread.
-    final jankH = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: [ShikiThemes.githubDark],
-    );
+    final jankH = ShikiHighlighter()
+      ..preload(
+        langs: [CodeLanguages.dart],
+        themes: [ShikiThemes.githubDark],
+      );
     final reg = jankH.getThemeRegistration(theme);
     final fg = parseColor(reg.fg);
     final bg = parseColor(reg.bg);

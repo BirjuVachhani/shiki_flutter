@@ -11,7 +11,7 @@ export 'src/async/token_cache.dart' show TokenCache;
 export 'src/core/code_language.dart' show CodeLanguage, GrammarCategory;
 export 'src/core/config.dart';
 export 'src/core/highlighter.dart'
-    show ShikiHighlighter, TokenizeOptions, ShikiError, createHighlighter;
+    show ShikiHighlighter, TokenizeOptions, ShikiError;
 export 'src/core/themed_token.dart' show ThemedToken;
 export 'src/onig/onig.dart'
     show

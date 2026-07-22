@@ -12,10 +12,11 @@ void main() {
 
 void main() {
   // Batteries-included: pass bundled languages/themes by symbol.
-  final highlighter = createHighlighter(
-    langs: [CodeLanguages.dart],
-    themes: [ShikiThemes.githubDark],
-  );
+  final highlighter = ShikiHighlighter()
+    ..preload(
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
+    );
 
   runApp(
     MaterialApp(

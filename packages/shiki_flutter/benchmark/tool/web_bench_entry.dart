@@ -15,10 +15,11 @@ import 'package:shiki_flutter/themes.dart';
 import '../src/corpus.dart';
 
 void main() {
-  final hl = createHighlighter(
-    langs: [CodeLanguages.dart],
-    themes: [ShikiThemes.githubDark],
-  );
+  final hl = ShikiHighlighter()
+    ..preload(
+      langs: [CodeLanguages.dart],
+      themes: [ShikiThemes.githubDark],
+    );
   const opts = TokenizeOptions(lang: 'dart', theme: 'github-dark');
 
   double median(CorpusSize size, {required bool fastPath}) {

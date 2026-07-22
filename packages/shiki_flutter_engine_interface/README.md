@@ -1,3 +1,5 @@
+![shiki_flutter](https://raw.githubusercontent.com/BirjuVachhani/shiki_flutter/main/website/assets/banner.webp)
+
 # shiki_flutter_engine_interface
 
 The regex-engine seam shared by [`shiki_flutter`](../shiki_flutter) and its
