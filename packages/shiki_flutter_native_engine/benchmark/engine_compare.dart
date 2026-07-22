@@ -13,8 +13,6 @@
 //   dart run benchmark/engine_compare.dart
 
 import 'package:shiki_flutter/engine.dart';
-import 'package:shiki_flutter/langs.dart';
-import 'package:shiki_flutter/themes.dart';
 import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';
 
@@ -33,41 +31,27 @@ const _opts = TokenizeOptions(lang: 'dart', theme: 'github-dark');
 
 class _EngineUnderTest {
   const _EngineUnderTest(this.label, this.engine);
+
   final String label;
   final ShikiHighlighterEngine engine;
 }
 
 void main() {
   final engines = <_EngineUnderTest>[
-    const _EngineUnderTest(
-      'bundled (built-in Dart)',
-      ShikiHighlighterEmbeddedEngine(),
-    ),
-    const _EngineUnderTest(
-      'oniguruma_dart (port)',
-      ShikiHighlighterDartEngine(),
-    ),
-    const _EngineUnderTest(
-      'FFI Oniguruma (native C)',
-      ShikiHighlighterNativeEngine(),
-    ),
+    const _EngineUnderTest('bundled (built-in Dart)', ShikiHighlighterEmbeddedEngine()),
+    const _EngineUnderTest('oniguruma_dart (port)', ShikiHighlighterDartEngine()),
+    const _EngineUnderTest('FFI Oniguruma (native C)', ShikiHighlighterNativeEngine()),
   ];
 
   // Corpus structure + token counts (identical across engines). Tokenize once
   // with the bundled engine to get the token count per size.
   final structure = <CorpusSize, ({int lines, int bytes, int tokens})>{};
   {
-    final hl = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: [ShikiThemes.githubDark],
-      engine: engines.first.engine,
-    );
+    final hl = ShikiHighlighter(engine: engines.first.engine);
     for (final size in _sizes) {
       final src = corpusFor(size);
       final w = WorkloadStats(src);
-      final toks = hl
-          .codeToTokens(src, _opts)
-          .fold<int>(0, (s, line) => s + line.length);
+      final toks = hl.codeToTokens(src, _opts).fold<int>(0, (s, line) => s + line.length);
       structure[size] = (lines: w.lines, bytes: w.bytes, tokens: toks);
     }
   }
@@ -75,11 +59,7 @@ void main() {
   // engineLabel -> sizeLabel -> Sample
   final samples = <String, Map<CorpusSize, Sample>>{};
   for (final e in engines) {
-    final hl = createHighlighter(
-      langs: [CodeLanguages.dart],
-      themes: [ShikiThemes.githubDark],
-      engine: e.engine,
-    );
+    final hl = ShikiHighlighter(engine: e.engine);
     samples[e.label] = {};
     for (final size in _sizes) {
       final src = corpusFor(size);
@@ -122,27 +102,13 @@ void _report(
       '\n${size.label} (${count(structure[size]!.lines)} lines, '
       '${count(structure[size]!.tokens)} tokens)',
     );
-    final t = ConsoleTable([
-      'engine',
-      'median ms',
-      'p90 ms',
-      'tokens/s',
-      'vs bundled',
-    ]);
+    final t = ConsoleTable(['engine', 'median ms', 'p90 ms', 'tokens/s', 'vs bundled']);
     final base = samples[bundled]![size]!.medianMs;
     for (final e in engines) {
       final s = samples[e.label]![size]!;
       final tokPerSec = (structure[size]!.tokens / (s.medianMs / 1000)).round();
-      final rel = s.medianMs == 0
-          ? '-'
-          : '${(base / s.medianMs).toStringAsFixed(2)}x';
-      t.addRow([
-        e.label,
-        ms(s.medianMs),
-        ms(s.p90Ms),
-        count(tokPerSec),
-        e.label == bundled ? '1.00x' : rel,
-      ]);
+      final rel = s.medianMs == 0 ? '-' : '${(base / s.medianMs).toStringAsFixed(2)}x';
+      t.addRow([e.label, ms(s.medianMs), ms(s.p90Ms), count(tokPerSec), e.label == bundled ? '1.00x' : rel]);
     }
     buf.write(t.render());
   }

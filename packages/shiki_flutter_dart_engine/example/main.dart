@@ -1,12 +1,7 @@
 import 'package:shiki_flutter/engine.dart';
-import 'package:shiki_flutter/langs.dart';
-import 'package:shiki_flutter/themes.dart';
 
 void main() {
-  final hl = createHighlighter(
-    langs: [CodeLanguages.dart],
-    themes: [ShikiThemes.githubDark],
-  );
+  final hl = ShikiHighlighter();
   final lines = hl.codeToTokens(
     "void main() => print('hello');",
     const TokenizeOptions(lang: 'dart', theme: 'github-dark'),

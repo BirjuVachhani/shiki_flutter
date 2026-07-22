@@ -9,8 +9,6 @@
 //   node /tmp/web_bench.js
 
 import 'package:shiki_flutter/engine.dart';
-import 'package:shiki_flutter/langs.dart';
-import 'package:shiki_flutter/themes.dart';
 import 'package:shiki_flutter_dart_engine/shiki_flutter_dart_engine.dart';
 
 import '../../shiki_flutter/benchmark/src/corpus.dart';
@@ -23,17 +21,8 @@ double _medianMs(List<int> micros) {
   return micros[micros.length ~/ 2] / 1000.0;
 }
 
-double _bench(
-  ShikiHighlighterEngine engine,
-  String src, {
-  required int warmup,
-  required int iters,
-}) {
-  final hl = createHighlighter(
-    langs: [CodeLanguages.dart],
-    themes: [ShikiThemes.githubDark],
-    engine: engine,
-  );
+double _bench(ShikiHighlighterEngine engine, String src, {required int warmup, required int iters}) {
+  final hl = ShikiHighlighter(engine: engine);
   for (var i = 0; i < warmup; i++) {
     hl.codeToTokens(src, _opts);
   }
@@ -49,8 +38,7 @@ double _bench(
 
 void main() {
   final engines = <String, ShikiHighlighterEngine>{
-    'bundled (built-in Dart, RegExp fast path)':
-        const ShikiHighlighterEmbeddedEngine(),
+    'bundled (built-in Dart, RegExp fast path)': const ShikiHighlighterEmbeddedEngine(),
     'oniguruma_dart (port)': const ShikiHighlighterDartEngine(),
   };
 
