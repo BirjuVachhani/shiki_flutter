@@ -1,0 +1,105 @@
+name: Verify web workers
+
+# The prebuilt tokenize Web Workers are committed to the repo so `pub get` gives
+# apps ready-to-install workers with no compile step. Because they are generated
+# artifacts, they can silently drift from source: change anything a worker
+# compiles in (the engine, the tokenizer, the JSON protocol, the highlighter)
+# and the committed .js is stale until someone re-runs the build tool.
+#
+# This workflow re-runs the maintainer build tools and fails if any committed
+# worker changes, so a stale worker can't be merged or released. dart2js output
+# is deterministic for a given Dart SDK, so pin the same Flutter the project is
+# built against (3.44.6 -> Dart 3.12.2); a mismatch would cause false drift.
+#
+# If this fails, run the build tools locally and commit the result:
+#   (cd packages/shiki_flutter && dart run tool/build_web_worker.dart)
+#   (cd packages/shiki_flutter_native_engine && dart run tool/build_web_worker_native.dart)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/shiki_flutter/lib/**'
+      - 'packages/shiki_flutter/tool/build_web_worker.dart'
+      - 'packages/shiki_flutter_engine_interface/lib/**'
+      - 'packages/shiki_flutter_dart_engine/lib/**'
+      - 'packages/shiki_flutter_native_engine/lib/**'
+      - 'packages/shiki_flutter_native_engine/tool/build_web_worker_native.dart'
+      - '.github/workflows/verify-web-workers.yml'
+  pull_request:
+    paths:
+      - 'packages/shiki_flutter/lib/**'
+      - 'packages/shiki_flutter/tool/build_web_worker.dart'
+      - 'packages/shiki_flutter_engine_interface/lib/**'
+      - 'packages/shiki_flutter_dart_engine/lib/**'
+      - 'packages/shiki_flutter_native_engine/lib/**'
+      - 'packages/shiki_flutter_native_engine/tool/build_web_worker_native.dart'
+      - '.github/workflows/verify-web-workers.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core-workers:
+    name: Core workers (embedded + Dart port)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.6
+          channel: stable
+          cache: true
+
+      # Resolve the whole workspace (honours the root pubspec_overrides.yaml).
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Both core workers are pure Dart (no native deps): the embedded engine
+      # and the oniguruma_dart port.
+      - name: Rebuild core web workers
+        working-directory: packages/shiki_flutter
+        run: dart run tool/build_web_worker.dart
+
+      - name: Fail if the committed workers drifted from source
+        run: |
+          if ! git diff --exit-code -- packages/shiki_flutter/lib/src/async/web/prebuilt; then
+            echo "::error::Prebuilt core web workers are out of date. Run 'cd packages/shiki_flutter && dart run tool/build_web_worker.dart' and commit the result."
+            exit 1
+          fi
+
+  native-worker:
+    name: Native worker (WebAssembly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.6
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Compiling to JS targets the web, so oniguruma_native's C build hook does
+      # not run; the native-assets hook still resolves a host (linux/x64)
+      # prebuilt during the build, so enable native assets.
+      - name: Enable native assets
+        run: flutter config --enable-native-assets
+
+      - name: Rebuild native web worker
+        working-directory: packages/shiki_flutter_native_engine
+        run: dart run tool/build_web_worker_native.dart
+
+      - name: Fail if the committed worker drifted from source
+        run: |
+          if ! git diff --exit-code -- packages/shiki_flutter_native_engine/lib/src/prebuilt; then
+            echo "::error::Prebuilt native web worker is out of date. Run 'cd packages/shiki_flutter_native_engine && dart run tool/build_web_worker_native.dart' and commit the result."
+            exit 1
+          fi
