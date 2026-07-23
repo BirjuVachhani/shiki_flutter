@@ -5,6 +5,5 @@ formatter:
 
 linter:
   rules:
-    unnecessary_library_directive: true
     public_member_api_docs: true
     use_super_parameters: true
