@@ -6,7 +6,9 @@ void main() {
   if (!kIsWeb) {
     // One line, once at startup: every highlighter now uses native Oniguruma
     // through Dart FFI on IO.
-    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(ioEngine: const ShikiHighlighterNativeEngine());
+    ShikiHighlighter.config = ShikiHighlighter.config.copyWith(
+      ioEngine: const ShikiHighlighterNativeEngine(),
+    );
     print('Using native Oniguruma (FFI).');
   } else {
     print('Native Oniguruma unavailable; using the pure-Dart engine.');

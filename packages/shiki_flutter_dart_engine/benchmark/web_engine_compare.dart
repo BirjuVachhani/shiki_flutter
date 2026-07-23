@@ -21,7 +21,12 @@ double _medianMs(List<int> micros) {
   return micros[micros.length ~/ 2] / 1000.0;
 }
 
-double _bench(ShikiHighlighterEngine engine, String src, {required int warmup, required int iters}) {
+double _bench(
+  ShikiHighlighterEngine engine,
+  String src, {
+  required int warmup,
+  required int iters,
+}) {
   final hl = ShikiHighlighter(engine: engine);
   for (var i = 0; i < warmup; i++) {
     hl.codeToTokens(src, _opts);
@@ -38,7 +43,8 @@ double _bench(ShikiHighlighterEngine engine, String src, {required int warmup, r
 
 void main() {
   final engines = <String, ShikiHighlighterEngine>{
-    'bundled (built-in Dart, RegExp fast path)': const ShikiHighlighterEmbeddedEngine(),
+    'bundled (built-in Dart, RegExp fast path)':
+        const ShikiHighlighterEmbeddedEngine(),
     'oniguruma_dart (port)': const ShikiHighlighterDartEngine(),
   };
 
