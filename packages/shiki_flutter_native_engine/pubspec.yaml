@@ -19,7 +19,7 @@ dependencies:
   flutter:
     sdk: flutter
   shiki_flutter_engine_interface: ^1.0.0
-  oniguruma_native: ^1.0.1
+  oniguruma_native: ^1.0.1+2
   shiki_flutter: ^1.0.0
 
 dev_dependencies:
