@@ -75,6 +75,8 @@ class Memoized<K, V extends Object> {
   K? _key;
   V? _value;
 
+  /// Returns the memoized value for [key], invoking [compute] only when [key]
+  /// differs from the last call (or on the first call).
   V of(K key, V Function() compute) {
     if (_value != null && _key == key) return _value!;
     _key = key;

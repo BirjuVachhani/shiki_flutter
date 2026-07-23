@@ -10,6 +10,8 @@ const _vscodeFallbackEditorBgDark = '#1e1e1e';
 /// A resolved Shiki theme: normalized settings, resolved fg/bg, and color
 /// replacements for any non-hex colors that `vscode-textmate` cannot represent.
 class ThemeRegistration {
+  /// Creates a theme registration. [colorReplacements] and [colors] default
+  /// to empty maps when omitted.
   ThemeRegistration({
     required this.name,
     required this.type,
@@ -21,12 +23,27 @@ class ThemeRegistration {
   }) : colorReplacements = colorReplacements ?? {},
        colors = colors ?? {};
 
+  /// The theme's display name.
   final String name;
+
+  /// The theme's variant, either `'light'` or `'dark'`.
   String type; // 'light' | 'dark'
+
+  /// The scope-to-style rules, in the order VS Code / TextMate applies them.
   List<RawThemeSetting> settings;
+
+  /// The resolved default foreground color, or `null` before normalization.
   String? fg;
+
+  /// The resolved default background color, or `null` before normalization.
   String? bg;
+
+  /// Maps synthesized placeholder hex colors back to the original non-hex
+  /// color value they stand in for. Populated by [normalizeTheme].
   Map<String, String> colorReplacements;
+
+  /// The theme's raw `colors` map (VS Code workbench color keys, e.g.
+  /// `editor.foreground`), used as a fallback source for [fg]/[bg].
   Map<String, String> colors;
 
   /// Parses a raw theme JSON map (VS Code / TextMate theme format).

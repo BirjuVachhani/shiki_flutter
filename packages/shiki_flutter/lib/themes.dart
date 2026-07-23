@@ -74,6 +74,9 @@ import 'src/themes/vitesse_black.dart' as t_vitesse_black;
 import 'src/themes/vitesse_dark.dart' as t_vitesse_dark;
 import 'src/themes/vitesse_light.dart' as t_vitesse_light;
 
+/// Typesafe, tree-shakeable access to every theme bundled with the package.
+/// Referencing a member (e.g. [andromeeda]) pulls in only that theme; themes
+/// you never reference are tree-shaken out of the build.
 abstract final class ShikiThemes {
   /// Andromeeda (dark).
   static const ShikiTheme andromeeda = t_andromeeda.andromeeda;
@@ -287,6 +290,9 @@ abstract final class ShikiThemes {
 
   // CAUTION: referencing `all` pulls EVERY theme into your build.
   // Prefer individual members.
+  /// Every bundled theme. Referencing this pulls all of them into your build;
+  /// prefer individual members (e.g. [andromeeda]) to keep unused themes
+  /// tree-shaken out.
   static const List<ShikiTheme> all = [
     andromeeda,
     auroraX,

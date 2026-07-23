@@ -54,6 +54,9 @@ import 'render_cache.dart';
 ///
 /// Style the line-number gutter (gap and divider) with [gutterStyle].
 class ShikiCodeListView extends ShikiBaseWidget {
+  /// Creates a virtualized, line-by-line highlighted code view. [code] and
+  /// [lang] are required; see the class docs for the layout modes controlled
+  /// by [shrinkWrap]/[physics] and the [showLineNumbers]/[softWrap] conflict.
   const ShikiCodeListView({
     super.key,
     super.highlighter,
@@ -97,6 +100,8 @@ class ShikiCodeListView extends ShikiBaseWidget {
   /// Grow to fit content rather than filling (and scrolling within) the parent.
   final bool shrinkWrap;
 
+  /// Scroll physics for the code list. Pass `NeverScrollableScrollPhysics()`
+  /// alongside [shrinkWrap] to let an outer scroll view drive it.
   final ScrollPhysics? physics;
 
   /// Vertical scroll controller for the code list. One is created internally

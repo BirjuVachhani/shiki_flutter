@@ -5,12 +5,31 @@ import '../onig/onig.dart';
 import 'grammar.dart';
 import 'rule.dart';
 
+/// The result of running [tokenizeString] over a single line.
 class TokenizeStringResult {
+  /// Creates a [TokenizeStringResult] with the resulting [stack] and
+  /// whether it [stoppedEarly] due to the time limit.
   TokenizeStringResult(this.stack, this.stoppedEarly);
+
+  /// The rule stack at the end of the line (or at the point tokenization
+  /// stopped), to be passed in as the starting stack for the next line.
   final StateStack stack;
+
+  /// Whether tokenization was cut short by the `timeLimit` before reaching
+  /// the end of the line.
   final bool stoppedEarly;
 }
 
+/// Tokenizes [lineText] from [linePos] to the end of the line, repeatedly
+/// matching rules/injections and pushing or popping [stack], writing
+/// produced tokens to [lineTokens]. Ported from `vscode-textmate`'s
+/// `_tokenizeString`.
+///
+/// When [checkWhileConditions] is `true`, active `begin`/`while` rules on
+/// the stack are first re-checked against this line (see
+/// `_checkWhileConditions`) before the main scan loop runs. If [timeLimit]
+/// is nonzero and elapsed time exceeds it, tokenization stops early and the
+/// returned result has `stoppedEarly: true`.
 TokenizeStringResult tokenizeString(
   Grammar grammar,
   OnigString lineText,

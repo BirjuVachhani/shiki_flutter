@@ -11,49 +11,92 @@ import 'tokenize_string.dart';
 
 /// A token with its scope stack. Mirrors `IToken`.
 class Token {
+  /// Creates a token spanning `[startIndex, endIndex)` with the given
+  /// [scopes] stack (outermost first).
   Token(this.startIndex, this.endIndex, this.scopes);
 
+  /// Start offset (inclusive) into the tokenized line, in UTF-16 code units.
   int startIndex;
+
+  /// End offset (exclusive) into the tokenized line, in UTF-16 code units.
   final int endIndex;
+
+  /// The full scope stack active at this token, outermost first.
   final List<String> scopes;
 
   @override
   String toString() => '($startIndex-$endIndex ${scopes.join(', ')})';
 }
 
+/// The result of [Grammar.tokenizeLine]: per-token [Token]s plus the state
+/// to feed into the next line.
 class TokenizeLineResult {
+  /// Creates a tokenize-line result.
   TokenizeLineResult(this.tokens, this.ruleStack, this.stoppedEarly);
 
+  /// The tokens produced for the line.
   final List<Token> tokens;
+
+  /// The tokenizer state to pass as `prevState` for the following line.
   final StateStack ruleStack;
+
+  /// Whether tokenization stopped early because a `timeLimit` was hit.
   final bool stoppedEarly;
 }
 
+/// The result of [Grammar.tokenizeLine2]: a compact binary encoding of
+/// tokens plus the state to feed into the next line.
 class TokenizeLineResult2 {
+  /// Creates a binary tokenize-line result.
   TokenizeLineResult2(this.tokens, this.ruleStack, this.stoppedEarly);
 
   /// Packed as pairs: [startIndex, metadata, startIndex, metadata, ...].
   final List<int> tokens;
+
+  /// The tokenizer state to pass as `prevState` for the following line.
   final StateStack ruleStack;
+
+  /// Whether tokenization stopped early because a `timeLimit` was hit.
   final bool stoppedEarly;
 }
 
+/// Maps a scope selector to a `standard-tokens.json`-style numeric token
+/// type override, as configured on a grammar's `tokenTypes`.
 typedef TokenTypeMap = Map<String, int>;
 
+/// Resolves scope stacks to styles. Implemented by [Theme] (via
+/// `Grammar.themeProvider`).
 abstract class ThemeProvider {
+  /// Returns the style for [scopePath], or `null` if nothing matches.
   StyleAttributes? themeMatch(ScopeStack scopePath);
+
+  /// The style to use when nothing more specific matches.
   StyleAttributes getDefaults();
 }
 
+/// Resolves scope names to other grammars, so grammars can `include` one
+/// another and inject into each other via scope-selector injections.
 abstract class GrammarRepository {
+  /// Returns the raw grammar registered for [scopeName], or `null` if
+  /// unknown.
   RawGrammar? lookup(String scopeName);
+
+  /// Returns the scope names of grammars that inject into [scopeName], if
+  /// any.
   List<String>? injections(String scopeName);
 }
 
+/// A repository that can resolve both included grammars and theme styles;
+/// what a [Grammar] needs from its host to tokenize.
 abstract class GrammarAndThemeRepository
     implements GrammarRepository, ThemeProvider {}
 
+/// A compiled scope-selector injection: a rule that gets tried against
+/// every scope stack, regardless of the grammar's normal include tree.
 class Injection {
+  /// Creates an injection for [debugSelector], compiled to [matcher], with
+  /// its resolved [priority], the [ruleId] to apply, and the [grammar] it
+  /// came from.
   Injection(
     this.debugSelector,
     this.matcher,
@@ -62,15 +105,24 @@ class Injection {
     this.grammar,
   );
 
+  /// The raw scope selector this injection was compiled from, for debugging.
   final String debugSelector;
+
+  /// Matches a scope stack (outermost first) against the compiled selector.
   final Matcher<List<String>> matcher;
 
   /// -1 for 'L', 1 for 'R', 0 default.
   final int priority;
+
+  /// The rule to apply when this injection matches.
   final RuleId ruleId;
+
+  /// The grammar the injected rule belongs to.
   final RawGrammar grammar;
 }
 
+/// Constructs a [Grammar] for a top-level scope; a thin wrapper around
+/// [Grammar]'s constructor.
 Grammar createGrammar(
   String scopeName,
   RawGrammar grammar,
@@ -113,6 +165,9 @@ void _collectInjections(
   }
 }
 
+/// The default `MatcherContext` for scope-selector matching: true if
+/// [scopes] contains, in order, a scope matching (equal to, or a
+/// dot-suffixed descendant of) each of [identifiers].
 bool nameMatcher(List<String> identifiers, List<String> scopes) {
   if (scopes.length < identifiers.length) return false;
   var lastIndex = 0;
@@ -136,7 +191,17 @@ bool _scopesAreMatching(String thisScopeName, String scopeName) {
       thisScopeName[len] == '.';
 }
 
+/// A compiled TextMate grammar: the entry point for tokenizing lines of
+/// source text. Mirrors vscode-textmate's `Grammar` class, and implements
+/// [GrammarRules] to serve as the rule registry/lookup for its own
+/// compiled [Rule]s.
 class Grammar implements GrammarRules {
+  /// Compiles [grammar] for [_rootScopeName]. [initialLanguage] and
+  /// [embeddedLanguages] configure per-scope language ids (for embedded
+  /// languages like `<script>` in HTML); [tokenTypes] and
+  /// [_balancedBracketSelectors] configure `tokenizeLine2`'s binary token
+  /// metadata; [_grammarRepository] resolves `include`d/injected grammars
+  /// and theme styles; [_onigLib] provides the regex engine.
   Grammar(
     this._rootScopeName,
     RawGrammar grammar,
@@ -178,8 +243,13 @@ class Grammar implements GrammarRules {
   final BalancedBracketSelectors? _balancedBracketSelectors;
   final ShikiHighlighterEngine _onigLib;
 
+  /// The repository used to resolve scope stacks to styles.
   ThemeProvider get themeProvider => _grammarRepository;
+
+  /// This grammar's root scope name, e.g. `source.dart`.
   String get name => _rootScopeName;
+
+  /// The balanced-bracket configuration used by `tokenizeLine2`, if any.
   BalancedBracketSelectors? get balancedBracketSelectors =>
       _balancedBracketSelectors;
 
@@ -187,8 +257,11 @@ class Grammar implements GrammarRules {
   OnigScanner createScanner(List<String> sources) =>
       _onigLib.createScanner(sources);
 
+  /// Wraps [str] for use with the Oniguruma-backed scanner/matcher.
   OnigString createString(String str) => _onigLib.createString(str);
 
+  /// Returns the language id and token type baked into [scope] by this
+  /// grammar's `embeddedLanguages`/`tokenTypes` configuration.
   BasicScopeAttributes getMetadataForScope(String scope) =>
       _basicScopeAttributesProvider.getBasicScopeAttributes(scope);
 
@@ -235,6 +308,9 @@ class Grammar implements GrammarRules {
     return result;
   }
 
+  /// Returns this grammar's compiled injections (both its own `injections`
+  /// and those declared by other grammars targeting it), computing and
+  /// caching them on first use.
   List<Injection> getInjections() {
     _injections ??= _doCollectInjections();
     return _injections!;
@@ -278,6 +354,11 @@ class Grammar implements GrammarRules {
     return null;
   }
 
+  /// Tokenizes [lineText] into human-readable [Token]s. Pass the previous
+  /// line's `ruleStack` as [prevState] (or `null` for the first line); a
+  /// nonzero [timeLimit] (in milliseconds) bounds worst-case pathological
+  /// regex backtracking, after which [TokenizeLineResult.stoppedEarly] is
+  /// set.
   TokenizeLineResult tokenizeLine(
     String lineText,
     StateStack? prevState, [
@@ -291,6 +372,8 @@ class Grammar implements GrammarRules {
     );
   }
 
+  /// Like [tokenizeLine] but returns tokens as compact binary-encoded
+  /// metadata (see [EncodedTokenMetadata]) instead of [Token] objects.
   TokenizeLineResult2 tokenizeLine2(
     String lineText,
     StateStack? prevState, [
@@ -402,6 +485,10 @@ class _TokenizeResult {
   final bool stoppedEarly;
 }
 
+/// Clones [grammar] and wires up its repository's synthetic `self`/`base`
+/// entries (used to resolve `$self`/`$base` includes), so it's ready to
+/// compile rules against. [base] overrides `$base` for externally-included
+/// grammars; the grammar's own `self` is used when `base` is `null`.
 RawGrammar initGrammar(RawGrammar grammar, RawRule? base) {
   grammar = grammar.clone();
   grammar.repository.self = RawRule(
@@ -418,15 +505,29 @@ class _TokenTypeMatcher {
   final int type;
 }
 
+/// A [ScopeStack] paired with its resolved, merged binary token metadata
+/// (see [EncodedTokenMetadata]), so encoded attributes don't have to be
+/// recomputed from scratch every time a scope is pushed. Mirrors
+/// vscode-textmate's `AttributedScopeStack`.
 class AttributedScopeStack {
   AttributedScopeStack._(this.parent, this.scopePath, this.tokenAttributes);
 
+  /// The stack with the innermost scope popped, or `null` at the root.
   final AttributedScopeStack? parent;
+
+  /// The plain scope-name stack this wraps.
   final ScopeStack scopePath;
+
+  /// The merged, binary-encoded token metadata for this stack; see
+  /// [EncodedTokenMetadata].
   final int tokenAttributes;
 
+  /// The innermost scope name; delegates to [ScopeStack.scopeName].
   String get scopeName => scopePath.scopeName;
 
+  /// Creates a root stack for [scopeName] with [tokenAttributes] as-is,
+  /// without looking up theme/scope metadata (used for [StateStack.nullState]
+  /// where no grammar/theme is available yet).
   static AttributedScopeStack createRoot(
     String scopeName,
     int tokenAttributes,
@@ -438,6 +539,9 @@ class AttributedScopeStack {
     );
   }
 
+  /// Creates a root stack for [scopeName], resolving [grammar]'s scope
+  /// metadata and theme style for it and merging them into
+  /// [tokenAttributes].
   static AttributedScopeStack createRootAndLookUpScopeName(
     String scopeName,
     int tokenAttributes,
@@ -456,6 +560,8 @@ class AttributedScopeStack {
     return AttributedScopeStack._(null, scopePath, resolvedTokenAttributes);
   }
 
+  /// Returns this stack's scope names, outermost first; delegates to
+  /// [ScopeStack.getSegments].
   List<String> getScopeNames() => scopePath.getSegments();
 
   @override
@@ -487,6 +593,10 @@ class AttributedScopeStack {
     );
   }
 
+  /// Pushes [scopePath] (a single scope, or several space-separated
+  /// scopes, each pushed in turn) onto this stack, merging in each scope's
+  /// metadata/theme style along the way. Returns this stack unchanged if
+  /// [scopePath] is `null`.
   AttributedScopeStack pushAttributed(String? scopePath, Grammar grammar) {
     if (scopePath == null) return this;
     if (!scopePath.contains(' ')) {
@@ -519,6 +629,9 @@ class AttributedScopeStack {
 
 /// A "pushed" state on the tokenizer stack (a linked list element).
 class StateStack {
+  /// Pushes a new frame onto [parent] for the rule [_ruleId], entered at
+  /// [enterPos] with anchor position [anchorPos]. Mirrors
+  /// vscode-textmate's `StateStackImpl` constructor.
   StateStack(
     this.parent,
     this._ruleId,
@@ -532,6 +645,8 @@ class StateStack {
       _anchorPos = anchorPos,
       depth = parent != null ? parent.depth + 1 : 1;
 
+  /// The empty initial state, passed as `prevState` to tokenize the very
+  /// first line of a document.
   static final StateStack nullState = StateStack(
     null,
     0,
@@ -543,16 +658,33 @@ class StateStack {
     null,
   );
 
+  /// The enclosing frame, or `null` at the bottom of the stack.
   final StateStack? parent;
   final RuleId _ruleId;
   int _enterPos;
   int _anchorPos;
+
+  /// This frame's distance from the bottom of the stack (`1` for the root
+  /// frame).
   final int depth;
+
+  /// Whether this frame's `begin` match consumed the end of the line
+  /// (affects whether `\G` can match on the next line).
   final bool beginRuleCapturedEOL;
+
+  /// The (possibly back-reference-resolved) `end` regex source for this
+  /// frame's [BeginEndRule], or `null` if not applicable.
   final String? endRule;
+
+  /// The scope stack (with `name` applied) active for this frame.
   final AttributedScopeStack? nameScopesList;
+
+  /// The scope stack (with `contentName` also applied, when inside the
+  /// rule's content region) active for this frame.
   final AttributedScopeStack? contentNameScopesList;
 
+  /// Invalidates cached anchor positions through the whole stack (called
+  /// when tokenizing a new line, since `\G` positions don't carry over).
   void reset() {
     StateStack? el = this;
     while (el != null) {
@@ -562,10 +694,14 @@ class StateStack {
     }
   }
 
+  /// Returns the enclosing frame, i.e. [parent].
   StateStack? pop() => parent;
 
+  /// Returns [parent], or this frame itself if already at the bottom of
+  /// the stack (guards against popping past the root).
   StateStack safePop() => parent ?? this;
 
+  /// Pushes a new frame for [ruleId] on top of this one.
   StateStack push(
     RuleId ruleId,
     int enterPos,
@@ -587,11 +723,19 @@ class StateStack {
     );
   }
 
+  /// This frame's `enterPos`: the offset in the line where its rule began
+  /// matching, or `-1` if unset/reset for a new line.
   int getEnterPos() => _enterPos;
+
+  /// This frame's `\G` anchor position, or `-1` if unset/reset for a new
+  /// line.
   int getAnchorPos() => _anchorPos;
 
+  /// Looks up this frame's compiled rule via [grammar].
   Rule getRule(RuleFactoryHelper grammar) => grammar.getRule(_ruleId);
 
+  /// Returns a copy of this frame with [contentNameScopeStack] substituted
+  /// for [contentNameScopesList] (a no-op, returning `this`, if identical).
   StateStack withContentNameScopesList(
     AttributedScopeStack contentNameScopeStack,
   ) {
@@ -607,6 +751,10 @@ class StateStack {
     );
   }
 
+  /// Returns a copy of this frame with [endRule] substituted for the
+  /// current `end`/`while` pattern's resolved source (a no-op, returning
+  /// `this`, if unchanged); used once back-references in `end`/`while`
+  /// have been resolved against a `begin` match.
   StateStack withEndRule(String endRule) {
     if (this.endRule == endRule) return this;
     return StateStack(
@@ -621,6 +769,10 @@ class StateStack {
     );
   }
 
+  /// Whether this stack and [other] share a common ancestor frame with the
+  /// same `enterPos` and rule id, walking up from each while their
+  /// `enterPos`s match; used to detect a `while` clause failing to consume
+  /// input (infinite loop guard).
   bool hasSameRuleAs(StateStack other) {
     StateStack? el = this;
     while (el != null && el._enterPos == other._enterPos) {
@@ -631,7 +783,14 @@ class StateStack {
   }
 }
 
+/// Which scopes' brackets should be tracked for auto-closing-pair balance
+/// detection, driven by a grammar's `balancedBracketSelectors`/
+/// `unbalancedBracketSelectors` config. Used only by `tokenizeLine2`'s
+/// binary token metadata.
 class BalancedBracketSelectors {
+  /// Compiles [balancedBracketScopes] and [unbalancedBracketScopes]
+  /// selector lists into matchers. A `'*'` entry in
+  /// [balancedBracketScopes] means "all scopes" (see [matchesAlways]).
   BalancedBracketSelectors(
     List<String> balancedBracketScopes,
     List<String> unbalancedBracketScopes,
@@ -657,9 +816,17 @@ class BalancedBracketSelectors {
   final List<Matcher<List<String>>> _unbalancedBracketScopes;
   bool _allowAny = false;
 
+  /// Whether every scope counts as balanced-bracket-tracked (a `'*'`
+  /// selector with no exclusions), so [match] can be skipped entirely.
   bool get matchesAlways => _allowAny && _unbalancedBracketScopes.isEmpty;
+
+  /// Whether no scope counts as balanced-bracket-tracked, so [match] can
+  /// be skipped entirely.
   bool get matchesNever => _balancedBracketScopes.isEmpty && !_allowAny;
 
+  /// Whether [scopes] should have its brackets tracked as balanced:
+  /// excluded if any unbalanced selector matches, otherwise included if
+  /// any balanced selector (or the `'*'` wildcard) matches.
   bool match(List<String> scopes) {
     for (final excluder in _unbalancedBracketScopes) {
       if (excluder(scopes)) return false;
@@ -671,7 +838,13 @@ class BalancedBracketSelectors {
   }
 }
 
+/// Accumulates tokens for one line as the tokenizer scans it, in either
+/// [Token] form or (if [_emitBinaryTokens]) packed binary metadata form.
+/// Mirrors vscode-textmate's `LineTokens`.
 class LineTokens {
+  /// Creates a token accumulator for a line of [lineText]. [_emitBinaryTokens]
+  /// selects [Token] output vs. packed binary output; [_tokenTypeOverrides]
+  /// and [_balancedBracketSelectors] are only consulted in binary mode.
   LineTokens(
     this._emitBinaryTokens,
     String lineText,
@@ -686,10 +859,15 @@ class LineTokens {
   final List<_TokenTypeMatcher> _tokenTypeOverrides;
   final BalancedBracketSelectors? _balancedBracketSelectors;
 
+  /// Closes out a token ending at [endIndex], using [stack]'s current
+  /// content-name scope stack.
   void produce(StateStack stack, int endIndex) {
     produceFromScopes(stack.contentNameScopesList, endIndex);
   }
 
+  /// Closes out a token spanning from the last produced token's end to
+  /// [endIndex], with scopes/metadata taken from [scopesList]. A no-op if
+  /// the span would be empty (or negative).
   void produceFromScopes(AttributedScopeStack? scopesList, int endIndex) {
     if (_lastTokenEndIndex >= endIndex) return;
 
@@ -751,6 +929,9 @@ class LineTokens {
     _lastTokenEndIndex = endIndex;
   }
 
+  /// Finalizes and returns the accumulated [Token]s for the line, dropping
+  /// a trailing token for the synthetic newline and normalizing the first
+  /// token to start at `0`.
   List<Token> getResult(StateStack stack, int lineLength) {
     if (_tokens.isNotEmpty && _tokens.last.startIndex == lineLength - 1) {
       _tokens.removeLast();
@@ -763,6 +944,10 @@ class LineTokens {
     return _tokens;
   }
 
+  /// Finalizes and returns the accumulated binary token metadata (see
+  /// [TokenizeLineResult2.tokens]) for the line, dropping a trailing entry
+  /// for the synthetic newline and normalizing the first entry's start
+  /// index to `0`.
   List<int> getBinaryResult(StateStack stack, int lineLength) {
     if (_binaryTokens.isNotEmpty &&
         _binaryTokens[_binaryTokens.length - 2] == lineLength - 1) {

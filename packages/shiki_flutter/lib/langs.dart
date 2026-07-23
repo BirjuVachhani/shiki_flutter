@@ -242,6 +242,10 @@ import 'src/langs/yaml.dart' as l_yaml;
 import 'src/langs/zenscript.dart' as l_zenscript;
 import 'src/langs/zig.dart' as l_zig;
 
+/// Typesafe, tree-shakeable access to every language grammar bundled with
+/// the package. Referencing a member (e.g. [abap]) pulls in only that
+/// grammar and its embedded dependencies; grammars you never reference are
+/// tree-shaken out of the build.
 abstract final class CodeLanguages {
   /// ABAP.
   static const CodeLanguage abap = l_abap.abap;
@@ -953,6 +957,9 @@ abstract final class CodeLanguages {
   // CAUTION: referencing `all` pulls EVERY grammar into your build
   // (defeats tree-shaking). Prefer individual members; use this only
   // when you truly need every language.
+  /// Every bundled language grammar. Referencing this pulls all of them into
+  /// your build, defeating tree-shaking; prefer individual members (e.g.
+  /// [abap]) unless you truly need every language.
   static const List<CodeLanguage> all = [
     abap,
     actionscript3,

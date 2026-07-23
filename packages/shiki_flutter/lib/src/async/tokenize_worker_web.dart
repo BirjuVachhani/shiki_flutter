@@ -50,6 +50,10 @@ const Duration _kHandshakeTimeout = Duration(seconds: 8);
 /// instantiate the ~650 KB Oniguruma WebAssembly module before replying `ready`.
 const Duration _kNativeHandshakeTimeout = Duration(seconds: 20);
 
+/// A [TokenizeWorker] backed by a browser Web Worker, communicating over
+/// `postMessage` with JSON-encoded protocol messages. See the file-level
+/// comment for the handshake/crash-recovery design this mirrors from the
+/// `dart:isolate` worker.
 class WebTokenizeWorker implements TokenizeWorker {
   WebTokenizeWorker._(
     this._url,
@@ -89,6 +93,9 @@ class WebTokenizeWorker implements TokenizeWorker {
     themeJsons: _themeJsons,
   );
 
+  /// Creates and starts a [WebTokenizeWorker] for the script at [url],
+  /// waiting up to [handshakeTimeout] for its `ready` handshake before
+  /// throwing a [ShikiError].
   static Future<TokenizeWorker> spawn(
     String url,
     Duration handshakeTimeout,

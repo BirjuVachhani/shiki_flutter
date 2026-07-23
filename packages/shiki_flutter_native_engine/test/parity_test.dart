@@ -39,13 +39,15 @@ ShikiHighlighter _build(ShikiHighlighterEngine engine) {
   final hl = ShikiHighlighter(engine: engine);
   for (final lang in _langs) {
     final f = File('$_fixtures/langs/$lang.json');
-    if (f.existsSync())
+    if (f.existsSync()) {
       hl.ensureLanguage(_language(lang, f.readAsStringSync()));
+    }
   }
   for (final theme in _themes) {
     final f = File('$_fixtures/themes/$theme.json');
-    if (f.existsSync())
+    if (f.existsSync()) {
       hl.ensureShikiTheme(_theme(theme, f.readAsStringSync()));
+    }
   }
   return hl;
 }

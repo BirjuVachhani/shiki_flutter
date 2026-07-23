@@ -30,6 +30,8 @@ const bool _kIsWeb = !bool.fromEnvironment('dart.library.io');
 /// }
 /// ```
 class ShikiHighlighterConfig {
+  /// Creates a config. Every field has a platform-appropriate default;
+  /// override only what you need, usually via [copyWith].
   const ShikiHighlighterConfig({
     this.ioEngine = const ShikiHighlighterDartEngine(),
     this.webEngine = const ShikiHighlighterEmbeddedEngine(),
@@ -79,8 +81,12 @@ class ShikiHighlighterConfig {
   /// make it the app-wide default without passing `highlighter:` everywhere.
   final ShikiHighlighter? defaultHighlighter;
 
+  /// The effective async default for the current platform: [asyncWeb] on web,
+  /// [asyncIO] otherwise.
   bool get async => _kIsWeb ? asyncWeb : asyncIO;
 
+  /// The effective regex engine for the current platform: [webEngine] on web,
+  /// [ioEngine] otherwise.
   ShikiHighlighterEngine get engine => _kIsWeb ? webEngine : ioEngine;
 
   /// Returns a copy with the given fields replaced.

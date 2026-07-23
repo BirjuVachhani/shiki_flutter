@@ -28,8 +28,10 @@ const bool _kIsWeb = !bool.fromEnvironment('dart.library.io');
 
 /// Thrown for highlighter usage errors (unknown language/theme, etc.).
 class ShikiError implements Exception {
+  /// Creates a [ShikiError] with the given [message].
   ShikiError(this.message);
 
+  /// A human-readable description of what went wrong.
   final String message;
 
   @override
@@ -38,6 +40,8 @@ class ShikiError implements Exception {
 
 /// Options for [ShikiHighlighter.codeToTokens].
 class TokenizeOptions {
+  /// Creates tokenize options. [lang] and [theme] default to the
+  /// highlighter's last-loaded language/theme when omitted.
   const TokenizeOptions({
     this.lang,
     this.theme,
@@ -47,7 +51,12 @@ class TokenizeOptions {
     this.colorReplacements,
   });
 
+  /// The language id or alias to tokenize with, e.g. `dart`. Falls back to
+  /// `text` (no highlighting) when `null`.
   final String? lang;
+
+  /// The name of the loaded theme to color tokens with. Falls back to the
+  /// highlighter's most recently loaded theme when `null`.
   final String? theme;
 
   /// When true, each token carries its TextMate [ThemedToken.scopes].
@@ -68,6 +77,8 @@ class TokenizeOptions {
   /// [tokenizeMaxLineLength].
   final int tokenizeTimeLimit;
 
+  /// Per-call overrides for the theme's [ThemeRegistration.colorReplacements],
+  /// keyed the same way (placeholder color -> replacement).
   final Map<String, dynamic>? colorReplacements;
 }
 
@@ -327,8 +338,11 @@ class ShikiHighlighter {
     return normalized.name;
   }
 
+  /// The names of all themes currently loaded into this highlighter.
   List<String> get loadedThemes => _themes.keys.toList();
 
+  /// The scope names of all language grammars currently loaded into this
+  /// highlighter.
   List<String> get loadedLanguages => _loadedScopes.toList();
 
   _ResolvedTheme _resolveTheme(String themeName) {

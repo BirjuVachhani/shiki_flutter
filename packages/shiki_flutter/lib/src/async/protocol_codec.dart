@@ -22,6 +22,8 @@ import 'protocol.dart';
 
 // --- LangDescriptor ---------------------------------------------------------
 
+/// Encodes a [LangDescriptor] (including its [LangDescriptor.embedded]
+/// languages) to a JSON-able map.
 Map<String, dynamic> langDescriptorToJson(LangDescriptor d) => {
   'id': d.id,
   'scopeName': d.scopeName,
@@ -32,6 +34,7 @@ Map<String, dynamic> langDescriptorToJson(LangDescriptor d) => {
   'embedded': d.embedded.map(langDescriptorToJson).toList(),
 };
 
+/// Decodes a [LangDescriptor] previously encoded by [langDescriptorToJson].
 LangDescriptor langDescriptorFromJson(Map<String, dynamic> j) => LangDescriptor(
   id: j['id'] as String,
   scopeName: j['scopeName'] as String,
@@ -50,6 +53,7 @@ LangDescriptor langDescriptorFromJson(Map<String, dynamic> j) => LangDescriptor(
 
 // --- TokenizeOptions --------------------------------------------------------
 
+/// Encodes a [TokenizeOptions] to a JSON-able map.
 Map<String, dynamic> tokenizeOptionsToJson(TokenizeOptions o) => {
   'lang': o.lang,
   'theme': o.theme,
@@ -59,6 +63,8 @@ Map<String, dynamic> tokenizeOptionsToJson(TokenizeOptions o) => {
   'colorReplacements': o.colorReplacements,
 };
 
+/// Decodes a [TokenizeOptions] previously encoded by
+/// [tokenizeOptionsToJson]. Missing keys fall back to per-field defaults.
 TokenizeOptions tokenizeOptionsFromJson(Map<String, dynamic> j) =>
     TokenizeOptions(
       lang: j['lang'] as String?,
@@ -74,6 +80,8 @@ TokenizeOptions tokenizeOptionsFromJson(Map<String, dynamic> j) =>
 
 // Short keys keep the (potentially large) token payload compact on the wire.
 // Optional fields are omitted when at their default to shrink it further.
+/// Encodes a [ThemedToken] to a compact JSON-able map, using short keys
+/// and omitting fields that are at their default.
 Map<String, dynamic> themedTokenToJson(ThemedToken t) {
   final m = <String, dynamic>{'c': t.content, 'o': t.offset};
   if (t.color != null) m['fg'] = t.color;
@@ -83,6 +91,7 @@ Map<String, dynamic> themedTokenToJson(ThemedToken t) {
   return m;
 }
 
+/// Decodes a [ThemedToken] previously encoded by [themedTokenToJson].
 ThemedToken themedTokenFromJson(Map<String, dynamic> j) => ThemedToken(
   content: j['c'] as String,
   offset: j['o'] as int,
@@ -92,9 +101,12 @@ ThemedToken themedTokenFromJson(Map<String, dynamic> j) => ThemedToken(
   scopes: (j['s'] as List?)?.cast<String>(),
 );
 
+/// Encodes a per-line token list (as returned by tokenization) to JSON,
+/// applying [themedTokenToJson] to each token.
 List<dynamic> tokensToJson(List<List<ThemedToken>> lines) =>
     lines.map((line) => line.map(themedTokenToJson).toList()).toList();
 
+/// Decodes a per-line token list previously encoded by [tokensToJson].
 List<List<ThemedToken>> tokensFromJson(List<dynamic> j) => j
     .map(
       (line) => (line as List)
@@ -112,6 +124,9 @@ List<List<ThemedToken>> tokensFromJson(List<dynamic> j) => j
 /// builds) so this file needn't depend on any engine backend package.
 String? engineTag(ShikiHighlighterEngine? engine) => engine?.id;
 
+/// Encodes a [WorkerConfig] to a JSON-able map, for the web transport that
+/// posts it to a Web Worker. [WorkerConfig.engine] is reduced to its
+/// [engineTag]; [WorkerConfig.warmups] is not included.
 Map<String, dynamic> workerConfigToJson(WorkerConfig c) => {
   'engine': engineTag(c.engine),
   'langs': c.langs.map(langDescriptorToJson).toList(),

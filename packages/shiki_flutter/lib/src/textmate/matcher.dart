@@ -3,11 +3,17 @@
 // Parses selectors like `source.js meta.function` or `L:string -comment` into
 // predicate functions over a list of scope names, with a priority.
 
+/// A compiled scope-selector predicate: `true` if [input] satisfies the
+/// selector expression it was parsed from.
 typedef Matcher<T> = bool Function(T input);
 
+/// One alternative of a parsed selector (from [createMatchers]), paired
+/// with the priority its `L:`/`R:` prefix (if any) assigns it.
 class MatcherWithPriority<T> {
+  /// Creates a [MatcherWithPriority] pairing [matcher] with [priority].
   MatcherWithPriority(this.matcher, this.priority);
 
+  /// The compiled predicate for this selector alternative.
   final Matcher<T> matcher;
 
   /// 0 default, -1 for `L:`, 1 for `R:`.
@@ -17,6 +23,11 @@ class MatcherWithPriority<T> {
 final RegExp _tokenRegExp = RegExp(r'([LR]:|[\w.:][\w.:\-]*|[,|\-()])');
 final RegExp _identifierRegExp = RegExp(r'[\w.:]+');
 
+/// Parses a scope [selector] (e.g. `source.js meta.function`, `L:string
+/// -comment`, `a | b`) into one [MatcherWithPriority] per top-level,
+/// comma-separated alternative. [matchesName] decides whether a run of
+/// space-separated identifiers matches a given `input`, letting callers
+/// use this for either raw scope-name lists or arbitrary `T`.
 List<MatcherWithPriority<T>> createMatchers<T>(
   String selector,
   bool Function(List<String> names, T input) matchesName,

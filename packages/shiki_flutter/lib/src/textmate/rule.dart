@@ -17,36 +17,62 @@ const int whileRuleId = -2;
 final RegExp _hasBackReferences = RegExp(r'\\(\d+)');
 final RegExp _backReferencingEnd = RegExp(r'\\(\d+)');
 
+/// Rule registration and lookup, as needed while compiling [RawRule]s into
+/// [Rule]s. Implemented by `Grammar` (see `grammar.dart`).
 abstract class RuleFactoryHelper {
+  /// Returns the compiled rule for [ruleId]. Throws if it doesn't exist.
   Rule getRule(RuleId ruleId);
 
   /// Like [getRule] but returns null for rules that are still being constructed
   /// (self-references encountered mid-compilation).
   Rule? getRuleOrNull(RuleId ruleId);
+
+  /// Allocates a new [RuleId] and registers the [Rule] built by [factory]
+  /// under it, so self-referential rules can look themselves up by id
+  /// while still being constructed.
   T registerRule<T extends Rule>(T Function(RuleId id) factory);
+
+  /// Resolves an `include`d external grammar by [scopeName], optionally
+  /// merging in [repository] entries. Returns `null` if unknown.
   RawGrammar? getExternalGrammar(String scopeName, [RawRepository? repository]);
 }
 
+/// Creates an [OnigScanner] over a set of regex [sources]; the scanning
+/// backend used to find the next matching rule.
 abstract class OnigScannerFactory {
+  /// Compiles [sources] into a scanner that can find the earliest/leftmost
+  /// match among them.
   OnigScanner createScanner(List<String> sources);
 }
 
 /// The context passed to compilation: rule lookup + scanner creation.
 abstract class GrammarRules implements RuleFactoryHelper, OnigScannerFactory {}
 
+/// A compiled grammar rule. Mirrors vscode-textmate's `Rule` base class;
+/// see the concrete subclasses ([MatchRule], [IncludeOnlyRule],
+/// [BeginEndRule], [BeginWhileRule], [CaptureRule]) for the actual match
+/// behaviors.
 abstract class Rule {
+  /// Creates a rule with the given [id] and raw `name`/`contentName`
+  /// (capture-reference support for both is precomputed here).
   Rule(this.id, String? name, String? contentName)
     : _name = name,
       _nameIsCapturing = RegexSource.hasCaptures(name),
       _contentName = contentName,
       _contentNameIsCapturing = RegexSource.hasCaptures(contentName);
 
+  /// This rule's unique id within its grammar, as assigned by
+  /// [RuleFactoryHelper.registerRule].
   final RuleId id;
   final String? _name;
   final bool _nameIsCapturing;
   final String? _contentName;
   final bool _contentNameIsCapturing;
 
+  /// Resolves this rule's `name` scope, substituting `$1`-style capture
+  /// references from [captureIndices] against [lineText] if the name is
+  /// capturing. Returns the raw name unresolved if [lineText] or
+  /// [captureIndices] is `null`.
   String? getName(String? lineText, List<OnigCaptureIndex>? captureIndices) {
     if (!_nameIsCapturing ||
         _name == null ||
@@ -57,6 +83,9 @@ abstract class Rule {
     return RegexSource.replaceCaptures(_name, lineText, captureIndices);
   }
 
+  /// Resolves this rule's `contentName` scope, substituting `$1`-style
+  /// capture references from [captureIndices] against [lineText] if the
+  /// content name is capturing.
   String? getContentName(
     String lineText,
     List<OnigCaptureIndex> captureIndices,
@@ -67,7 +96,13 @@ abstract class Rule {
     return RegexSource.replaceCaptures(_contentName, lineText, captureIndices);
   }
 
+  /// Appends this rule's regex source(s) to [out] so they can be scanned
+  /// for together with sibling patterns.
   void collectPatterns(RuleFactoryHelper grammar, RegExpSourceList out);
+
+  /// Compiles (and caches) this rule's patterns into a [CompiledRule],
+  /// resolving `\A`/`\G` anchors per [allowA]/[allowG] and substituting
+  /// [endRegexSource] for back-referencing end/while patterns.
   CompiledRule compileAG(
     GrammarRules grammar,
     String? endRegexSource,
@@ -76,13 +111,27 @@ abstract class Rule {
   );
 }
 
+/// The result of resolving a raw `patterns`/`include` list into compiled
+/// rule ids; see [RuleFactory._compilePatterns].
 class CompilePatternsResult {
+  /// Creates a compile-patterns result.
   CompilePatternsResult(this.patterns, this.hasMissingPatterns);
+
+  /// The successfully resolved child rule ids, in order.
   final List<RuleId> patterns;
+
+  /// Whether one or more raw patterns failed to resolve (e.g. an `include`
+  /// pointing at an unknown scope) and were dropped from [patterns].
   final bool hasMissingPatterns;
 }
 
+/// A pseudo-rule representing one numbered capture group of a [MatchRule]
+/// or [BeginEndRule]/[BeginWhileRule]. Not directly matched against text;
+/// used only to assign names/content-names (and optional retokenization)
+/// to that capture's text range.
 class CaptureRule extends Rule {
+  /// Creates a capture rule for the given [name]/`contentName`, optionally
+  /// retokenizing the captured text with [retokenizeCapturedWithRuleId].
   CaptureRule(
     super.id,
     super.name,
@@ -109,15 +158,23 @@ class CaptureRule extends Rule {
   }
 }
 
+/// A rule that matches a single regex against the current position, with no
+/// nested patterns. Mirrors vscode-textmate's `MatchRule`.
 class MatchRule extends Rule {
+  /// Creates a match rule for the raw [match] regex, with [captures]
+  /// indexed by capture group number.
   MatchRule(RuleId id, String? name, String match, this.captures)
     : _match = RegExpSource(match, id),
       super(id, name, null);
 
   final RegExpSource _match;
+
+  /// Capture rules indexed by capture group number; a `null` entry means
+  /// that group has no associated name/content-name.
   final List<CaptureRule?> captures;
   RegExpSourceList? _cachedCompiledPatterns;
 
+  /// The raw `match` regex source, for debugging.
   String get debugMatchRegExp => _match.source;
 
   @override
@@ -147,7 +204,12 @@ class MatchRule extends Rule {
   }
 }
 
+/// A rule with only nested `patterns` and no `begin`/`match` of its own
+/// (e.g. the grammar root, or a `{ patterns: [...] }` group). Mirrors
+/// vscode-textmate's `IncludeOnlyRule`.
 class IncludeOnlyRule extends Rule {
+  /// Creates an include-only rule from an already-resolved [patterns]
+  /// result.
   IncludeOnlyRule(
     super.id,
     super.name,
@@ -156,7 +218,11 @@ class IncludeOnlyRule extends Rule {
   ) : patterns = patterns.patterns,
       hasMissingPatterns = patterns.hasMissingPatterns;
 
+  /// The resolved child rule ids to try, in order.
   final List<RuleId> patterns;
+
+  /// Whether one or more child patterns failed to resolve; see
+  /// [CompilePatternsResult.hasMissingPatterns].
   final bool hasMissingPatterns;
   RegExpSourceList? _cachedCompiledPatterns;
 
@@ -189,7 +255,12 @@ class IncludeOnlyRule extends Rule {
   }
 }
 
+/// A rule with a `begin` regex, an `end` regex, and nested `patterns` that
+/// apply between them. Mirrors vscode-textmate's `BeginEndRule`.
 class BeginEndRule extends Rule {
+  /// Creates a begin/end rule. `end` defaults to a regex that never matches
+  /// (`'￿'`) when omitted, matching vscode-textmate's behavior for a
+  /// missing `end`.
   // ignore: use_super_parameters
   BeginEndRule(
     RuleId id,
@@ -210,18 +281,39 @@ class BeginEndRule extends Rule {
       super(id, name, contentName);
 
   final RegExpSource _begin;
+
+  /// Capture rules for the `begin` match, indexed by capture group number.
   final List<CaptureRule?> beginCaptures;
   final RegExpSource _end;
+
+  /// Whether the `end` pattern contains `\1`-style back-references to
+  /// `begin`'s captures, requiring it to be recompiled per-match.
   final bool endHasBackReferences;
+
+  /// Capture rules for the `end` match, indexed by capture group number.
   final List<CaptureRule?> endCaptures;
+
+  /// Whether `end` should be tried after (rather than before) the nested
+  /// [patterns] when scanning for the next match.
   final bool applyEndPatternLast;
+
+  /// Whether one or more nested patterns failed to resolve; see
+  /// [CompilePatternsResult.hasMissingPatterns].
   final bool hasMissingPatterns;
+
+  /// The resolved nested rule ids to try between `begin` and `end`.
   final List<RuleId> patterns;
   RegExpSourceList? _cachedCompiledPatterns;
 
+  /// The raw `begin` regex source, for debugging.
   String get debugBeginRegExp => _begin.source;
+
+  /// The raw `end` regex source, for debugging.
   String get debugEndRegExp => _end.source;
 
+  /// Substitutes `\1`-style back-references in `end` with the text
+  /// captured by the `begin` match, given its [captureIndices] against
+  /// [lineText].
   String getEndWithResolvedBackReferences(
     String lineText,
     List<OnigCaptureIndex> captureIndices,
@@ -275,7 +367,12 @@ class BeginEndRule extends Rule {
   }
 }
 
+/// A rule with a `begin` regex and a per-line `while` regex that must keep
+/// matching for the rule to remain active, with nested `patterns` applying
+/// while it does. Mirrors vscode-textmate's `BeginWhileRule`.
 class BeginWhileRule extends Rule {
+  /// Creates a begin/while rule for the raw `begin` and [whilePattern]
+  /// regexes.
   // ignore: use_super_parameters
   BeginWhileRule(
     RuleId id,
@@ -297,15 +394,32 @@ class BeginWhileRule extends Rule {
       super(id, name, contentName);
 
   final RegExpSource _begin;
+
+  /// Capture rules for the `begin` match, indexed by capture group number.
   final List<CaptureRule?> beginCaptures;
+
+  /// Capture rules for each line's `while` match, indexed by capture group
+  /// number.
   final List<CaptureRule?> whileCaptures;
   final RegExpSource _while;
+
+  /// Whether the `while` pattern contains `\1`-style back-references to
+  /// `begin`'s captures, requiring it to be recompiled per-match.
   final bool whileHasBackReferences;
+
+  /// Whether one or more nested patterns failed to resolve; see
+  /// [CompilePatternsResult.hasMissingPatterns].
   final bool hasMissingPatterns;
+
+  /// The resolved nested rule ids to try while the `while` pattern keeps
+  /// matching.
   final List<RuleId> patterns;
   RegExpSourceList? _cachedCompiledPatterns;
   RegExpSourceList? _cachedCompiledWhilePatterns;
 
+  /// Substitutes `\1`-style back-references in `while` with the text
+  /// captured by the `begin` match, given its [captureIndices] against
+  /// [lineText].
   String getWhileWithResolvedBackReferences(
     String lineText,
     List<OnigCaptureIndex> captureIndices,
@@ -339,6 +453,8 @@ class BeginWhileRule extends Rule {
     return _cachedCompiledPatterns!;
   }
 
+  /// Compiles (and caches) the `while` pattern into a [CompiledRule],
+  /// analogous to [compileAG] but for `while` instead of `end`.
   CompiledRule compileWhileAG(
     GrammarRules grammar,
     String? endRegexSource,
@@ -377,6 +493,10 @@ class _AnchorCache {
 
 /// A single regexp source with anchor (`\A`/`\G`) and back-reference handling.
 class RegExpSource {
+  /// Parses [regExpSource], rewriting `\z` to a supported end-of-string
+  /// equivalent, detecting `\A`/`\G` anchors (see [hasAnchor]), and
+  /// pre-building the anchor-resolved variants if any are present. Matches
+  /// found via this source are attributed to [ruleId].
   RegExpSource(String regExpSource, this.ruleId) {
     final len = regExpSource.length;
     var lastPushedPos = 0;
@@ -416,14 +536,27 @@ class RegExpSource {
     hasBackReferences = _hasBackReferences.hasMatch(source);
   }
 
+  /// The (possibly `\z`-rewritten) regex source text.
   late String source;
+
+  /// The rule id matches through this source should be attributed to.
   final RuleId ruleId;
+
+  /// Whether [source] contains a `\A` (start-of-line) or `\G` (start-of-scan)
+  /// anchor, requiring anchor-specific variants (see [resolveAnchors]).
   late bool hasAnchor;
+
+  /// Whether [source] contains `\1`-style back-references that must be
+  /// resolved against captured text before compiling (see
+  /// [resolveBackReferences]).
   late bool hasBackReferences;
   _AnchorCache? _anchorCache;
 
+  /// Returns a copy of this source with the same [ruleId].
   RegExpSource clone() => RegExpSource(source, ruleId);
 
+  /// Replaces [source] with [newSource] (a no-op if unchanged), rebuilding
+  /// the anchor cache if this source has an anchor.
   void setSource(String newSource) {
     if (source == newSource) return;
     source = newSource;
@@ -432,6 +565,8 @@ class RegExpSource {
     }
   }
 
+  /// Substitutes `\1`-style back-references in [source] with the
+  /// (regex-escaped) text captured by [captureIndices] within [lineText].
   String resolveBackReferences(
     String lineText,
     List<OnigCaptureIndex> captureIndices,
@@ -494,6 +629,10 @@ class RegExpSource {
     );
   }
 
+  /// Returns [source] with its `\A`/`\G` anchors resolved for the current
+  /// scan position: [allowA] is true only at the very start of the line,
+  /// [allowG] is true only at the tokenizer's current anchor position.
+  /// Returns [source] unchanged if it has no anchor.
   String resolveAnchors(bool allowA, bool allowG) {
     if (!hasAnchor || _anchorCache == null) return source;
     if (allowA) {
@@ -511,24 +650,32 @@ class _ListAnchorCache {
   CompiledRule? a1G1;
 }
 
+/// An ordered, jointly-scanned list of [RegExpSource]s, compiled together
+/// into a single [OnigScanner] via [compile]/[compileAG] so the scanner can
+/// find whichever one matches earliest.
 class RegExpSourceList {
   final List<RegExpSource> _items = [];
   bool _hasAnchors = false;
   CompiledRule? _cached;
   final _ListAnchorCache _anchorCache = _ListAnchorCache();
 
+  /// The number of sources in this list.
   int get length => _items.length;
 
+  /// Appends [item] to the end of the list.
   void push(RegExpSource item) {
     _items.add(item);
     _hasAnchors = _hasAnchors || item.hasAnchor;
   }
 
+  /// Inserts [item] at the start of the list.
   void unshift(RegExpSource item) {
     _items.insert(0, item);
     _hasAnchors = _hasAnchors || item.hasAnchor;
   }
 
+  /// Replaces the source text at [index] with [newSource] (a no-op if
+  /// unchanged), invalidating cached compiled scanners.
   void setSource(int index, String newSource) {
     if (_items[index].source != newSource) {
       _disposeCaches();
@@ -544,6 +691,8 @@ class RegExpSourceList {
     _anchorCache.a1G1 = null;
   }
 
+  /// Compiles (and caches) all sources, unresolved, into a single
+  /// [CompiledRule] scanner via [factory].
   CompiledRule compile(OnigScannerFactory factory) {
     _cached ??= CompiledRule(
       factory,
@@ -553,6 +702,10 @@ class RegExpSourceList {
     return _cached!;
   }
 
+  /// Compiles all sources into a [CompiledRule], resolving `\A`/`\G`
+  /// anchors per [allowA]/[allowG] and caching the result per
+  /// anchor-resolution combination. Falls back to the unresolved [compile]
+  /// cache if no source has an anchor.
   CompiledRule compileAG(OnigScannerFactory factory, bool allowA, bool allowG) {
     if (!_hasAnchors) {
       return compile(factory);
@@ -585,20 +738,38 @@ class RegExpSourceList {
   }
 }
 
+/// The result of scanning for the next match among a [CompiledRule]'s
+/// regexes: which rule matched and where its capture groups landed.
 class FindNextMatchResult {
+  /// Creates a match result for [ruleId] with its [captureIndices].
   FindNextMatchResult(this.ruleId, this.captureIndices);
+
+  /// The id of the rule whose regex matched.
   final RuleId ruleId;
+
+  /// The matched capture group ranges, index `0` being the whole match.
   final List<OnigCaptureIndex> captureIndices;
 }
 
+/// A set of regex sources compiled into a single [OnigScanner], paired
+/// with the [RuleId] each one is attributed to.
 class CompiledRule {
+  /// Compiles [regExps] into a scanner via [factory]; [rules] must be the
+  /// same length, giving each regex's owning rule id.
   CompiledRule(OnigScannerFactory factory, this.regExps, this.rules)
     : scanner = factory.createScanner(regExps);
 
+  /// The underlying scanner used to find the next match.
   final OnigScanner scanner;
+
+  /// The compiled regex sources, parallel to [rules].
   final List<String> regExps;
+
+  /// The rule id owning each entry in [regExps].
   final List<RuleId> rules;
 
+  /// Finds the earliest match among [regExps] at or after [startPosition]
+  /// in [string], or `null` if none match.
   FindNextMatchResult? findNextMatch(Object string, int startPosition) {
     final result = scanner.findNextMatch(string, startPosition);
     if (result == null) return null;
@@ -615,7 +786,10 @@ class CompiledRule {
   }
 }
 
+/// Compiles [RawRule]s (parsed grammar JSON/YAML) into registered [Rule]s.
+/// Mirrors vscode-textmate's `RuleFactory`.
 class RuleFactory {
+  /// Registers and returns a new [CaptureRule] via [helper].
   static CaptureRule createCaptureRule(
     RuleFactoryHelper helper,
     String? name,
@@ -627,6 +801,11 @@ class RuleFactory {
     );
   }
 
+  /// Compiles [desc] into the appropriate [Rule] subclass (chosen by which
+  /// of `match`/`begin`/`whilePattern` are present, defaulting to
+  /// [IncludeOnlyRule]) and returns its id, memoizing the result on [desc]
+  /// itself so repeated references to the same raw rule reuse one compiled
+  /// [Rule].
   static RuleId getCompiledRuleId(
     RawRule desc,
     RuleFactoryHelper helper,

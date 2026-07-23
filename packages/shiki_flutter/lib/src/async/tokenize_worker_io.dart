@@ -77,6 +77,9 @@ void _workerMain(_Bootstrap bootstrap) {
   });
 }
 
+/// A [TokenizeWorker] backed by a real `dart:isolate`, holding a warm
+/// highlighter on a background isolate and transparently respawning it
+/// after a crash (retaining the languages/themes/warmups loaded so far).
 class IsolateTokenizeWorker implements TokenizeWorker {
   IsolateTokenizeWorker._(
     this._engine,
@@ -119,6 +122,9 @@ class IsolateTokenizeWorker implements TokenizeWorker {
     warmups: _warmups,
   );
 
+  /// Creates and starts an [IsolateTokenizeWorker] configured with
+  /// [config], waiting for the spawned isolate's handshake before
+  /// returning.
   static Future<TokenizeWorker> spawn(WorkerConfig config) async {
     final worker = IsolateTokenizeWorker._(
       config.engine,

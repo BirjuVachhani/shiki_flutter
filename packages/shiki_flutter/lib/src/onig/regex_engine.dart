@@ -15,9 +15,13 @@
 
 /// Thrown when a pattern cannot be parsed by [OnigRegex].
 class RegexSyntaxException implements Exception {
+  /// Creates an exception describing why [source] failed to parse.
   RegexSyntaxException(this.message, this.source);
 
+  /// A human-readable description of the parse failure.
   final String message;
+
+  /// The Oniguruma pattern source that failed to parse.
   final String source;
 
   @override
@@ -30,11 +34,18 @@ class RegexSyntaxException implements Exception {
 /// is the whole match. A value of -1 means the group did not participate in the
 /// match.
 class OnigEngineMatch {
+  /// Creates a match result from parallel per-group [start]/[end] offsets.
   OnigEngineMatch(this.start, this.end);
 
+  /// Per-capture-group start offsets (index 0 is the whole match); `-1` if the
+  /// group did not participate in the match.
   final List<int> start;
+
+  /// Per-capture-group end offsets (index 0 is the whole match); `-1` if the
+  /// group did not participate in the match.
   final List<int> end;
 
+  /// The start offset of the whole match, i.e. `start[0]`.
   int get index => start[0];
 }
 
@@ -1595,6 +1606,7 @@ class OnigRegex {
   /// search, so toggling it needs no recompilation.
   static bool fastPathEnabled = true;
 
+  /// The original Oniguruma pattern text this was compiled from.
   final String source;
   final _Node _root;
   final int _groupCount;
@@ -1617,6 +1629,8 @@ class OnigRegex {
   /// (RegExpMatch exposes none), falling back entirely on any disagreement.
   final RegExp? _fast;
 
+  /// The number of capture groups in this pattern, including group 0 (the
+  /// whole match).
   int get groupCount => _groupCount;
 
   /// Whether this pattern compiled to a native-`RegExp` fast path (vs. falling

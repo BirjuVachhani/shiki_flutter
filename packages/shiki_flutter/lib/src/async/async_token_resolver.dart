@@ -24,6 +24,8 @@ import 'token_cache.dart';
 /// (synchronously in the [tokens] getter, or off-thread). Flipping `async` with
 /// unchanged inputs keeps already-resolved tokens and recomputes nothing.
 class AsyncTokenResolver {
+  /// Creates an [AsyncTokenResolver] that calls [_onChanged] when an
+  /// async tokenize result lands for the still-current inputs.
   AsyncTokenResolver(this._onChanged);
 
   final void Function() _onChanged;
@@ -120,5 +122,7 @@ class AsyncTokenResolver {
         });
   }
 
+  /// Marks this resolver as disposed so any in-flight async result is
+  /// ignored when it arrives. Call from the owning State's `dispose`.
   void dispose() => _disposed = true;
 }

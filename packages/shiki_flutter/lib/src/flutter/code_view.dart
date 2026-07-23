@@ -33,6 +33,9 @@ import 'render_cache.dart';
 /// [gutterStyle]). The code stays a single `Text.rich`; a fixed numbers column
 /// is placed beside it and never scrolls horizontally.
 class ShikiCodeView extends ShikiBaseWidget {
+  /// Creates a highlighted code view rendered as a single `Text.rich`. [code]
+  /// and [lang] are required; see the class docs for how [theme]/[brightness]
+  /// and the async placeholder behavior work.
   const ShikiCodeView({
     super.key,
     super.highlighter,

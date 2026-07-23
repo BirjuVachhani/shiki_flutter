@@ -7,14 +7,28 @@ import 'utils.dart';
 /// Maps embedded-language scope names to language ids.
 typedef EmbeddedLanguagesMap = Map<String, int>;
 
+/// The language id and [StandardTokenType] implied by a scope name alone,
+/// before any theme or grammar rule is applied.
 class BasicScopeAttributes {
+  /// Creates a [BasicScopeAttributes] pairing [languageId] with [tokenType].
   const BasicScopeAttributes(this.languageId, this.tokenType);
 
+  /// The embedded language id for this scope, or `0` if none applies.
   final int languageId;
+
+  /// A [StandardTokenType] (encoded as [OptionalStandardTokenType]) implied
+  /// by the scope name, e.g. `comment` for scopes containing `comment`.
   final int tokenType;
 }
 
+/// Derives [BasicScopeAttributes] for a scope name by matching it against
+/// the grammar's embedded-language map and a fixed set of well-known scope
+/// substrings (`comment`, `string`, `regex`, `meta.embedded`). Results are
+/// memoised since scope names repeat heavily during tokenization.
 class BasicScopeAttributesProvider {
+  /// Creates a provider whose default attributes use [initialLanguageId],
+  /// with [embeddedLanguages] used to resolve language ids for included
+  /// embedded-language scopes.
   BasicScopeAttributesProvider(
     int initialLanguageId,
     EmbeddedLanguagesMap? embeddedLanguages,
@@ -31,6 +45,8 @@ class BasicScopeAttributesProvider {
 
   static const _nullScopeMetadata = BasicScopeAttributes(0, 0);
 
+  /// The attributes used before any scope-specific match applies: the
+  /// grammar's initial language id and no standard token type.
   BasicScopeAttributes getDefaultAttributes() => _defaultAttributes;
 
   late final CachedFn<String, BasicScopeAttributes> _getBasicScopeAttributes =
@@ -40,6 +56,9 @@ class BasicScopeAttributesProvider {
         return BasicScopeAttributes(languageId, standardTokenType);
       });
 
+  /// Returns the (cached) [BasicScopeAttributes] for [scopeName], or the
+  /// null attributes (`languageId: 0, tokenType: 0`) when `scopeName` is
+  /// `null`.
   BasicScopeAttributes getBasicScopeAttributes(String? scopeName) {
     if (scopeName == null) return _nullScopeMetadata;
     return _getBasicScopeAttributes.get(scopeName);

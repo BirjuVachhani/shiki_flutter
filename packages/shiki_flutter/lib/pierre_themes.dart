@@ -26,6 +26,9 @@ import 'src/pierre_themes/pierre_light_tritanopia.dart'
     as p_pierre_light_tritanopia;
 import 'src/pierre_themes/pierre_light_vibrant.dart' as p_pierre_light_vibrant;
 
+/// Typesafe, tree-shakeable access to the 10 opt-in Pierre themes. Separate
+/// from `ShikiThemes` and not counted among the bundled Shiki themes.
+/// Referencing a member (e.g. [pierreDark]) pulls in only that theme.
 abstract final class PierreThemes {
   /// Pierre Dark (dark).
   static const ShikiTheme pierreDark = p_pierre_dark.pierreDark;
@@ -64,6 +67,9 @@ abstract final class PierreThemes {
       p_pierre_light_vibrant.pierreLightVibrant;
 
   // CAUTION: referencing `all` pulls in all 10 Pierre themes.
+  /// Every Pierre theme. Referencing this pulls all 10 into your build;
+  /// prefer individual members (e.g. [pierreDark]) to keep unused themes
+  /// tree-shaken out.
   static const List<ShikiTheme> all = [
     pierreDark,
     pierreDarkProtanopiaDeuteranopia,

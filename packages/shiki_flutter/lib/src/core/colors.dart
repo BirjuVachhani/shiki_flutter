@@ -53,7 +53,11 @@ List<({String content, int offset})> splitLines(String code) {
   return lines;
 }
 
+/// Whether [lang] means "no highlighting" (`null`, `text`, `plaintext`, or
+/// `txt`), Shiki's convention for opting out of tokenization.
 bool isPlainLang(String? lang) =>
     lang == null || lang == 'text' || lang == 'plaintext' || lang == 'txt';
 
+/// Whether [theme] is the special `'none'` theme, Shiki's convention for
+/// opting out of tokenization regardless of the requested language.
 bool isNoneTheme(String? theme) => theme == 'none';

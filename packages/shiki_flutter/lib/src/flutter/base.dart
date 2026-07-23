@@ -16,6 +16,9 @@ import 'render_cache.dart';
 /// See [ShikiCodeView].
 /// See [ShikiCodeListView].
 abstract class ShikiBaseWidget extends StatefulWidget {
+  /// Creates a Shiki code widget. [code] and [lang] are required; every other
+  /// parameter has a documented default or falls back to the global
+  /// [ShikiHighlighter.config].
   const ShikiBaseWidget({
     super.key,
     this.highlighter,
@@ -104,18 +107,29 @@ abstract class ShikiBaseWidget extends StatefulWidget {
   final Color? selectionColor;
 }
 
+/// Shared [State] behavior for [ShikiBaseWidget] subclasses: theme
+/// resolution against the ambient brightness, on-demand language/theme
+/// loading, and driving [AsyncTokenResolver] to (re)tokenize the code.
+///
+/// Mix this into a widget's [State] alongside [ShikiBaseWidget] and call the
+/// `@protected` members from `build`.
 mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
+  /// Drives synchronous/async tokenization and caches the result, rebuilding
+  /// this state (via its callback) when the tokens for the current inputs
+  /// become available.
   late final AsyncTokenResolver resolver = AsyncTokenResolver(() {
     if (mounted) setState(() {});
   });
 
   // Per-build memoization (see render_cache.dart). Each recomputes only when its
   // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
+  /// Caches gutter measurements ([GutterMetrics]) across rebuilds.
   @protected
   final MetricsCache metrics = MetricsCache();
 
   // Per-build memoization (see render_cache.dart). Each recomputes only when its
   // real inputs change; unchanged rebuilds (resize, ancestor rebuilds) reuse them.
+  /// Caches the number of lines in the code across rebuilds.
   @protected
   final Memoized<String, int> lineCount = Memoized();
 
@@ -126,6 +140,8 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
   ShikiHighlighter get effectiveHighlighter =>
       widget.highlighter ?? ShikiHighlighter.effectiveDefault;
 
+  /// Whether this widget tokenizes asynchronously: [ShikiBaseWidget.async]
+  /// when set, otherwise the global `ShikiHighlighter.config.async` default.
   @protected
   bool get asyncEffective => widget.async ?? ShikiHighlighter.config.async;
 
@@ -134,6 +150,8 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
   @protected
   ShikiTheme? resolvedTheme;
 
+  /// The [TokenizeOptions] for the current widget: [ShikiBaseWidget.lang] and
+  /// [resolvedTheme]. Only valid after [resolveTheme] has run.
   @protected
   TokenizeOptions get options =>
       TokenizeOptions(lang: widget.lang.id, theme: resolvedTheme!.id);
@@ -145,6 +163,9 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
     resolveLanguage();
   }
 
+  /// Resolves [ShikiBaseWidget.theme] (or the global default) against the
+  /// current brightness into [resolvedTheme], and ensures it is loaded into
+  /// [effectiveHighlighter]. Throws [ShikiError] when no theme is available.
   @protected
   void resolveTheme() {
     final theme = widget.theme ?? ShikiHighlighter.config.defaultTheme;
@@ -159,6 +180,8 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
     effectiveHighlighter.ensureShikiTheme(resolvedTheme!);
   }
 
+  /// Ensures [ShikiBaseWidget.lang] is loaded into [effectiveHighlighter],
+  /// then kicks off (or reuses cached) tokenization via [resolver].
   @protected
   void resolveLanguage() {
     effectiveHighlighter.ensureLanguage(widget.lang);
@@ -181,6 +204,9 @@ mixin ShikiStateMixin<W extends ShikiBaseWidget> on State<W> {
     PaintingBinding.instance.systemFonts.addListener(onSystemFontsChanged);
   }
 
+  /// Called when the system fonts finish loading, to rebuild with the
+  /// now-accurate gutter measurements. Override to react to font changes, but
+  /// call `super.onSystemFontsChanged()`.
   @protected
   @mustCallSuper
   void onSystemFontsChanged() {

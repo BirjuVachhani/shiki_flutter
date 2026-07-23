@@ -10,6 +10,8 @@ import 'package:flutter/widgets.dart';
 ///
 /// Only used when a code widget's `showLineNumbers` is `true`.
 class GutterStyle {
+  /// Creates gutter styling. All fields are optional; omitted ones fall back
+  /// to values derived from the code widget's own text style and theme.
   const GutterStyle({
     this.spacing,
     this.dividerColor,
@@ -50,9 +52,13 @@ class GutterStyle {
 /// measured under the same strut and scaler used to paint the code, so the
 /// gutter and the code rows line up exactly.
 class GutterMetrics {
+  /// Creates a metrics value from a pre-measured [rowHeight] and [charWidth].
   const GutterMetrics({required this.rowHeight, required this.charWidth});
 
+  /// The strut-forced line height, shared by the gutter and the code rows.
   final double rowHeight;
+
+  /// The monospace glyph advance width, in logical pixels.
   final double charWidth;
 }
 
@@ -93,6 +99,8 @@ class MetricsCache {
 
   final Map<Object, GutterMetrics> _cache = {};
 
+  /// Returns the [GutterMetrics] for [style]/[strut]/[textScaler], measuring
+  /// and caching them on first use.
   GutterMetrics measure(
     TextStyle style,
     StrutStyle strut,
@@ -237,6 +245,8 @@ Widget buildGutterRow({
 /// vertical scroll by reading [controller]'s offset and stays virtualized;
 /// otherwise it lays out every number in a plain column.
 class LineNumberGutter extends StatelessWidget {
+  /// Creates a line-number gutter for [lineCount] lines, sized to [width] and
+  /// [rowHeight]. [controller] is required when [windowed] is true.
   const LineNumberGutter({
     super.key,
     required this.controller,
@@ -254,12 +264,29 @@ class LineNumberGutter extends StatelessWidget {
 
   /// Vertical scroll controller of the code; only read when [windowed].
   final ScrollController? controller;
+
+  /// The total number of lines to number (1 through [lineCount]).
   final int lineCount;
+
+  /// The height of one row, shared with the code so numbers line up with
+  /// their corresponding line.
   final double rowHeight;
+
+  /// The gutter's fixed width, sized to fit the widest number.
   final double width;
+
+  /// The text style the line numbers are painted with.
   final TextStyle style;
+
+  /// The text scaler applied to [style], matching the code's scaling.
   final TextScaler textScaler;
+
+  /// The strut style forcing [rowHeight], matching the code's strut.
   final StrutStyle strut;
+
+  /// Whether to virtualize the numbers, rendering only those within the
+  /// current viewport (synced to [controller]) instead of laying out every
+  /// line up front.
   final bool windowed;
 
   Widget _label(int index) => Text(

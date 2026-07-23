@@ -56,6 +56,7 @@ final Finalizer<ffi.OnigScanner> _scannerFinalizer = Finalizer<ffi.OnigScanner>(
 /// loads asynchronously, so `await loadWasm()` once at startup before the first
 /// highlight (it is a no-op on IO), as shown in the library doc above.
 class ShikiHighlighterNativeEngine implements ShikiHighlighterEngine {
+  /// Creates a [ShikiHighlighterNativeEngine].
   const ShikiHighlighterNativeEngine();
 
   @override

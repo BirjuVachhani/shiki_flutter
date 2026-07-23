@@ -2,6 +2,7 @@
 
 /// A single highlighted token: a run of characters sharing one style.
 class ThemedToken {
+  /// Creates a themed token. [fontStyle] defaults to [FontStyle.none] (`0`).
   const ThemedToken({
     required this.content,
     required this.offset,

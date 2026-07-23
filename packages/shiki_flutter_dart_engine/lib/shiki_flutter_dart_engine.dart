@@ -31,6 +31,7 @@ import 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.da
 /// engine, so grammars that lean on Oniguruma-specific syntax tokenize more
 /// faithfully.
 class ShikiHighlighterDartEngine implements ShikiHighlighterEngine {
+  /// Creates a [ShikiHighlighterDartEngine].
   const ShikiHighlighterDartEngine();
 
   @override

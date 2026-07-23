@@ -5,14 +5,28 @@ import 'utils.dart';
 
 /// Font-style bit flags. [notSet] (-1) means "inherit".
 class FontStyle {
+  /// Sentinel meaning "not set"; the style should be inherited from a less
+  /// specific matching rule.
   static const int notSet = -1;
+
+  /// No font-style bits set.
   static const int none = 0;
+
+  /// Italic bit flag.
   static const int italic = 1;
+
+  /// Bold bit flag.
   static const int bold = 2;
+
+  /// Underline bit flag.
   static const int underline = 4;
+
+  /// Strikethrough bit flag.
   static const int strikethrough = 8;
 }
 
+/// Renders [fontStyle]'s bit flags (see [FontStyle]) as a space-separated
+/// string, e.g. `'italic bold'`, or `'not set'`/`'none'`.
 String fontStyleToString(int fontStyle) {
   if (fontStyle == FontStyle.notSet) return 'not set';
   var style = '';
@@ -26,47 +40,81 @@ String fontStyleToString(int fontStyle) {
 
 /// A single raw theme setting (`{ name?, scope?, settings }`).
 class RawThemeSetting {
+  /// Creates a raw theme setting; [settings] is required, [name] and [scope]
+  /// are optional as in the source theme JSON.
   RawThemeSetting({this.name, this.scope, required this.settings});
 
+  /// A human-readable label for this rule, as authored in the theme.
   final String? name;
 
   /// Either a `String` (comma-separated) or a `List<String>`.
   final Object? scope;
+
+  /// The style (font style, foreground, background) applied when [scope]
+  /// matches.
   final ThemeSettingStyle settings;
 }
 
+/// The unresolved style block of a [RawThemeSetting], with colors still as
+/// raw hex strings and font style still as a raw space-separated string.
 class ThemeSettingStyle {
+  /// Creates a raw style block; all fields are optional as in the source
+  /// theme JSON.
   ThemeSettingStyle({this.fontStyle, this.foreground, this.background});
 
+  /// Space-separated style keywords, e.g. `'italic bold'`. Parsed into
+  /// [FontStyle] bit flags by [parseTheme].
   final String? fontStyle;
+
+  /// A hex color string, e.g. `'#FF0000'`.
   final String? foreground;
+
+  /// A hex color string, e.g. `'#FF0000'`.
   final String? background;
 }
 
 /// A raw TextMate theme.
 class RawTheme {
+  /// Creates a raw theme from its [name] and ordered [settings] rules.
   RawTheme({this.name, required this.settings});
 
+  /// The theme's display name, if any.
   final String? name;
+
+  /// The theme's scope-selector rules, in the order they should be applied
+  /// (later entries win ties; see [parseTheme]).
   final List<RawThemeSetting> settings;
 }
 
 /// Resolved style attributes for a token.
 class StyleAttributes {
+  /// Creates a resolved style from a [FontStyle] bitmask and [ColorMap]
+  /// ids for the foreground/background colors.
   StyleAttributes(this.fontStyle, this.foregroundId, this.backgroundId);
 
+  /// [FontStyle] bit flags, or [FontStyle.notSet].
   final int fontStyle;
+
+  /// Id into a [ColorMap], or `0` for "no color".
   final int foregroundId;
+
+  /// Id into a [ColorMap], or `0` for "no color".
   final int backgroundId;
 }
 
 /// A stack of scope names (`foo.bar` segments), as a linked list.
 class ScopeStack {
+  /// Pushes [scopeName] onto [parent], forming a new innermost segment.
   ScopeStack(this.parent, this.scopeName);
 
+  /// The enclosing scope, or `null` if this is the outermost segment.
   final ScopeStack? parent;
+
+  /// This segment's scope name, e.g. `source.dart`.
   final String scopeName;
 
+  /// Pushes each of [scopeNames] onto [path] in order, returning the new
+  /// innermost [ScopeStack].
   static ScopeStack? push(ScopeStack? path, List<String> scopeNames) {
     var result = path;
     for (final name in scopeNames) {
@@ -75,6 +123,7 @@ class ScopeStack {
     return result;
   }
 
+  /// Builds a [ScopeStack] from [segments], outermost first.
   static ScopeStack? from(List<String> segments) {
     ScopeStack? result;
     for (final segment in segments) {
@@ -83,8 +132,10 @@ class ScopeStack {
     return result;
   }
 
+  /// Returns a new [ScopeStack] with [scopeName] pushed on top of this one.
   ScopeStack pushScope(String scopeName) => ScopeStack(this, scopeName);
 
+  /// Returns this stack's scope names as a list, outermost first.
   List<String> getSegments() {
     ScopeStack? item = this;
     final result = <String>[];
@@ -98,6 +149,8 @@ class ScopeStack {
   @override
   String toString() => getSegments().join(' ');
 
+  /// Whether [other] is this stack or one of its ancestors, i.e. whether
+  /// this stack was reached by pushing zero or more scopes onto [other].
   bool extendsStack(ScopeStack other) {
     if (identical(this, other)) return true;
     if (parent == null) return false;
@@ -143,6 +196,8 @@ bool _matchesScope(String scopeName, String scopePattern) {
 
 /// A parsed theme rule (post-`parseTheme`).
 class ParsedThemeRule {
+  /// Creates a parsed theme rule; see the fields for the meaning of each
+  /// component.
   ParsedThemeRule(
     this.scope,
     this.parentScopes,
@@ -152,17 +207,36 @@ class ParsedThemeRule {
     this.background,
   );
 
+  /// The innermost scope name this rule matches, e.g. `string.quoted`.
   final String scope;
+
+  /// Ancestor scope selectors that must also match, nearest-parent first
+  /// (a `>` entry means the next selector must be the direct parent), or
+  /// `null` if the rule had no parent scopes.
   final List<String>? parentScopes;
+
+  /// This rule's position among the raw theme's settings, used to break
+  /// ties between otherwise equally specific rules (later wins).
   final int index;
+
+  /// [FontStyle] bit flags, or [FontStyle.notSet] if unspecified.
   final int fontStyle;
+
+  /// A hex color string, or `null` if unspecified.
   final String? foreground;
+
+  /// A hex color string, or `null` if unspecified.
   final String? background;
 }
 
 final RegExp _leadingCommas = RegExp(r'^,+');
 final RegExp _trailingCommas = RegExp(r',+$');
 
+/// Flattens [source]'s settings into [ParsedThemeRule]s: comma-separated
+/// scope lists are split, and each rule's selector (`'foo bar'`) is split
+/// into a matched [ParsedThemeRule.scope] plus reversed
+/// [ParsedThemeRule.parentScopes]. Returns an empty list if [source] is
+/// `null`.
 List<ParsedThemeRule> parseTheme(RawTheme? source) {
   if (source == null) return [];
   final settings = source.settings;
@@ -234,6 +308,10 @@ List<ParsedThemeRule> parseTheme(RawTheme? source) {
 
 /// Maps hex color strings to small integer ids and back.
 class ColorMap {
+  /// Creates a color map. If [colorMap] is given, the map is frozen with
+  /// those colors pre-assigned to their indices (used when restoring a
+  /// previously serialized theme); otherwise it starts empty and grows as
+  /// [getId] assigns new colors.
   ColorMap([List<String>? colorMap]) {
     if (colorMap != null) {
       _isFrozen = true;
@@ -251,6 +329,10 @@ class ColorMap {
   final Map<int, String> _id2color = {};
   final Map<String, int> _color2id = {};
 
+  /// Returns the id for [color] (case-insensitive), assigning it a new id
+  /// if it hasn't been seen before, or `0` if [color] is `null`. Throws a
+  /// [StateError] if the map is frozen (constructed with an explicit color
+  /// list) and [color] isn't already present.
   int getId(String? color) {
     if (color == null) return 0;
     final upper = color.toUpperCase();
@@ -265,6 +347,8 @@ class ColorMap {
     return id;
   }
 
+  /// Returns colors indexed by id (index `0` is always `''`, matching the
+  /// "no color" sentinel used by [getId]).
   List<String> getColorMap() {
     final maxId = _id2color.keys.isEmpty
         ? -1
@@ -275,7 +359,12 @@ class ColorMap {
 
 const List<String> _emptyParentScopes = [];
 
+/// A style rule attached to a [ThemeTrieElement] node: the style that
+/// applies at that node's scope depth, optionally further conditioned on
+/// [parentScopes].
 class ThemeTrieElementRule {
+  /// Creates a trie rule; `null` [parentScopes] is normalized to an empty
+  /// list.
   ThemeTrieElementRule(
     this.scopeDepth,
     List<String>? parentScopes,
@@ -284,12 +373,27 @@ class ThemeTrieElementRule {
     this.background,
   ) : parentScopes = parentScopes ?? _emptyParentScopes;
 
+  /// How many scope segments deep in the trie this rule was inserted at;
+  /// deeper (more specific) rules are preferred when [ThemeTrieElement.match]
+  /// ranks candidates.
   int scopeDepth;
+
+  /// Ancestor scope selectors (nearest-parent first) that must also match
+  /// the scope path's ancestors, or empty if this rule applies regardless
+  /// of ancestors.
   List<String> parentScopes;
+
+  /// [FontStyle] bit flags, or [FontStyle.notSet] if inherited.
   int fontStyle;
+
+  /// Id into a [ColorMap], or `0` if inherited.
   int foreground;
+
+  /// Id into a [ColorMap], or `0` if inherited.
   int background;
 
+  /// Returns a copy of this rule (parent scopes list is shared, not deep
+  /// copied, since it is never mutated in place).
   ThemeTrieElementRule clone() => ThemeTrieElementRule(
     scopeDepth,
     parentScopes,
@@ -298,9 +402,14 @@ class ThemeTrieElementRule {
     background,
   );
 
+  /// Clones every rule in [arr].
   static List<ThemeTrieElementRule> cloneArr(List<ThemeTrieElementRule> arr) =>
       [for (final r in arr) r.clone()];
 
+  /// Merges an incoming rule's attributes into this one in place: a deeper
+  /// [scopeDepth] wins outright, while [fontStyle]/[foreground]/[background]
+  /// are only overwritten when the incoming value isn't the "not set"
+  /// sentinel.
   void acceptOverwrite(
     int scopeDepth,
     int fontStyle,
@@ -316,7 +425,13 @@ class ThemeTrieElementRule {
   }
 }
 
+/// A node in the trie [Theme] uses to resolve a scope name to style rules.
+/// Each level of the trie corresponds to one dot-separated segment of a
+/// scope name (e.g. `source.dart` descends through a `source` child to a
+/// `dart` child).
 class ThemeTrieElement {
+  /// Creates a trie node with [_mainRule] as the rule that applies when no
+  /// more specific child or [parentScopes]-qualified rule matches.
   ThemeTrieElement(
     this._mainRule, [
     List<ThemeTrieElementRule>? rulesWithParentScopes,
@@ -358,6 +473,9 @@ class ThemeTrieElement {
     return b.parentScopes.length - a.parentScopes.length;
   }
 
+  /// Walks the trie by [scope]'s dot-separated segments and returns the
+  /// candidate rules at the deepest matching node, most specific first
+  /// (parent-scope-qualified rules before the node's [_mainRule]).
   List<ThemeTrieElementRule> match(String scope) {
     if (scope != '') {
       final dotIndex = scope.indexOf('.');
@@ -379,6 +497,11 @@ class ThemeTrieElement {
     return rules;
   }
 
+  /// Inserts a style rule at [scope] (descending into/creating child nodes
+  /// for each dot-separated segment, newly created children inheriting a
+  /// clone of their parent's current rules), applying [fontStyle],
+  /// [foreground], and [background] either directly (if [parentScopes] is
+  /// `null`) or as a new parent-scope-qualified rule.
   void insert(
     int scopeDepth,
     String scope,
@@ -465,6 +588,8 @@ class ThemeTrieElement {
 
 /// A resolved theme: color map, defaults, and a scope-matching trie.
 class Theme {
+  /// Wraps an already-resolved [ColorMap], default style, and matching
+  /// trie. Prefer [createFromRawTheme] or [createFromParsedTheme].
   Theme(this._colorMap, this._defaults, this._root);
 
   final ColorMap _colorMap;
@@ -474,10 +599,16 @@ class Theme {
   late final CachedFn<String, List<ThemeTrieElementRule>> _cachedMatchRoot =
       CachedFn((scopeName) => _root.match(scopeName));
 
+  /// Parses [source] (see [parseTheme]) and builds a [Theme] from it. If
+  /// [colorMap] is given, colors are resolved against that fixed palette
+  /// instead of building a new one.
   static Theme createFromRawTheme(RawTheme? source, [List<String>? colorMap]) {
     return createFromParsedTheme(parseTheme(source), colorMap);
   }
 
+  /// Builds a [Theme] from already-parsed [source] rules. If [colorMap] is
+  /// given, colors are resolved against that fixed palette instead of
+  /// building a new one.
   static Theme createFromParsedTheme(
     List<ParsedThemeRule> source, [
     List<String>? colorMap,
@@ -485,10 +616,17 @@ class Theme {
     return _resolveParsedThemeRules(source, colorMap);
   }
 
+  /// Returns this theme's colors indexed by id; see [ColorMap.getColorMap].
   List<String> getColorMap() => _colorMap.getColorMap();
 
+  /// The style to use when no scope-specific rule matches.
   StyleAttributes getDefaults() => _defaults;
 
+  /// Resolves the style for [scopePath] by matching its innermost scope
+  /// against the trie, then confirming the first candidate rule whose
+  /// [ThemeTrieElementRule.parentScopes] are satisfied by the path's
+  /// ancestors. Returns [getDefaults] if [scopePath] is `null`, or `null`
+  /// if no rule matches.
   StyleAttributes? match(ScopeStack? scopePath) {
     if (scopePath == null) return _defaults;
     final scopeName = scopePath.scopeName;

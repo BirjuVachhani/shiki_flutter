@@ -5,7 +5,11 @@
 // consuming app never imports. The heavy grammar JSON is stored as a `const`
 // string; `embeddedLanguages` is a lazy thunk so grammars can reference each
 // other (e.g. HTML -> CSS/JS) without forming a `const` initialization cycle.
+/// A bundled TextMate grammar and its metadata (id, aliases, display name,
+/// classification, and the embedded grammars it depends on).
 class CodeLanguage {
+  /// Creates a language description. Bundled grammars are constructed once as
+  /// `const` values in their own `lib/langs/*.dart` file.
   const CodeLanguage({
     required this.id,
     required this.scopeName,
@@ -44,14 +48,31 @@ class CodeLanguage {
 /// The classification tags a [CodeLanguage] can carry, mirroring the
 /// `GrammarCategory` union from `tm-grammars`.
 enum GrammarCategory {
+  /// Web technologies, e.g. HTML, CSS, JavaScript, JSON, GraphQL.
   web,
+
+  /// Markup and documentation languages, e.g. Markdown, LaTeX, AsciiDoc.
   markup,
+
+  /// General-purpose programming languages, e.g. Python, Kotlin, C, Haskell.
   general,
+
+  /// Scripting languages, e.g. Bat, ActionScript.
   scripting,
+
+  /// Data-interchange and serialization formats, e.g. YAML, TSV, RON.
   data,
+
+  /// Domain-specific languages, e.g. SQL, QML, ShaderLab, regex.
   dsl,
+
+  /// Small utility file formats, e.g. PO, git-rebase todo lists.
   utility,
+
+  /// Configuration file formats, e.g. Dockerfile, Nginx, desktop entries.
   config,
+
+  /// Lisp-family languages, e.g. Racket, Common Lisp, Emacs Lisp.
   lisp,
 }
 

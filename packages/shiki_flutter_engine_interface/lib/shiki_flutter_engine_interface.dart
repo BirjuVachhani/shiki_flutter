@@ -12,19 +12,30 @@ library;
 
 /// A captured range within a match. Mirrors `IOnigCaptureIndex`.
 class OnigCaptureIndex {
+  /// Creates a capture index spanning [start] to [end], with [length] equal
+  /// to `end - start`, all in UTF-16 code units.
   const OnigCaptureIndex(this.start, this.end, this.length);
 
+  /// The offset, in UTF-16 code units, where the captured range starts.
   final int start;
+
+  /// The offset, in UTF-16 code units, where the captured range ends.
   final int end;
+
+  /// The length of the captured range, in UTF-16 code units.
   final int length;
 }
 
 /// The result of [OnigScanner.findNextMatch]. Mirrors `IOnigMatch`.
 class OnigMatch {
+  /// Creates a match for pattern [index] with the given [captureIndices].
   const OnigMatch(this.index, this.captureIndices);
 
   /// Index of the pattern (within the scanner) that matched.
   final int index;
+
+  /// The capture ranges for this match, one per group, with the whole
+  /// match's range as group 0.
   final List<OnigCaptureIndex> captureIndices;
 }
 
@@ -34,8 +45,10 @@ class OnigMatch {
 /// units, no offset conversion is required. A native engine may subclass this to
 /// cache an encoded copy of [content].
 class OnigString {
+  /// Wraps [content] so it can be scanned by an [OnigScanner].
   OnigString(this.content);
 
+  /// The wrapped string being scanned.
   final String content;
 }
 
@@ -71,6 +84,10 @@ abstract interface class ShikiHighlighterEngine {
   /// back to the default worker for an id it has no dedicated worker for.
   String get id;
 
+  /// Creates an [OnigScanner] that finds the earliest match among [sources],
+  /// a list of regex pattern strings.
   OnigScanner createScanner(List<String> sources);
+
+  /// Wraps [str] in an [OnigString] for this engine to scan.
   OnigString createString(String str);
 }

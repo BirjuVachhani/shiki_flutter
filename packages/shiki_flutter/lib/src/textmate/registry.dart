@@ -8,6 +8,8 @@ import 'theme.dart';
 
 /// A synchronous registry of raw grammars and the active theme.
 class SyncRegistry implements GrammarAndThemeRepository {
+  /// Creates a [SyncRegistry] using [_theme] for scope matching and
+  /// [_onigLib] for compiling grammar rules into regex scanners.
   SyncRegistry(this._theme, this._onigLib);
 
   final Map<String, Grammar> _grammars = {};
@@ -16,10 +18,13 @@ class SyncRegistry implements GrammarAndThemeRepository {
   Theme _theme;
   final ShikiHighlighterEngine _onigLib;
 
+  /// Replaces the active [theme]; subsequent [themeMatch] calls use it.
   void setTheme(Theme theme) {
     _theme = theme;
   }
 
+  /// The active theme's color map, indexed by the color ids embedded in
+  /// token metadata.
   List<String> getColorMap() => _theme.getColorMap();
 
   /// Adds [grammar] to the registry.

@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/foundation.dart';
 import 'package:shiki_flutter/engine.dart';
 import 'package:shiki_flutter_native_engine/shiki_flutter_native_engine.dart';

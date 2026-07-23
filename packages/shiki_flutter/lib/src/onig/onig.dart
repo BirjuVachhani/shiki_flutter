@@ -20,6 +20,9 @@ export 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.da
 /// matching exactly at the start position wins immediately, otherwise the
 /// pattern with the left-most match wins (ties broken by pattern order).
 class DartOnigScanner implements OnigScanner {
+  /// Compiles [sources] as Oniguruma patterns. When [forgiving] (the
+  /// default), a pattern that fails to compile or match is skipped instead of
+  /// throwing, matching Shiki's tolerance of malformed grammar regexes.
   DartOnigScanner(List<String> sources, {this.forgiving = true})
     : _regexes = List<OnigRegex?>.filled(sources.length, null) {
     for (var i = 0; i < sources.length; i++) {
@@ -36,6 +39,9 @@ class DartOnigScanner implements OnigScanner {
   }
 
   final List<OnigRegex?> _regexes;
+
+  /// Whether a pattern that fails to compile or match is skipped rather than
+  /// thrown, as passed to the constructor.
   final bool forgiving;
 
   @override
@@ -95,6 +101,7 @@ class DartOnigScanner implements OnigScanner {
 /// Ships with the package and runs on every Flutter platform. It is the fastest
 /// option on web (its RegExp fast path routes to V8's native regex).
 class ShikiHighlighterEmbeddedEngine implements ShikiHighlighterEngine {
+  /// Creates the embedded engine. Stateless, so this is a `const` singleton.
   const ShikiHighlighterEmbeddedEngine();
 
   @override

@@ -15,6 +15,8 @@ import '../core/code_language.dart';
 /// sendable), or `List<LangDescriptor>`: no closures, so an instance copies
 /// cleanly across an isolate boundary.
 class LangDescriptor {
+  /// Creates a [LangDescriptor]; [id], [scopeName], [displayName], and
+  /// [json] are required, mirroring the required fields of [CodeLanguage].
   const LangDescriptor({
     required this.id,
     required this.scopeName,
@@ -25,12 +27,29 @@ class LangDescriptor {
     this.embedded = const [],
   });
 
+  /// The language id (e.g. `dart`, `javascript`).
   final String id;
+
+  /// The grammar's TextMate scope name (e.g. `source.dart`).
   final String scopeName;
+
+  /// A human-readable name for the language, e.g. for use as a label in a
+  /// language picker.
   final String displayName;
+
+  /// The raw `.tmLanguage.json` grammar as a JSON string, parsed on load.
   final String json;
+
+  /// Alternative names that resolve to this language (e.g. `js` -> `javascript`).
   final List<String> aliases;
+
+  /// The grammar's classification (from `tm-grammars`, e.g. `web`, `scripting`).
+  /// May be empty: not every grammar declares a category.
   final List<GrammarCategory> categories;
+
+  /// The flattened grammars this language embeds, already expanded by
+  /// [flattenBundledLanguage] (in place of [CodeLanguage]'s lazy thunk,
+  /// which can't cross an isolate boundary).
   final List<LangDescriptor> embedded;
 }
 

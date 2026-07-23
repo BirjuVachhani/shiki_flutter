@@ -12,7 +12,11 @@ import 'lang_descriptor.dart';
 import 'protocol.dart';
 import 'tokenize_worker.dart';
 
+/// A [TokenizeWorker] that runs tokenization on the current isolate instead
+/// of a background one. Used on web (no `dart:isolate`) and as the
+/// fallback when spawning a real isolate/Web Worker fails.
 class InlineTokenizeWorker implements TokenizeWorker {
+  /// Creates an [InlineTokenizeWorker] that delegates to [_highlighter].
   InlineTokenizeWorker(this._highlighter);
 
   final ShikiHighlighter _highlighter;
