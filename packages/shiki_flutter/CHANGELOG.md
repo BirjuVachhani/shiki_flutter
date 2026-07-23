@@ -53,6 +53,12 @@
 * New highlighter API for custom async UIs: `codeToTokensAsync`, the synchronous
   cache probe `peekTokens`, and `dispose` (tears down the worker). On web (no
   isolates) the same API runs inline, reusing the loaded grammars.
+* `TokenizeOptions.tokenizeTimeLimit` now defaults to `0` (unlimited) instead of
+  `500` ms. The old default let a line that exceeded the budget stop tokenizing
+  early and emit its remainder as one coarse token, which made output depend on
+  machine load and diverge from Shiki (and the goldens) under CPU pressure. Output
+  is now a pure function of the input and byte-identical to Shiki regardless of
+  load. Set a positive value to opt back into a main-thread safety budget.
 * The regex-engine seam is now a standalone package,
   `shiki_flutter_engine_interface` (`ShikiHighlighterEngine`, `OnigScanner`,
   `OnigString`, `OnigMatch`, `OnigCaptureIndex`, `kUnmatchedOffset`), so any

@@ -43,7 +43,7 @@ class TokenizeOptions {
     this.theme,
     this.includeExplanation = false,
     this.tokenizeMaxLineLength = 0,
-    this.tokenizeTimeLimit = 500,
+    this.tokenizeTimeLimit = 0,
     this.colorReplacements,
   });
 
@@ -57,7 +57,15 @@ class TokenizeOptions {
   /// (0 disables the limit).
   final int tokenizeMaxLineLength;
 
-  /// Per-line time budget in milliseconds (0 disables the limit).
+  /// Per-line time budget in milliseconds. Defaults to `0` (unlimited), so
+  /// tokenization is a pure function of the input and stays byte-identical to
+  /// Shiki regardless of machine load. Set a positive value only to opt into a
+  /// main-thread safety budget: when a single line exceeds it, tokenization of
+  /// that line stops early and the remainder is emitted as one coarse token,
+  /// which makes output depend on wall-clock time (and thus non-deterministic
+  /// under load). Async highlighting keeps this work off the UI thread anyway,
+  /// so the limit is rarely needed; for pathological lines prefer
+  /// [tokenizeMaxLineLength].
   final int tokenizeTimeLimit;
 
   final Map<String, dynamic>? colorReplacements;

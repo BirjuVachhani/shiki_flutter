@@ -97,7 +97,7 @@ void main() {
       expect(back.theme, isNull);
       expect(back.includeExplanation, isFalse);
       expect(back.tokenizeMaxLineLength, 0);
-      expect(back.tokenizeTimeLimit, 500);
+      expect(back.tokenizeTimeLimit, 0);
       expect(back.colorReplacements, isNull);
     });
   });

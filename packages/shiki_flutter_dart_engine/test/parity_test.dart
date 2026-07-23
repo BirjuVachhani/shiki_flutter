@@ -37,13 +37,39 @@ ShikiHighlighter _build(ShikiHighlighterEngine engine) {
   final hl = ShikiHighlighter(engine: engine);
   for (final lang in _langs) {
     final f = File('$_fixtures/langs/$lang.json');
-    if (f.existsSync()) hl.loadLanguageFromJson(f.readAsStringSync());
+    if (f.existsSync()) hl.ensureLanguage(_language(lang, f.readAsStringSync()));
   }
   for (final theme in _themes) {
     final f = File('$_fixtures/themes/$theme.json');
-    if (f.existsSync()) hl.loadThemeFromJson(f.readAsStringSync());
+    if (f.existsSync()) hl.ensureShikiTheme(_theme(theme, f.readAsStringSync()));
   }
   return hl;
+}
+
+/// Wraps a raw TextMate grammar JSON fixture as a [CodeLanguage] so it loads
+/// through the public API. A fixture is either a single grammar object or an
+/// array (main grammar + embedded); the main grammar is the one whose `name`
+/// matches [id].
+CodeLanguage _language(String id, String json) {
+  final decoded = jsonDecode(json);
+  final grammars = (decoded is List ? decoded : [decoded])
+      .cast<Map<String, dynamic>>();
+  final main = grammars.firstWhere(
+    (g) => (g['name'] as String?)?.toLowerCase() == id,
+    orElse: () => grammars.first,
+  );
+  return CodeLanguage(
+    id: id,
+    scopeName: main['scopeName'] as String,
+    displayName: id,
+    json: json,
+  );
+}
+
+/// Wraps a raw VS Code theme JSON fixture as a [ShikiTheme].
+ShikiTheme _theme(String id, String json) {
+  final type = (jsonDecode(json) as Map<String, dynamic>)['type'] as String?;
+  return ShikiTheme(id: id, type: type ?? 'dark', json: json);
 }
 
 void main() {

@@ -12,6 +12,10 @@ export 'src/core/code_language.dart' show CodeLanguage, GrammarCategory;
 export 'src/core/config.dart';
 export 'src/core/highlighter.dart'
     show ShikiHighlighter, TokenizeOptions, ShikiError;
+// Theme value types (pure Dart, no `dart:ui`): the config's `defaultTheme` is a
+// `ShikiThemeBase`, and non-Flutter callers build `ShikiTheme`s to load themes.
+export 'src/core/shiki_theme.dart'
+    show ShikiThemeBase, ShikiTheme, ShikiDualTheme;
 export 'src/core/themed_token.dart' show ThemedToken;
 export 'src/onig/onig.dart'
     show
