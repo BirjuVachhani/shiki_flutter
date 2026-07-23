@@ -12,9 +12,16 @@ It exists because `shiki_flutter`'s engine is pluggable: `ShikiHighlighterEngine
 is a seam the TextMate tokenizer runs on, and this package provides an
 implementation backed by a faithful Oniguruma port.
 
-## It's already the default on native/VM
+## Installation
 
-`shiki_flutter` depends on this package and uses `ShikiHighlighterDartEngine` as
+```yaml
+dependencies:
+  shiki_flutter_dart_engine: ^1.0.0
+```
+
+## Usage
+
+It's already the default on native/VM: `shiki_flutter` depends on this package and uses `ShikiHighlighterDartEngine` as
 its default engine on native and the Dart VM (faithful semantics, and it edges
 out the bundled engine there). On web it falls back to the built-in
 `ShikiHighlighterEmbeddedEngine`, whose `RegExp` fast path is several times

@@ -14,6 +14,18 @@ contract the TextMate tokenizer runs on:
 It mirrors `vscode-textmate`'s `IOnigLib` / `onigLib.ts` and Shiki's JavaScript
 `scanner.ts`.
 
+## Installation
+
+```yaml
+dependencies:
+  shiki_flutter_engine_interface: ^1.0.0
+```
+
+Most apps never add this directly: it comes in transitively through
+`shiki_flutter` and whichever engine package you depend on
+(`shiki_flutter_dart_engine`, `shiki_flutter_native_engine`). Depend on it
+directly only if you're implementing your own `ShikiHighlighterEngine`.
+
 ## Why it exists
 
 `shiki_flutter`'s regex engine is pluggable. Extracting the contract into its
@@ -29,7 +41,9 @@ swapped in interchangeably:
 Because this package pulls in nothing (not even Flutter), a backend can
 implement the seam without depending on all of `shiki_flutter`.
 
-## Implementing an engine
+## Usage
+
+### Implementing an engine
 
 ```dart
 import 'package:shiki_flutter_engine_interface/shiki_flutter_engine_interface.dart';

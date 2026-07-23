@@ -13,6 +13,13 @@ is the seam; `shiki_flutter` picks a pure-Dart default per platform
 (`ShikiHighlighterDartEngine` on native/VM, `ShikiHighlighterEmbeddedEngine` on
 web), and this package provides `ShikiHighlighterNativeEngine`.
 
+## Installation
+
+```yaml
+dependencies:
+  shiki_flutter_native_engine: ^1.0.0
+```
+
 ## Usage
 
 Set it once at startup. On web the wasm module loads asynchronously, so
