@@ -37,7 +37,7 @@ void main() {
 ```
 
 Or per-highlighter:
-`createHighlighter(engine: const ShikiHighlighterDartEngine())`.
+`ShikiHighlighter(engine: const ShikiHighlighterDartEngine())`.
 
 ## Which engine should I use?
 

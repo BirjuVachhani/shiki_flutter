@@ -172,7 +172,7 @@ Both widgets accept these core properties:
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `highlighter` | `ShikiHighlighter` | Highlighter to render with; loads `lang`/`theme` on demand. |
+| `highlighter` | `ShikiHighlighter?` | Loads `lang`/`theme` on demand. Omit to use the shared default (`ShikiHighlighter.config.defaultHighlighter`, or a lazily-created one). |
 | `code` | `String` | Source to render. |
 | `lang` | `CodeLanguage` | Language to highlight, e.g. `CodeLanguages.dart`. |
 | `theme` | `ShikiThemeBase?` | A single theme or a light/dark pair. Omit to use the global `ShikiHighlighter.config.defaultTheme`. |
@@ -387,15 +387,6 @@ final span = codeToTextSpan(
   theme: aurora, // a ShikiTheme is a ShikiThemeBase, so widgets take it directly
 );
 ```
-
-If you would rather load a theme into the highlighter yourself (handy for the raw token API, where you pass the theme by id), four entry points take a theme and return its id:
-
-| Method | Accepts | Use when |
-| --- | --- | --- |
-| `loadShikiTheme(t)` | `ShikiTheme` | Using a theme that ships with the package. |
-| `loadThemeFromJson(s)` | `String` | You have raw theme JSON (asset, network, a `.json` file). |
-| `loadTheme(m)` | `Map<String, dynamic>` | You already decoded the JSON to a map. |
-| `loadThemeRegistration(r)` | `ThemeRegistration` | You built a theme programmatically. |
 
 ## Languages
 

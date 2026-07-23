@@ -2,9 +2,9 @@
 
 > A syntax highlighter for Flutter, ported from Shiki in pure Dart. It tokenizes source code with real VS Code TextMate grammars and themes and renders it as styled `TextSpan`s, so highlighted code looks exactly like it does in VS Code, on iOS, Android, web, macOS, Windows, and Linux.
 
-shiki_flutter is pure Dart out of the box (nothing to install), runs on every Flutter platform, and highlights off the UI thread by default on native/desktop. It bundles ~253 language grammars and 65 themes (plus 10 optional Pierre themes); you import only what you use and the rest is tree-shaken away. Render with the `ShikiCodeView` widget, the virtualized `ShikiCodeListView` for large files, or drop down to `codeToTextSpan` and raw `ThemedToken`s.
+shiki_flutter is pure Dart out of the box (nothing to install), runs on every Flutter platform, and highlights off the UI thread by default on native/desktop. It bundles 253 language grammars and 65 themes (plus 10 optional Pierre themes); you import only what you use and the rest is tree-shaken away. Render with the `ShikiCodeView` widget, the virtualized `ShikiCodeListView` for large files, or drop down to `codeToTextSpan` and raw `ThemedToken`s.
 
-**Read the full documentation first.** The single file below contains the complete, authoritative docs (installation, rendering, widgets and their properties, themes, the full language/theme id lists, async highlighting, engines, web setup, configuration, bundle size, custom grammars, and limitations). Fetch it before answering questions about this package: it is compact, self-contained Markdown written to be read in one pass.
+**Read the full documentation first.** The single file below contains the complete, authoritative docs (installation, rendering, widgets and their properties, themes, the full language/theme id lists, async highlighting, engines, web setup, configuration, best practices, pre-warming, bundle size, custom grammars, and limitations). Fetch it before answering questions about this package: it is compact, self-contained Markdown written to be read in one pass.
 
 ## Docs
 

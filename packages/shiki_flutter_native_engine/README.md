@@ -34,7 +34,7 @@ Future<void> main() async {
 }
 ```
 
-Or per highlighter: `createHighlighter(engine: ShikiHighlighterNativeEngine())`.
+Or per highlighter: `ShikiHighlighter(engine: ShikiHighlighterNativeEngine())`.
 
 On IO the native library builds automatically on first run (via
 `oniguruma_native`'s build hook), no `flutter config` flag needed. On web, run

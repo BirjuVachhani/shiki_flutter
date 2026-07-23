@@ -650,35 +650,8 @@ List<Widget> _content(BuildContext context, String id) {
           'Themes are plain VS Code theme JSON, so any theme works: grab one '
           'from a VS Code marketplace extension, the textmate-grammars-themes '
           'source, or hand-write your own. Wrap the raw JSON in a `ShikiTheme` '
-          'and pass it where you render (shown below); the highlighter loads it '
-          'on demand. If you would rather load a theme into the highlighter '
-          'yourself (handy for the raw token API, by id), four entry points '
-          'take a theme and return its id:',
-        ),
-        DocTable(
-          headers: ['Method', 'Accepts', 'Use when'],
-          rows: [
-            [
-              '`loadShikiTheme(t)`',
-              '`ShikiTheme`',
-              'Using a theme that ships with the package.',
-            ],
-            [
-              '`loadThemeFromJson(s)`',
-              '`String`',
-              'You have raw theme JSON (asset, network, a `.json` file).',
-            ],
-            [
-              '`loadTheme(m)`',
-              '`Map<String, dynamic>`',
-              'You already decoded the JSON to a map.',
-            ],
-            [
-              '`loadThemeRegistration(r)`',
-              '`ThemeRegistration`',
-              'You built a theme programmatically.',
-            ],
-          ],
+          'and pass it where you render, exactly like a bundled theme; the '
+          'highlighter loads it on demand.',
         ),
         CodeBlock(
           code: Snippets.themesBringYourOwn,
@@ -1155,8 +1128,10 @@ List<Widget> _content(BuildContext context, String id) {
           rows: [
             [
               '`highlighter`',
-              '`ShikiHighlighter`',
-              'Highlighter to render with; loads `lang`/`theme` on demand.',
+              '`ShikiHighlighter?`',
+              'Loads `lang`/`theme` on demand. Omit to use the shared default '
+                  '(`ShikiHighlighter.config.defaultHighlighter`, or a '
+                  'lazily-created one).',
             ],
             ['`code`', '`String`', 'Source to render.'],
             [
