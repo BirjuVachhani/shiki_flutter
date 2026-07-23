@@ -24,7 +24,7 @@ on:
       - 'packages/shiki_flutter_engine_interface/lib/**'
       - 'packages/shiki_flutter_dart_engine/lib/**'
       - 'packages/shiki_flutter_native_engine/lib/**'
-      - 'packages/shiki_flutter_native_engine/tool/build_web_worker_native.dart'
+      - 'packages/shiki_flutter_native_engine/tool/**'
       - '.github/workflows/verify-web-workers.yml'
   pull_request:
     paths:
@@ -33,7 +33,7 @@ on:
       - 'packages/shiki_flutter_engine_interface/lib/**'
       - 'packages/shiki_flutter_dart_engine/lib/**'
       - 'packages/shiki_flutter_native_engine/lib/**'
-      - 'packages/shiki_flutter_native_engine/tool/build_web_worker_native.dart'
+      - 'packages/shiki_flutter_native_engine/tool/**'
       - '.github/workflows/verify-web-workers.yml'
   workflow_dispatch:
 

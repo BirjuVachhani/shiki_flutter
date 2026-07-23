@@ -17,7 +17,7 @@
 // can't drift from source.
 import 'dart:io';
 
-const _entry = 'lib/src/worker/tokenize_worker_entry_native.dart';
+const _entry = 'tool/tokenize_worker_entry_native.dart';
 const _output = 'lib/src/prebuilt/shiki_tokenize_worker_native.js';
 
 Future<void> main() async {
