@@ -21,8 +21,8 @@ dependencies:
     sdk: flutter
   shiki_flutter_engine_interface: ^1.0.0
   shiki_flutter_dart_engine: ^1.0.0
-  meta: ^1.15.0
-  web: ^1.1.0
+  meta: ">=1.18.0 <2.0.0"
+  web: ">=1.1.0 <1.2.0"
 
 dev_dependencies:
   flutter_test:
@@ -30,3 +30,10 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
+
+topics:
+  - syntax-highlighting
+  - textmate
+  - themes
+  - highlighting
+  - code

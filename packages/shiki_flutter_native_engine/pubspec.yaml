@@ -2,9 +2,8 @@ name: shiki_flutter_native_engine
 
 description: >-
   Native Oniguruma engine backend for shiki_flutter: the real C library via
-  dart:ffi on IO and WebAssembly on web. Set it as the engine in
-  ShikiHighlighter.config to tokenize with Oniguruma instead of the pure-Dart
-  engine, on every platform the oniguruma_native package supports.
+  dart:ffi on IO and WebAssembly on web, on every platform oniguruma_native
+  supports.
 
 version: 1.0.0
 
@@ -23,6 +22,6 @@ dependencies:
   oniguruma_native: ^1.0.1
 
 dev_dependencies:
-  lints: ^6.0.0
-  test: ^1.25.0
+  flutter_lints: ^6.0.0
+  test: ^1.31.0
   shiki_flutter_dart_engine: ^1.0.0

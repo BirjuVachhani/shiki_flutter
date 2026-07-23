@@ -1,9 +1,9 @@
 name: shiki_flutter_dart_engine
 
 description: >-
-  Pure-Dart Oniguruma engine backend for shiki_flutter (via the oniguruma_dart
-  port): no FFI, no native build, runs everywhere including web. shiki_flutter
-  uses it (ShikiHighlighterDartEngine) as its default engine on native/VM.
+  Pure-Dart Oniguruma engine backend for shiki_flutter (via oniguruma_dart):
+  no FFI, no native build, runs everywhere including web. shiki_flutter's
+  default engine on native/VM.
 
 version: 1.0.0
 
@@ -22,5 +22,5 @@ dependencies:
   oniguruma_dart: ^1.0.1
 
 dev_dependencies:
-  lints: ^6.0.0
-  test: ^1.25.0
+  lints: ^6.1.0
+  test: ^1.31.0
