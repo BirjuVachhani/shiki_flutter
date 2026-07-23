@@ -1931,7 +1931,7 @@ break
 case 4:p=3
 i=o.pop()
 n=A.a9(i)
-m="https://github.com/BirjuVachhani/oniguruma-dart/releases/download/1.0.1/oniguruma_native.wasm"
+m="https://github.com/BirjuVachhani/oniguruma-dart/releases/download/1.0.1+2/oniguruma_native.wasm"
 p=9
 s=12
 return A.bs(A.aW(m),$async$cr)
