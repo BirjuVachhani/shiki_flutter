@@ -12,8 +12,8 @@ import 'copy_button.dart';
 /// grows to fit its content vertically (no inner vertical scroll) so it never
 /// traps the page's scroll; long lines scroll horizontally.
 ///
-/// If [filename] is given the block gains a diffs.com-style header - a file-code
-/// glyph, the file name, and the copy button on the right - separated from the
+/// If [filename] is given the block gains a header: a file-code
+/// glyph, the file name, and the copy button on the right, separated from the
 /// code by a hairline. Without a filename there is no header chrome and a subtle
 /// copy button floats in the top-right instead.
 class CodeBlock extends StatelessWidget {
@@ -43,7 +43,7 @@ class CodeBlock extends StatelessWidget {
 
   final bool showCopy;
 
-  /// Show a right-aligned line-number gutter (like diffs.com).
+  /// Show a right-aligned line-number gutter.
   final bool showLineNumbers;
 
   final double fontSize;
@@ -152,7 +152,7 @@ class CodeBlock extends StatelessWidget {
 }
 
 /// The optional header bar: a file-code glyph + file name on the left and the
-/// copy button on the right, matching diffs.com's `data-diffs-header` - the same
+/// copy button on the right, matching the reference header: the same
 /// background as the code (no divider), `padding-inline: 16`, an 8px icon↔name
 /// gap, and a min-height of roughly one line plus 24px.
 class _Header extends StatelessWidget {
@@ -173,7 +173,7 @@ class _Header extends StatelessWidget {
     return Padding(
       // padding-inline: 16 (right trimmed to 10 so the copy glyph's own 6px
       // padding lands ~16px from the edge). Vertical padding + minHeight give
-      // diffs' `calc(1lh + 24px)` header height.
+      // the reference `calc(1lh + 24px)` header height.
       padding: const EdgeInsets.fromLTRB(16, 8, 10, 8),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 28),
@@ -197,7 +197,7 @@ class _Header extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.1,
                     height: 1.0,
-                    // diffs' [data-title] uses full --diffs-fg (no dimming).
+                    // The title uses the full foreground color (no dimming).
                     color: onBg,
                   ),
                 ),

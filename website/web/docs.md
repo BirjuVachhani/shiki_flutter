@@ -359,7 +359,7 @@ synthwave-84, tokyo-night, vesper, vitesse-black, vitesse-dark, vitesse-light
 
 ## Extra themes
 
-Alongside the bundled Shiki themes, shiki_flutter ships the 10 custom **Pierre** themes from diffs.com (built by Pierre), the same set this site uses for its own code blocks. The collection spans light and dark, plus soft, vibrant, and color-blind-friendly variants:
+Alongside the bundled Shiki themes, shiki_flutter ships the 10 custom **Pierre** themes built by Pierre Computer Company, the same set this site uses for its own code blocks. The collection spans light and dark, plus soft, vibrant, and color-blind-friendly variants:
 
 - `pierre-dark` and `pierre-light`: the defaults.
 - `pierre-dark-soft` and `pierre-light-soft`: gentler, lower contrast.

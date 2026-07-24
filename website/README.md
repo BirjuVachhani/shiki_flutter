@@ -1,8 +1,8 @@
 # shiki_flutter website
 
 The showcase site for [`shiki_flutter`](../): a landing page and docs, styled
-after [diffs.com](https://diffs.com) (the shadcn "neutral" palette: monochrome,
-dark-forward, subtle borders).
+with the shadcn/ui "neutral" palette (monochrome, dark-forward, subtle
+borders).
 
 Every code sample on the site is tokenized **live by shiki_flutter itself** via
 `lib/src/highlight/highlighter_service.dart`, so the site doubles as a working

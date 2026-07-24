@@ -3,12 +3,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/tokens.dart';
 
-/// The diffs.com ("Pierre") icon set, shipped as SVG assets under
+/// The Pierre icon set, shipped as SVG assets under
 /// `assets/icons/`.
 ///
-/// The glyphs were extracted directly from diffs.com - the page icon sprite
-/// (`<symbol id="diffs-icon-…">`) and the site's React `IconXxx` components - so
-/// the site matches diffs.com 1:1 rather than falling back to Material glyphs.
+/// The glyphs are traced from the reference design's own SVG icon set, so the
+/// site matches it 1:1 rather than falling back to Material glyphs.
 enum DiffIcon {
   /// Two overlapping rounded squares; the front square is drawn at 40% opacity
   /// for a subtle depth effect. Used by the copy button.

@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import '../data/links.dart';
 import '../theme/tokens.dart';
 
-/// The wordmark, matching diffs.com's brand: a semibold sans "Shiki" that links
+/// The wordmark: a semibold sans "Shiki" that links
 /// home, followed by a muted tagline (`for flutter by <author>`) whose author
-/// name is a link. The tagline is hidden on compact layouts, exactly like
-/// diffs' `hidden md:inline` treatment.
+/// name is a link. The tagline is hidden on compact layouts, like a
+/// `hidden md:inline` treatment.
 class Brand extends StatefulWidget {
   const Brand({super.key, this.onTap});
 

@@ -7,7 +7,7 @@ import 'package:shiki_flutter_website/src/theme/app_theme.dart';
 import 'package:shiki_flutter_website/src/theme/tokens.dart';
 import 'package:shiki_flutter_website/src/widgets/theme_dropdown.dart';
 
-/// Golden tests used to match the diffs.com theme dropdown 1:1. Run with
+/// Golden tests used to match the reference theme dropdown 1:1. Run with
 /// `flutter test --update-goldens test/theme_dropdown_golden_test.dart` to
 /// regenerate the PNGs under `test/goldens/`, then eyeball them against the
 /// reference.

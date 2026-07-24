@@ -654,12 +654,12 @@ class _EngineFeature extends StatelessWidget {
   }
 }
 
-/// The closing call-to-action above the footer, mirroring diffs.com's
-/// `<section class="space-y-6 border-y py-16">` block 1:1: a 24px medium
+/// The closing call-to-action above the footer: a
+/// `<section class="space-y-6 border-y py-16">` block, with a 24px medium
 /// heading (`text-2xl font-medium`) over a muted 16px blurb capped at 672px
 /// (`max-w-2xl`), then two small brand buttons (`h-9 text-sm`). The top
-/// hairline pairs with the footer's own top border to frame the block - the
-/// same effect as diffs' `border-y`.
+/// hairline pairs with the footer's own top border to frame the block, the
+/// same effect as a `border-y`.
 class _CtaBand extends StatelessWidget {
   const _CtaBand();
 

@@ -17,7 +17,7 @@ class ContentContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // diffs.com uses a constant 20px (`px-5`) gutter at every breakpoint.
+    // A constant 20px (`px-5`) gutter at every breakpoint.
     const gutter = 20.0;
     return Center(
       child: ConstrainedBox(
@@ -78,7 +78,7 @@ class Section extends StatelessWidget {
   }
 }
 
-/// A section title with an optional subtitle. Matches diffs.com: a `text-2xl`
+/// A section title with an optional subtitle: a `text-2xl`
 /// (24px) medium title over a muted 16px subtitle, capped to a 768px column.
 class SectionHeading extends StatelessWidget {
   const SectionHeading({

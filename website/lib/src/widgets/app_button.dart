@@ -29,10 +29,10 @@ class AppButton extends StatefulWidget {
   final IconData? icon;
   final IconData? trailingIcon;
 
-  /// A diffs.com leading glyph; takes precedence over [icon] when set.
+  /// A Pierre leading glyph; takes precedence over [icon] when set.
   final DiffIcon? leadingDiffIcon;
 
-  /// A diffs.com trailing glyph; takes precedence over [trailingIcon] when set.
+  /// A Pierre trailing glyph; takes precedence over [trailingIcon] when set.
   final DiffIcon? trailingDiffIcon;
 
   @override

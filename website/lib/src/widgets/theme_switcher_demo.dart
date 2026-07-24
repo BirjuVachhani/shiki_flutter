@@ -7,7 +7,7 @@ import 'theme_dropdown.dart';
 
 /// Renders one Dart snippet and lets the visitor flip it through several real
 /// Shiki themes, all tokenized live by shiki_flutter. Theme selection uses the
-/// diffs.com-style [ThemeDropdown].
+/// [ThemeDropdown].
 class ThemeSwitcherDemo extends StatefulWidget {
   const ThemeSwitcherDemo({super.key});
 

@@ -23,7 +23,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   /// Whether the page has scrolled off the top. Drives the nav's bottom border,
-  /// which is invisible at the top of the page (like diffs.com) and fades in on
+  /// which is invisible at the top of the page and fades in on
   /// scroll. Kept in a notifier so only the nav rebuilds, not the page body.
   final ValueNotifier<bool> _scrolled = ValueNotifier<bool>(false);
 

@@ -146,8 +146,8 @@ class _AppDropdownState extends State<AppDropdown>
   }
 }
 
-/// A solid, bordered, rounded popover card for [AppDropdown] menus. Matches the
-/// diffs.com dropdown surface (bg-popover, `--border`, soft shadow).
+/// A solid, bordered, rounded popover card for [AppDropdown] menus. Uses the
+/// shadcn dropdown surface (bg-popover, `--border`, soft shadow).
 class AppMenuPanel extends StatelessWidget {
   const AppMenuPanel({
     super.key,
@@ -194,7 +194,7 @@ class AppMenuPanel extends StatelessWidget {
 }
 
 /// A single row in an [AppMenuPanel]: an optional leading glyph, a label, and an
-/// optional trailing widget. Hover fills with `--accent`, like diffs.com menus.
+/// optional trailing widget. Hover fills with `--accent`, like shadcn menus.
 class AppMenuItem extends StatefulWidget {
   const AppMenuItem({
     super.key,

@@ -7,7 +7,7 @@ import '../theme/tokens.dart';
 import 'app_icon.dart';
 
 /// An icon button that copies [text] to the clipboard and briefly shows a
-/// checkmark as confirmation. Uses the diffs.com copy/check glyphs.
+/// checkmark as confirmation. Uses the Pierre copy/check glyphs.
 class CopyButton extends StatefulWidget {
   const CopyButton({
     super.key,

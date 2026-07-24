@@ -83,7 +83,7 @@ on native) need zero setup.
 | ---- | ---------- |
 | [`packages/`](packages/) | The published packages listed above. |
 | [`website/`](website/) | The showcase and documentation site behind [shiki.birju.dev](https://shiki.birju.dev). It dogfoods the package. |
-| [`storyboard/`](storyboard/) | The Pierre component storyboard (the diffs.com / shadcn "neutral" design system) the site is built from, locked with golden tests. |
+| [`storyboard/`](storyboard/) | The Pierre component storyboard (the shadcn/ui "neutral" design system) the site is built from, locked with golden tests. |
 | `shiki-main/` | Vendored upstream [Shiki](https://github.com/shikijs/shiki), used as the reference for golden generation. |
 | [`docs/`](docs/) | Design notes and implementation plans. |
 | `.github/workflows/` | CI: website deploy and the Oniguruma prebuild. |

@@ -463,8 +463,8 @@ ShikiCodeView(code: source, lang: myLang, theme: myTheme);
 
 ### Pierre themes (opt-in)
 
-The package also bundles the 10 custom **Pierre** themes from
-[diffs.com](https://diffs.com), including two wide-gamut `display-p3` variants
+The package also bundles the 10 custom **Pierre** themes built by Pierre
+Computer Company, including two wide-gamut `display-p3` variants
 and colorblind-friendly (protanopia/deuteranopia, tritanopia) sets. They round
 out the count to 75, but live in a separate, opt-in `PierreThemes` facade (not
 `ShikiThemes.all`), so they tree-shake independently:

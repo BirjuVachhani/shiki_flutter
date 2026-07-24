@@ -220,7 +220,7 @@ class _DocsPageState extends State<DocsPage> implements DocsSectionNavigator {
           for (var i = 0; i < docsSections.length; i++)
             Padding(
               key: _keys[i],
-              // diffs.com separates sections with `space-y-8` (32px).
+              // Sections are separated with `space-y-8` (32px).
               padding: EdgeInsets.only(top: i == 0 ? 0 : 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,7 +250,7 @@ class _SectionTitle extends StatelessWidget {
         color: context.colors.foreground,
         fontSize: 30,
         fontWeight: FontWeight.w600,
-        // diffs.com headings use `tracking-tight` (-0.025em ≈ -0.75px @30px).
+        // Headings use `tracking-tight` (-0.025em ≈ -0.75px @30px).
         letterSpacing: -0.75,
         height: 1.2,
       ),
@@ -293,8 +293,8 @@ class _Sidebar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(right: 12, bottom: 48),
         child: Column(
-          // Stretch so the selected pill spans the full rail width (like
-          // diffs.com), rather than shrink-wrapping the label.
+          // Stretch so the selected pill spans the full rail width,
+          // rather than shrink-wrapping the label.
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: children,
         ),
@@ -332,8 +332,8 @@ class _StickyBox extends StatelessWidget {
 }
 
 /// The compact trigger: a breadcrumb bar pinned under the nav that shows where
-/// you are (`Docs › <section>`) and opens the navigation popup on tap. Matches
-/// the diffs.com mobile docs header.
+/// you are (`Docs › <section>`) and opens the navigation popup on tap, styled
+/// as a compact mobile docs header.
 class _CompactDocsBar extends StatelessWidget {
   const _CompactDocsBar({required this.sectionTitle, required this.onOpen});
 
@@ -660,7 +660,7 @@ List<Widget> _content(BuildContext context, String id) {
       return const [
         DocProse(
           'Alongside the bundled Shiki themes, shiki_flutter ships the 10 '
-          'custom **Pierre** themes from diffs.com (built by Pierre Computer Company), the same '
+          'custom **Pierre** themes built by Pierre Computer Company, the same '
           'set this site uses for its own code blocks. The collection spans '
           'light and dark, plus soft, vibrant, and color-blind-friendly '
           'variants:',

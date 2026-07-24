@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 /// The site's color palette, exposed as a [ThemeExtension] so any widget can
 /// read semantic tokens via `context.colors`.
 ///
-/// The values mirror the shadcn/ui "neutral" system (the same palette diffs.com
-/// uses): a monochrome, dark-forward scale with subtle borders.
+/// The values mirror the shadcn/ui "neutral" system: a monochrome,
+/// dark-forward scale with subtle borders.
 @immutable
 class AppColors extends ThemeExtension<AppColors> {
   const AppColors({
@@ -65,7 +65,7 @@ class AppColors extends ThemeExtension<AppColors> {
   static const AppColors dark = AppColors(
     background: Color(0xFF0A0A0A),
     surface: Color(0xFF141414),
-    // diffs.com's accent/secondary/muted (shadcn neutral, oklch 26.9%).
+    // shadcn neutral accent/secondary/muted (oklch 26.9%).
     surfaceInset: Color(0xFF262626),
     border: Color(0x1AFFFFFF),
     borderStrong: Color(0xFF2A2A2A),
@@ -159,15 +159,15 @@ abstract final class AppRadii {
 
 /// Layout constants.
 abstract final class AppLayout {
-  /// Max width of a standard content container. Matches diffs.com's `max-w-7xl`
-  /// (1280px) minus its `px-5` (20px) gutters on each side.
+  /// Max width of a standard content container: a `max-w-7xl` (1280px)
+  /// container minus its `px-5` (20px) gutters on each side.
   static const double contentMaxWidth = 1240;
 
   /// Max width of the docs reading column.
   static const double readingMaxWidth = 780;
 
-  /// Height of the sticky top navigation bar. Matches diffs.com: a 36px-tall
-  /// control row (`size-9` icon buttons) with 12px (`py-3`) padding each side.
+  /// Height of the sticky top navigation bar: a 36px-tall control row
+  /// (`size-9` icon buttons) with 12px (`py-3`) padding each side.
   static const double navHeight = 60;
 
   /// Below this width, the layout collapses to a single column and menus move

@@ -311,7 +311,7 @@ class DocsGroupLabel extends StatelessWidget {
   }
 }
 
-/// A single section entry (docs rail and nav popup). diffs.com: selection
+/// A single section entry (docs rail and nav popup). Selection
 /// changes colour + a subtle pill only, never weight. Active = foreground on an
 /// accent pill; others muted, brightening on hover.
 class DocsSectionTile extends StatefulWidget {

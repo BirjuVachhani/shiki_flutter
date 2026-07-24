@@ -7,8 +7,8 @@ import 'app_icon.dart';
 /// One selectable theme in a [ThemeDropdown].
 typedef ThemeChoice = ({String id, bool isDark});
 
-/// The diffs.com (shadcn "neutral") dropdown palette for the active brightness -
-/// the exact values read from diffs.com's stylesheet. The popup and the trigger
+/// The shadcn "neutral" dropdown palette for the active brightness, the exact
+/// values read from the reference stylesheet. The popup and the trigger
 /// have *different* fills/borders there, so both are captured here:
 ///
 /// - Popup content: `bg-popover` + `--border` (white/10 dark), rows use
@@ -44,7 +44,7 @@ _Palette _palette(BuildContext context) {
         );
 }
 
-/// A theme selector modelled on the diffs.com dropdown: a compact trigger "pill"
+/// A theme selector modelled on the shadcn "neutral" dropdown: a compact trigger "pill"
 /// (sun/moon icon + theme id + chevron) that opens a solid, bordered popup
 /// listing themes with a checkmark on the selected row.
 ///
@@ -160,8 +160,8 @@ class _ThemeDropdownTriggerState extends State<ThemeDropdownTrigger> {
                   letterSpacing: -0.1,
                 ),
               ),
-              // The chevron is `ml-auto` in diffs (pinned to the pill's right
-              // edge); emulate that separation on this content-sized pill.
+              // The chevron is `ml-auto` in the reference (pinned to the pill's
+              // right edge); emulate that separation on this content-sized pill.
               const SizedBox(width: 16),
               _ChevronDown(color: colors.mutedForeground),
             ],
@@ -258,7 +258,7 @@ class _ThemeMenuItemState extends State<_ThemeMenuItem> {
     final colors = context.colors;
     final selected = widget.selected;
 
-    // Selected and hovered rows both use `--accent`, exactly like diffs.com; the
+    // Selected and hovered rows both use `--accent`, so the
     // checkmark is what distinguishes the selected row.
     final bg = (selected || _hovered)
         ? _palette(context).accent
@@ -305,8 +305,8 @@ class _ThemeMenuItemState extends State<_ThemeMenuItem> {
   }
 }
 
-/// The exact chevron from diffs.com's trigger - a narrow, rounded "v" traced
-/// from their SVG (viewBox `0 0 10 16`, ~1.5px stroke, round caps/joins),
+/// The exact chevron from the reference trigger: a narrow, rounded "v" traced
+/// from the source SVG (viewBox `0 0 10 16`, ~1.5px stroke, round caps/joins),
 /// rather than the chunkier Material chevron.
 class _ChevronDown extends StatelessWidget {
   const _ChevronDown({required this.color});
@@ -338,7 +338,7 @@ class _ChevronPainter extends CustomPainter {
       ..strokeWidth = 1.5 * sx
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    // Centerline of diffs' filled chevron path, vertically centered in the box.
+    // Centerline of the filled chevron path, vertically centered in the box.
     final path = Path()
       ..moveTo(1.0 * sx, 6.2 * sy)
       ..lineTo(5.0 * sx, 9.7 * sy)

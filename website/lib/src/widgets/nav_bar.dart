@@ -9,11 +9,11 @@ import 'app_icon.dart';
 import 'brand.dart';
 import 'section.dart';
 
-/// The sticky top navigation, matching diffs.com's header 1:1.
+/// The sticky top navigation, matching the reference header 1:1.
 ///
 /// It has a solid background and **no** bottom border while the page is at the
-/// top; once the user scrolls, a hairline border fades in over 200ms (diffs.com
-/// uses `border-transparent` + `transition-[border-color] duration-200`). The
+/// top; once the user scrolls, a hairline border fades in over 200ms (via
+/// `border-transparent` + `transition-[border-color] duration-200`). The
 /// control row is 36px tall inside 12px (`py-3`) padding. Below the compact
 /// breakpoint the links collapse into a menu button.
 class NavBar extends StatelessWidget {
@@ -104,7 +104,7 @@ class NavBar extends StatelessWidget {
   }
 }
 
-/// A button-styled nav link (diffs.com `h-8 px-2 rounded-md text-sm`): the
+/// A button-styled nav link (`h-8 px-2 rounded-md text-sm`): the
 /// active route is `foreground` + medium weight; others are muted + normal and
 /// brighten to `foreground` on hover over a subtle pill. External links carry a
 /// small up-right arrow.
@@ -182,7 +182,7 @@ class _NavLinkState extends State<_NavLink> {
 }
 
 /// The thin vertical rule between the text links and the icon buttons
-/// (diffs.com `mx-2 h-5 w-px border-l`).
+/// (`mx-2 h-5 w-px border-l`).
 class _NavDivider extends StatelessWidget {
   const _NavDivider();
 
@@ -209,7 +209,7 @@ class _IconAction extends StatefulWidget {
   /// A Material glyph. Provide this or [diffIcon].
   final IconData? icon;
 
-  /// A diffs.com glyph. Takes precedence over [icon].
+  /// A Pierre glyph. Takes precedence over [icon].
   final DiffIcon? diffIcon;
 
   final String tooltip;

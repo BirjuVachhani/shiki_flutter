@@ -115,7 +115,7 @@ class InstallCommand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // diffs.com keeps the install pill dark in both modes (black / neutral-900).
+    // The install pill stays dark in both modes (black / neutral-900).
     final bg = isDark ? const Color(0xFF000000) : const Color(0xFF171717);
     return SelectionContainer.disabled(
       child: Container(

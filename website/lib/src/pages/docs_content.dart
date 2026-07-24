@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
 
-/// Prose components used to author the docs, matching diffs.com's `docs-prose`:
+/// Prose components used to author the docs, matching the site's docs prose:
 /// foreground body text at 16px/1.6, a ~72ch reading measure, and inline
 /// `code` rendered as plain mono (no background box). Code blocks are left to
 /// span the full content width.
 
-/// The reading measure for prose. diffs.com caps docs prose at `max-w-3xl`
+/// The reading measure for prose. Docs prose is capped at `max-w-3xl`
 /// (48rem = 768px); code blocks span the full content column.
 const double kProseWidth = 768;
 
@@ -21,7 +21,7 @@ class DocProse extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return Padding(
-      // diffs.com paragraphs sit ~20px apart (line pitch 25.5 + ~20 margin).
+      // Paragraphs sit ~20px apart (line pitch 25.5 + ~20 margin).
       padding: const EdgeInsets.only(bottom: 20),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: kProseWidth),
@@ -118,7 +118,7 @@ class DocBullets extends StatelessWidget {
   }
 }
 
-/// A borderless table with horizontal row rules (diffs style).
+/// A borderless table with horizontal row rules.
 class DocTable extends StatelessWidget {
   const DocTable({super.key, required this.headers, required this.rows});
 
