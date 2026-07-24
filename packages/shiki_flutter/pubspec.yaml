@@ -4,7 +4,7 @@ description: >-
   Tokenizes source code with real TextMate grammars and Shiki themes and renders
   it as styled TextSpans.
 
-version: 1.0.0
+version: 1.0.1
 
 homepage: https://shiki.birju.dev
 repository: https://github.com/BirjuVachhani/shiki_flutter/tree/main/packages/shiki_flutter
