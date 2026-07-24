@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:recase/recase.dart';
 import 'package:shiki_flutter/shiki_flutter.dart';
 
 import '../data/snippets.dart';
@@ -406,7 +407,7 @@ class _ThemePreview extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        _Caption(themeId: themeId),
+        _Caption(theme: theme),
       ],
     );
   }
@@ -415,13 +416,16 @@ class _ThemePreview extends StatelessWidget {
 /// `theme: '<id>'` under the preview, with a copy button - the exact string a
 /// consumer passes when rendering.
 class _Caption extends StatelessWidget {
-  const _Caption({required this.themeId});
+  const _Caption({required this.theme});
 
-  final String themeId;
+  final ShikiTheme theme;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final name = ReCase(theme.id);
+    final isPierreTheme = PierreThemes.all.contains(theme);
+    final className = isPierreTheme ? 'PierreThemes' : 'ShikiThemes';
     return Row(
       children: [
         Expanded(
@@ -437,7 +441,7 @@ class _Caption extends StatelessWidget {
                 children: [
                   const TextSpan(text: 'theme: '),
                   TextSpan(
-                    text: "'$themeId'",
+                    text: "$className.${name.camelCase}",
                     style: TextStyle(color: colors.foreground),
                   ),
                 ],
@@ -445,7 +449,7 @@ class _Caption extends StatelessWidget {
             ),
           ),
         ),
-        CopyButton(text: themeId, size: 14, tooltip: 'Copy id'),
+        CopyButton(text: "$className.${name.camelCase}", size: 14, tooltip: 'Copy Code'),
       ],
     );
   }

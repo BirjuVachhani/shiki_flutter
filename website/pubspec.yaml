@@ -31,13 +31,13 @@ dependencies:
   go_router: ^17.3.0
   url_launcher: ^6.3.2
   simple_icons: ^16.23.0
-
+  recase: ^4.1.0
   flutter_svg: ^2.3.0
 
   # Browser interop for the docs "Copy as Markdown" control: fetch the served
   # web/docs.md and trigger a download. Web-only (guarded behind a conditional
   # import), so it never enters the IO/desktop build.
-  web: ^1.1.0
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

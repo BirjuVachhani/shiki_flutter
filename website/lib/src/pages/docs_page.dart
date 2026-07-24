@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../data/docs_sections.dart';
@@ -137,6 +139,13 @@ class _DocsPageState extends State<DocsPage> implements DocsSectionNavigator {
   }
 
   Widget _buildWide(BuildContext context) {
+    // The sticky rail is pinned `navHeight + 24` below the viewport top; cap it
+    // at the remaining space so a section list taller than the window scrolls
+    // within the rail instead of running off screen.
+    final railMaxHeight = math.max(
+      0.0,
+      MediaQuery.sizeOf(context).height - AppLayout.navHeight - 24,
+    );
     // One page-level scroll view so the scrollbar sits on the viewport's right
     // edge and the whole page scrolls from anywhere; the sidebar is pinned to
     // stay in view (CSS `position: sticky` equivalent).
@@ -156,7 +165,10 @@ class _DocsPageState extends State<DocsPage> implements DocsSectionNavigator {
                     children: [
                       _StickyBox(
                         controller: _controller,
-                        child: _Sidebar(active: _active, onTap: _scrollTo),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxHeight: railMaxHeight),
+                          child: _Sidebar(active: _active, onTap: _scrollTo),
+                        ),
                       ),
                       const SizedBox(width: 48),
                       Expanded(child: _sectionsColumn(context)),
@@ -258,11 +270,66 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _Sidebar extends StatelessWidget {
+class _Sidebar extends StatefulWidget {
   const _Sidebar({required this.active, required this.onTap});
 
   final int active;
   final ValueChanged<int> onTap;
+
+  @override
+  State<_Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends State<_Sidebar> {
+  final ScrollController _controller = ScrollController();
+  final List<GlobalKey> _tileKeys = List.generate(
+    docsSections.length,
+    (_) => GlobalKey(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    // Deep links land with a non-zero active section; jump the rail there.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _revealActive(animate: false);
+    });
+  }
+
+  @override
+  void didUpdateWidget(_Sidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) _revealActive();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Scrolls the rail just enough to keep the active tile visible as the
+  /// scroll-spy follows the page. The two edge-pinned policies are each a
+  /// no-op when the tile is already inside that edge, so at most one animates.
+  void _revealActive({bool animate = true}) {
+    if (!_controller.hasClients) return;
+    final object = _tileKeys[widget.active].currentContext?.findRenderObject();
+    if (object == null) return;
+    final duration = animate
+        ? const Duration(milliseconds: 250)
+        : Duration.zero;
+    for (final policy in const [
+      ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+    ]) {
+      _controller.position.ensureVisible(
+        object,
+        alignmentPolicy: policy,
+        duration: duration,
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -281,16 +348,18 @@ class _Sidebar extends StatelessWidget {
         final i = index++;
         children.add(
           DocsSectionTile(
+            key: _tileKeys[i],
             label: section.title,
-            active: i == active,
-            onTap: () => onTap(i),
+            active: i == widget.active,
+            onTap: () => widget.onTap(i),
           ),
         );
       }
     }
     return SizedBox(
       width: 220,
-      child: Padding(
+      child: SingleChildScrollView(
+        controller: _controller,
         padding: const EdgeInsets.only(right: 12, bottom: 48),
         child: Column(
           // Stretch so the selected pill spans the full rail width,
@@ -460,7 +529,7 @@ List<Widget> _content(BuildContext context, String id) {
                 crossAxisAlignment: .start,
                 children: [
                   Text(
-                    '65+',
+                    '75',
                     style: TextStyle(
                       fontSize: 40,
                       fontWeight: .w600,
