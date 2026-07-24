@@ -1,6 +1,6 @@
 /// A TextMate-grammar based syntax highlighter for Flutter, ported from Shiki.
 ///
-/// Load a language grammar and a VS Code theme into a [ShikiHighlighter], then
+/// Load a language grammar and a Shiki theme into a [ShikiHighlighter], then
 /// either read the [ThemedToken]s directly via [ShikiHighlighter.codeToTokens]
 /// or render them with [codeToTextSpan] / [ShikiCodeView].
 ///

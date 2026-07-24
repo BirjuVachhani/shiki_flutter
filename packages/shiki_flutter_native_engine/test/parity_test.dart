@@ -72,7 +72,7 @@ CodeLanguage _language(String id, String json) {
   );
 }
 
-/// Wraps a raw VS Code theme JSON fixture as a [ShikiTheme].
+/// Wraps a raw TextMate theme JSON fixture as a [ShikiTheme].
 ShikiTheme _theme(String id, String json) {
   final type = (jsonDecode(json) as Map<String, dynamic>)['type'] as String?;
   return ShikiTheme(id: id, type: type ?? 'dark', json: json);

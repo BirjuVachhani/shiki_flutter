@@ -72,7 +72,7 @@ class _ThemeGalleryState extends State<ThemeGallery> {
     }
 
     return SizedBox(
-      height: 460,
+      height: 455,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -29,7 +29,7 @@ All sources are npm packages, pinned in [`tm/package.json`](tm/package.json):
 | Package | Provides | Upstream |
 |---|---|---|
 | `tm-grammars` | TextMate grammars (`.json`) + `index.js` metadata | github.com/shikijs/textmate-grammars-themes |
-| `tm-themes` | VS Code / TextMate themes (`.json`) + metadata | (same repo) |
+| `tm-themes` | TextMate themes (`.json`) + metadata | (same repo) |
 | `@pierre/theme` | the 10 opt-in Pierre themes (`.json`) | github.com/pierrecomputer/pierre (packages/theme) |
 
 `tool/tm/node_modules`, `tool/tm/package-lock.json`, and `tool/tm/meta.json` are

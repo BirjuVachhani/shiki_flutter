@@ -98,7 +98,7 @@ class HighlighterService {
 
   final Map<String, Color> _bgCache = {};
 
-  /// Themes offered in the "any VS Code theme" switcher.
+  /// Themes offered in the "any Shiki theme" switcher.
   static final List<DemoTheme> demoThemes = [
     DemoTheme(ShikiThemes.githubDark, 'GitHub Dark'),
     DemoTheme(ShikiThemes.oneDarkPro, 'One Dark Pro'),
@@ -145,14 +145,18 @@ class HighlighterService {
     ..preload(
       // Only Dart is needed: the gallery always previews one Dart sample.
       langs: [CodeLanguages.dart],
-      themes: ShikiThemes.all,
+      themes: [...ShikiThemes.all, ...PierreThemes.all],
     );
 
   final Map<String, TextSpan> _gallerySpanCache = {};
 
-  /// Every bundled theme, in package order: the source of truth for the docs
-  /// gallery's list (so it stays in sync when themes are regenerated).
-  List<ShikiTheme> get galleryThemes => ShikiThemes.all;
+  /// Every bundled theme, in package order: the 65 Shiki themes plus the 10
+  /// opt-in Pierre themes (75 total). The source of truth for the docs gallery's
+  /// list, so it stays in sync when themes are regenerated.
+  late final List<ShikiTheme> galleryThemes = [
+    ...ShikiThemes.all,
+    ...PierreThemes.all,
+  ];
 
   /// Highlights [code] in a bundled [theme] via the gallery highlighter.
   TextSpan gallerySpan(

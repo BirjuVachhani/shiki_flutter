@@ -1,7 +1,8 @@
 name: shiki_flutter
 description: >-
   A TextMate-grammar based syntax highlighter for Flutter, ported from Shiki.
-  Tokenizes source code with VS Code themes and renders it as styled TextSpans.
+  Tokenizes source code with real TextMate grammars and Shiki themes and renders
+  it as styled TextSpans.
 
 version: 1.0.0
 

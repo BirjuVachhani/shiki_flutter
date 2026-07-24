@@ -316,7 +316,7 @@ ShikiCodeView(code: source, lang: CodeLanguages.dart);
 ''';
 
   static const String themesBringYourOwn = r'''
-// A theme is just VS Code / TextMate theme JSON, loaded at runtime from an
+// A theme is just TextMate theme JSON, loaded at runtime from an
 // asset, the network, or a VS Code extension. No codegen, no rebuild.
 final json = await rootBundle.loadString('assets/aurora.json');
 final aurora = ShikiTheme(id: 'aurora', type: 'dark', json: json);
@@ -359,7 +359,7 @@ final highlighter = ShikiHighlighter()
 ''';
 
   static const String customGrammar = r'''
-// Wrap a TextMate grammar / VS Code theme JSON in a CodeLanguage / ShikiTheme
+// Wrap a TextMate grammar / theme JSON in a CodeLanguage / ShikiTheme
 // and hand them straight to the renderer; the highlighter loads them on demand.
 final myLang = CodeLanguage(
   id: 'my-lang',

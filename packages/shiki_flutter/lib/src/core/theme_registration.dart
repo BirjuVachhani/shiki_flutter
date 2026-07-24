@@ -46,7 +46,7 @@ class ThemeRegistration {
   /// `editor.foreground`), used as a fallback source for [fg]/[bg].
   Map<String, String> colors;
 
-  /// Parses a raw theme JSON map (VS Code / TextMate theme format).
+  /// Parses a raw theme JSON map (TextMate theme format).
   static ThemeRegistration fromJson(Map<String, dynamic> json) {
     final settingsJson = (json['settings'] ?? json['tokenColors']) as List?;
     final settings = <RawThemeSetting>[];
@@ -97,7 +97,7 @@ class ThemeRegistration {
     );
   }
 
-  /// Serializes back to a VS Code / TextMate theme JSON map, the inverse of
+  /// Serializes back to a TextMate theme JSON map, the inverse of
   /// [fromJson]. Used to replicate an object-built theme to the async worker,
   /// which only accepts JSON strings. Round-trips through [fromJson] losslessly.
   Map<String, dynamic> toJson() => {

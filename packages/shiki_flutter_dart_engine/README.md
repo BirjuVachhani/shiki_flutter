@@ -12,6 +12,8 @@ It exists because `shiki_flutter`'s engine is pluggable: `ShikiHighlighterEngine
 is a seam the TextMate tokenizer runs on, and this package provides an
 implementation backed by a faithful Oniguruma port.
 
+Docs and live demo: https://shiki.birju.dev
+
 ## Installation
 
 ```yaml

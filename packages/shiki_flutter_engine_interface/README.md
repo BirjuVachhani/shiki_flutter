@@ -14,6 +14,8 @@ contract the TextMate tokenizer runs on:
 It mirrors `vscode-textmate`'s `IOnigLib` / `onigLib.ts` and Shiki's JavaScript
 `scanner.ts`.
 
+Docs and live demo: https://shiki.birju.dev
+
 ## Installation
 
 ```yaml

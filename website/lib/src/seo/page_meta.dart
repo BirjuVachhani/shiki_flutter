@@ -30,8 +30,8 @@ const SeoMeta _home = SeoMeta(
   title: 'shiki_flutter: syntax highlighting for Flutter',
   description:
       'A syntax highlighter for Flutter, ported from Shiki in pure Dart. '
-      'Real VS Code grammars and themes, rendered as native TextSpans on '
-      'every platform.',
+      'Real VS Code TextMate grammars and Shiki themes, rendered as native '
+      'TextSpans on every platform.',
   canonical: '$_origin/',
 );
 

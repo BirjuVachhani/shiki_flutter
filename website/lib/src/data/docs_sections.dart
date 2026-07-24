@@ -21,6 +21,7 @@ class DocsSectionGroup {
 const docsGroups = <DocsSectionGroup>[
   DocsSectionGroup('Getting started', [
     DocsSection('introduction', 'Introduction'),
+    DocsSection('features', 'Features'),
     DocsSection('installation', 'Installation'),
     DocsSection('quick-start', 'Quick start'),
   ]),

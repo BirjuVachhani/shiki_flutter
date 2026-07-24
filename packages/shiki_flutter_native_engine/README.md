@@ -13,6 +13,8 @@ is the seam; `shiki_flutter` picks a pure-Dart default per platform
 (`ShikiHighlighterDartEngine` on native/VM, `ShikiHighlighterEmbeddedEngine` on
 web), and this package provides `ShikiHighlighterNativeEngine`.
 
+Docs and live demo: https://shiki.birju.dev
+
 ## Installation
 
 ```yaml

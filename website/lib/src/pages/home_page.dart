@@ -137,8 +137,9 @@ class _HeroState extends State<_Hero> {
                     ),
                     const TextSpan(
                       text:
-                          '. It brings the exact VS Code grammars and themes '
-                          'to Flutter, tokenized token-for-token and rendered '
+                          '. It brings the exact VS Code TextMate grammars and '
+                          'Shiki themes to Flutter, tokenized token-for-token '
+                          'and rendered '
                           'as native TextSpans. It runs on every platform '
                           'Flutter targets, out of the box.',
                     ),
@@ -281,9 +282,9 @@ class _ThemesFeature extends StatelessWidget {
     return _FeatureBlock(
       title: 'Every theme you already love.',
       subtitle:
-          'Load any VS Code or TextMate theme. Foreground, background and font '
+          'Load any TextMate theme. Foreground, background and font '
           'styles resolve through scope-selector specificity, exactly like '
-          'Shiki. Flip through a few below, or browse all 65.',
+          'Shiki. Flip through a few below, or browse all 75.',
       subtitleLink: ('Shiki', Links.shiki),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +292,7 @@ class _ThemesFeature extends StatelessWidget {
           const ThemeSwitcherDemo(),
           const SizedBox(height: 18),
           _InlineLink(
-            label: 'Browse all 65 themes in the docs',
+            label: 'Browse all 75 themes in the docs',
             onTap: () => context.go('/docs?section=themes'),
           ),
         ],

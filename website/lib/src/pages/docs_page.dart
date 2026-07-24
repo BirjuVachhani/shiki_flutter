@@ -408,8 +408,9 @@ List<Widget> _content(BuildContext context, String id) {
       return [
         const DocProse(
           'shiki_flutter is a syntax highlighter for Flutter. It tokenizes '
-          'source code with real VS Code TextMate grammars and themes and '
-          'renders it as styled `TextSpan`s, so highlighted code looks exactly '
+          'source code with real VS Code TextMate grammars and Shiki themes '
+          'and renders it as styled `TextSpan`s, so highlighted code looks '
+          'exactly '
           'like it does in VS Code.',
         ),
         const DocProse(
@@ -480,6 +481,53 @@ List<Widget> _content(BuildContext context, String id) {
           '`ShikiCodeListView` for large files, or drop down to '
           '`codeToTextSpan` and raw tokens when you need more control.',
         ),
+      ];
+    case 'features':
+      return const [
+        DocProse(
+          'Everything shiki_flutter gives you at a glance. Each item links to '
+          'the section that covers it in full.',
+        ),
+        DocBullets([
+          '**Real Oniguruma engine.** A from-scratch, pure-Dart '
+              'Oniguruma-subset regex engine by default (no native build, no '
+              'WebAssembly), with optional native (`dart:ffi`) and WebAssembly '
+              'backends when you want more speed. See **Engines**.',
+          '**Injections and embedded languages.** A faithful port of '
+              '`vscode-textmate` with begin/end/while rules, captures, '
+              'injections, and cross-language embedding, so `<style>` and '
+              '`<script>` in HTML, fenced code in Markdown, and the like all '
+              'highlight. See **Languages**.',
+          '**~250 languages and 75 themes.** The 65-theme Shiki catalog plus '
+              'the 10 opt-in Pierre themes ship in the package; you import only '
+              'the ones you use. See **Themes** and **Languages**.',
+          '**Golden-tested VS Code parity.** Token output is verified against '
+              'real Shiki output token-for-token, so the colors match VS Code '
+              'exactly.',
+          '**Off-main-thread async.** A background isolate on native (on by '
+              'default) and an optional Web Worker on web, plus an LRU token '
+              'cache and `preload` / `warmAsync` pre-warming, so the UI never '
+              'freezes on the one-time grammar compile. See **Async '
+              'highlighting** and **Pre-warming**.',
+          '**Virtualized rendering for large files.** `ShikiCodeListView` lays '
+              'out only the lines on screen, staying smooth on very large '
+              'files. See **Large files**.',
+          '**Adaptive light/dark themes.** A `ShikiDualTheme` pair follows the '
+              "app's brightness and re-highlights when it toggles. See "
+              '**Themes**.',
+          '**Tree-shakeable bundling.** Every grammar and theme is a Dart '
+              'library referenced by symbol (no Flutter assets), so everything '
+              "you don't import is dropped from your build. See **Bundle "
+              'size**.',
+          '**Runtime custom grammars/themes.** Load any TextMate '
+              "grammar or theme JSON at runtime; it's replicated to the async "
+              'worker so the sync and async paths resolve identically. See '
+              '**Custom grammars** and **Custom themes**.',
+          '**Wide-gamut and colorblind-friendly themes.** The bundled Pierre '
+              'themes include `display-p3` wide-gamut variants plus '
+              'protanopia/deuteranopia and tritanopia sets. See **Extra '
+              'themes**.',
+        ]),
       ];
     case 'installation':
       return const [
@@ -554,7 +602,7 @@ List<Widget> _content(BuildContext context, String id) {
     case 'themes':
       return const [
         DocProse(
-          'A theme is a real VS Code / TextMate theme: foreground, background, '
+          'A theme is a real TextMate theme: foreground, background, '
           'and font styles resolve through scope-selector specificity, exactly '
           'like Shiki. There are two ways to get one: pick from the **65 '
           'bundled themes**, or load your own JSON at runtime.',
@@ -597,19 +645,21 @@ List<Widget> _content(BuildContext context, String id) {
           lang: 'dart',
           filename: 'default_theme.dart',
         ),
-        DocH3('Browse all 65 themes'),
+        DocH3('Browse all 75 themes'),
         DocProse(
-          'Every bundled theme, tokenizing the same Dart sample live. Search '
-          'by name and pick one to preview. Each id identifies a theme; '
-          'reference the matching `ShikiThemes.<name>` object (e.g. the id '
-          '`one-dark-pro` is `ShikiThemes.oneDarkPro`).',
+          'Every bundled theme, tokenizing the same Dart sample live: all 75, '
+          'the 65 Shiki themes plus the 10 opt-in Pierre themes. Search by name '
+          'and pick one to preview. Each id identifies a theme; reference the '
+          'matching `ShikiThemes.<name>` object (e.g. the id `one-dark-pro` is '
+          '`ShikiThemes.oneDarkPro`), or `PierreThemes.<name>` for the Pierre '
+          'set.',
         ),
         ThemeGallery(),
       ];
     case 'extra-themes':
       return const [
         DocProse(
-          'Alongside the bundled VS Code themes, shiki_flutter ships the 10 '
+          'Alongside the bundled Shiki themes, shiki_flutter ships the 10 '
           'custom **Pierre** themes from diffs.com (built by Pierre Computer Company), the same '
           'set this site uses for its own code blocks. The collection spans '
           'light and dark, plus soft, vibrant, and color-blind-friendly '
@@ -638,16 +688,17 @@ List<Widget> _content(BuildContext context, String id) {
           filename: 'pierre_themes.dart',
         ),
         DocNote(
-          'An opt-in collection: these are separate from the 65 bundled themes '
-          'and not part of `ShikiThemes.all`, so they add nothing to your build '
-          'unless you reference them. The Pierre themes are MIT-licensed, © The '
-          'Pierre Computer Company.',
+          'These 10 round out the count to 75, but live in a separate, opt-in '
+          '`PierreThemes` facade (not `ShikiThemes.all`), so they tree-shake '
+          'independently: they add nothing to your build unless you reference '
+          'them. The Pierre themes are MIT-licensed, © The Pierre Computer '
+          'Company.',
         ),
       ];
     case 'custom-themes':
       return const [
         DocProse(
-          'Themes are plain VS Code theme JSON, so any theme works: grab one '
+          'Themes are plain TextMate theme JSON, so any theme works: grab one '
           'from a VS Code marketplace extension, the textmate-grammars-themes '
           'source, or hand-write your own. Wrap the raw JSON in a `ShikiTheme` '
           'and pass it where you render, exactly like a bundled theme; the '

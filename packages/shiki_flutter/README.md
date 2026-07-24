@@ -4,27 +4,51 @@
 
 A TextMate-grammar based syntax highlighter for Flutter, ported from
 [Shiki](https://shiki.style). It tokenizes source code with real VS Code
-TextMate grammars and themes and renders it as styled `TextSpan`s: the same
-tokenization pipeline Shiki uses, reimplemented in pure, idiomatic Dart.
+TextMate grammars and Shiki themes and renders it as styled `TextSpan`s: the
+same tokenization pipeline Shiki uses, reimplemented in pure, idiomatic Dart.
 
-Because it uses the same grammars and themes as VS Code and Shiki, the output
+Because it uses the same TextMate grammars and themes as Shiki, the output
 colors match VS Code exactly. This package's test suite verifies token output
 against real Shiki output token-for-token.
 
+- **Docs and live demo:** https://shiki.birju.dev
+- **Source and issues:** https://github.com/BirjuVachhani/shiki_flutter
+
 ## Features
 
+- **Real Oniguruma engine**: a from-scratch, pure-Dart Oniguruma-subset
+  backtracking regex engine with capture-group offsets, `\A`/`\G`/`\z`/`\Z`
+  anchors, possessive quantifiers, atomic groups, look-around, POSIX classes,
+  nested character classes, `\p{...}` properties, and inline flags. No native
+  code or WASM, so it runs everywhere Flutter runs (mobile, web, desktop).
+  Optional native (`dart:ffi`) and WebAssembly backends are available when you
+  want more speed.
 - **Faithful TextMate tokenizer**: a Dart port of `vscode-textmate`: rules,
-  repositories, `begin`/`end`/`while` rules, captures, injections, embedded
-  languages, and cross-line state.
-- **Built-in regex engine**: a from-scratch Oniguruma-subset backtracking
-  regex engine with capture-group offsets, `\A`/`\G`/`\z`/`\Z` anchors,
-  possessive quantifiers, atomic groups, look-around, POSIX classes, nested
-  character classes, `\p{...}` properties, and inline flags. No native code or
-  WASM, so it runs everywhere Flutter runs (mobile, web, desktop).
-- **VS Code themes**: load any VS Code / TextMate theme JSON; foreground,
-  background, and font styles (bold / italic / underline / strikethrough) are
-  resolved via scope-selector specificity, exactly like Shiki. Use one theme, or
-  a **light/dark pair** that follows the app's brightness (see [Themes](#themes)).
+  repositories, `begin`/`end`/`while` rules, captures, **injections**, and
+  **embedded / cross-language grammars** (so `<style>`/`<script>` in HTML,
+  fenced code in Markdown, and the like all highlight), plus cross-line state.
+- **~250 languages and 75 themes**: the 65-theme Shiki catalog plus the 10
+  opt-in Pierre themes ship in the package; you import only the ones you use.
+- **Golden-tested VS Code parity**: token output is verified against real Shiki
+  output token-for-token, so the colors match VS Code exactly.
+- **Off-main-thread async**: a background isolate on native (on by default) and
+  an optional Web Worker on web, plus an LRU token cache and `preload` /
+  `warmAsync` pre-warming, so the UI never freezes on the one-time grammar
+  compile.
+- **Virtualized rendering for large files**: `ShikiCodeListView` lays out only
+  the lines on screen, staying smooth on very large files.
+- **Adaptive light/dark themes**: a `ShikiDualTheme` pair follows the app's
+  brightness (`Theme.of(context)`) and re-highlights when it toggles (see
+  [Themes](#themes)).
+- **Tree-shakeable bundling**: every grammar and theme is a Dart library
+  referenced by symbol (no Flutter assets), so everything you don't import is
+  dropped from your build.
+- **Runtime custom grammars/themes**: load any TextMate grammar or
+  theme JSON at runtime; it's replicated to the async worker so the sync and
+  async paths resolve identically.
+- **Wide-gamut and colorblind-friendly themes**: the bundled Pierre themes
+  include `display-p3` wide-gamut variants plus protanopia/deuteranopia and
+  tritanopia sets.
 - **Flutter rendering**: turn code straight into a `TextSpan`, or drop in the
   `ShikiCodeView` widget.
 
@@ -65,13 +89,14 @@ dependencies:
   shiki_flutter: ^1.0.0
 ```
 
-**Batteries included:** ~250 languages and ~65 VS Code themes ship inside the
-package. You don't bundle any JSON assets: you import the ones you use.
+**Batteries included:** ~250 languages and 75 themes (65 Shiki + 10 opt-in
+Pierre) ship inside the package. You don't bundle any JSON assets: you import
+the ones you use.
 
 ## Usage
 
 The quickest path: set a default theme once, then drop in a `ShikiCodeView`. No
-highlighter to create and no per-widget theme; the ~250 languages and ~65 themes
+highlighter to create and no per-widget theme; the ~250 languages and 75 themes
 are bundled and loaded on demand (only the ones you reference land in your build).
 
 ```dart
@@ -419,7 +444,7 @@ pulls in `css` and `javascript` so `<style>`/`<script>` blocks are highlighted.
 
 ### Custom grammars/themes
 
-Any TextMate grammar or VS Code theme is just JSON. Wrap it in a `CodeLanguage` /
+Any TextMate grammar or theme is just JSON. Wrap it in a `CodeLanguage` /
 `ShikiTheme` and hand it to a widget (or `preload`) exactly like a bundled one;
 the highlighter loads it on demand and replicates it to the async worker, so it
 resolves the same on the sync and async paths.
@@ -440,8 +465,9 @@ ShikiCodeView(code: source, lang: myLang, theme: myTheme);
 
 The package also bundles the 10 custom **Pierre** themes from
 [diffs.com](https://diffs.com), including two wide-gamut `display-p3` variants
-and colorblind-friendly (protanopia/deuteranopia, tritanopia) sets. They are a
-separate, opt-in collection (not part of `ShikiThemes.all` or the ~65 count):
+and colorblind-friendly (protanopia/deuteranopia, tritanopia) sets. They round
+out the count to 75, but live in a separate, opt-in `PierreThemes` facade (not
+`ShikiThemes.all`), so they tree-shake independently:
 
 ```dart
 import 'package:shiki_flutter/shiki_flutter.dart';
@@ -482,6 +508,10 @@ dart run tool/generate_bundled.dart <path-to-@shikijs-dir>
   is exact); full Unicode category tables are not bundled.
 
 ## Additional information
+
+Full documentation and a live demo are at https://shiki.birju.dev. The source,
+issue tracker, and monorepo live at
+https://github.com/BirjuVachhani/shiki_flutter.
 
 This package began as a direct port of Shiki and `vscode-textmate`. See the test
 suite (`test/golden_test.dart`) for the token-for-token comparison against real

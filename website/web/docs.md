@@ -1,6 +1,6 @@
 # shiki_flutter
 
-> Syntax highlighting for Flutter, ported from Shiki in pure Dart. It tokenizes source code with real VS Code TextMate grammars and themes and renders it as styled `TextSpan`s, so highlighted code looks exactly like it does in VS Code, on iOS, Android, web, macOS, Windows, and Linux.
+> Syntax highlighting for Flutter, ported from Shiki in pure Dart. It tokenizes source code with real VS Code TextMate grammars and Shiki themes and renders it as styled `TextSpan`s, so highlighted code looks exactly like it does in VS Code, on iOS, Android, web, macOS, Windows, and Linux.
 
 This file is the complete shiki_flutter documentation in a single Markdown file, meant to be fed to an LLM or read offline. It mirrors the live docs at https://shiki.birju.dev/docs (the docs page is the source of truth).
 
@@ -9,7 +9,7 @@ This file is the complete shiki_flutter documentation in a single Markdown file,
 
 ## Introduction
 
-shiki_flutter is a syntax highlighter for Flutter. It tokenizes source code with real VS Code TextMate grammars and themes and renders it as styled `TextSpan`s, so highlighted code looks exactly like it does in VS Code.
+shiki_flutter is a syntax highlighter for Flutter. It tokenizes source code with real VS Code TextMate grammars and Shiki themes and renders it as styled `TextSpan`s, so highlighted code looks exactly like it does in VS Code.
 
 Out of the box, it's pure Dart and runs everywhere Flutter runs: **iOS, Android, web, macOS, Windows, and Linux**. On native and desktop, highlighting runs **off the UI thread by default**, so the one-time grammar compile never freezes a frame (see **Async highlighting**).
 
@@ -17,6 +17,21 @@ Out of the box, it's pure Dart and runs everywhere Flutter runs: **iOS, Android,
 - **65+** built-in themes
 
 From all the themes and languages, you import only the ones you use, and everything else is **tree-shaken** out of your app. Reach for the `ShikiCodeView` widget for the common case, `ShikiCodeListView` for large files, or drop down to `codeToTextSpan` and raw tokens when you need more control.
+
+## Features
+
+Everything shiki_flutter gives you at a glance. Each item links to the section that covers it in full.
+
+- **Real Oniguruma engine.** A from-scratch, pure-Dart Oniguruma-subset regex engine by default (no native build, no WebAssembly), with optional native (`dart:ffi`) and WebAssembly backends when you want more speed. See **Engines**.
+- **Injections and embedded languages.** A faithful port of `vscode-textmate` with begin/end/while rules, captures, injections, and cross-language embedding, so `<style>` and `<script>` in HTML, fenced code in Markdown, and the like all highlight. See **Languages**.
+- **~250 languages and 75 themes.** The 65-theme Shiki catalog plus the 10 opt-in Pierre themes ship in the package; you import only the ones you use. See **Themes** and **Languages**.
+- **Golden-tested VS Code parity.** Token output is verified against real Shiki output token-for-token, so the colors match VS Code exactly.
+- **Off-main-thread async.** A background isolate on native (on by default) and an optional Web Worker on web, plus an LRU token cache and `preload` / `warmAsync` pre-warming, so the UI never freezes on the one-time grammar compile. See **Async highlighting** and **Pre-warming**.
+- **Virtualized rendering for large files.** `ShikiCodeListView` lays out only the lines on screen, staying smooth on very large files. See **Large files**.
+- **Adaptive light/dark themes.** A `ShikiDualTheme` pair follows the app's brightness and re-highlights when it toggles. See **Themes**.
+- **Tree-shakeable bundling.** Every grammar and theme is a Dart library referenced by symbol (no Flutter assets), so everything you don't import is dropped from your build. See **Bundle size**.
+- **Runtime custom grammars/themes.** Load any TextMate grammar or theme JSON at runtime; it's replicated to the async worker so the sync and async paths resolve identically. See **Custom grammars** and **Custom themes**.
+- **Wide-gamut and colorblind-friendly themes.** The bundled Pierre themes include `display-p3` wide-gamut variants plus protanopia/deuteranopia and tritanopia sets. See **Extra themes**.
 
 ## Installation
 
@@ -247,7 +262,7 @@ ListView.builder(
 
 ## Themes
 
-A theme is a real VS Code / TextMate theme: foreground, background, and font styles resolve through scope-selector specificity, exactly like Shiki. There are two ways to get one: pick from the **65 bundled themes**, or load your own JSON at runtime.
+A theme is a real TextMate theme: foreground, background, and font styles resolve through scope-selector specificity, exactly like Shiki. There are two ways to get one: pick from the **75 bundled themes**, or load your own JSON at runtime.
 
 ### Using a bundled theme
 
@@ -323,9 +338,9 @@ void main() {
 ShikiCodeView(code: source, lang: CodeLanguages.dart);
 ```
 
-### Browse all 65 themes
+### Browse all 75 themes
 
-Every bundled theme tokenizes the same Dart sample live in the interactive gallery on the docs page. Each id identifies a theme; reference the matching `ShikiThemes.<name>` object (e.g. the id `one-dark-pro` is `ShikiThemes.oneDarkPro`). The 65 bundled theme ids:
+Every bundled theme tokenizes the same Dart sample live in the interactive gallery on the docs page: all 75, the 65 Shiki themes plus the 10 opt-in Pierre themes. Each id identifies a theme; reference the matching `ShikiThemes.<name>` object (e.g. the id `one-dark-pro` is `ShikiThemes.oneDarkPro`), or `PierreThemes.<name>` for the Pierre set (see Extra themes below). The 65 Shiki theme ids:
 
 ```text
 andromeeda, aurora-x, ayu-dark, ayu-light, ayu-mirage, catppuccin-frappe,
@@ -344,7 +359,7 @@ synthwave-84, tokyo-night, vesper, vitesse-black, vitesse-dark, vitesse-light
 
 ## Extra themes
 
-Alongside the bundled VS Code themes, shiki_flutter ships the 10 custom **Pierre** themes from diffs.com (built by Pierre), the same set this site uses for its own code blocks. The collection spans light and dark, plus soft, vibrant, and color-blind-friendly variants:
+Alongside the bundled Shiki themes, shiki_flutter ships the 10 custom **Pierre** themes from diffs.com (built by Pierre), the same set this site uses for its own code blocks. The collection spans light and dark, plus soft, vibrant, and color-blind-friendly variants:
 
 - `pierre-dark` and `pierre-light`: the defaults.
 - `pierre-dark-soft` and `pierre-light-soft`: gentler, lower contrast.
@@ -366,16 +381,16 @@ import 'package:shiki_flutter/pierre_themes.dart';
 ShikiCodeView(code: code, lang: CodeLanguages.dart, theme: PierreThemes.pierreDark);
 ```
 
-> **Note:** An opt-in collection: these are separate from the 65 bundled themes and not part of `themes/all.dart`, so they add nothing to your build unless you import them. The Pierre themes are MIT-licensed, © The Pierre Computer Company.
+> **Note:** These 10 round out the count to 75, but live in a separate, opt-in `PierreThemes` facade (not `ShikiThemes.all`), so they tree-shake independently: they add nothing to your build unless you import them. The Pierre themes are MIT-licensed, © The Pierre Computer Company.
 
 ## Custom themes
 
-Themes are plain VS Code theme JSON, so any theme works: grab one from a VS Code marketplace extension, the textmate-grammars-themes source, or hand-write your own. Wrap the raw JSON in a `ShikiTheme` and pass it where you render; the highlighter loads it on demand:
+Themes are plain TextMate theme JSON, so any theme works: grab one from a VS Code marketplace extension, the textmate-grammars-themes source, or hand-write your own. Wrap the raw JSON in a `ShikiTheme` and pass it where you render; the highlighter loads it on demand:
 
 **`byo_theme.dart`**
 
 ```dart
-// A theme is just VS Code / TextMate theme JSON, loaded at runtime from an
+// A theme is just TextMate theme JSON, loaded at runtime from an
 // asset, the network, or a VS Code extension. No codegen, no rebuild.
 final json = await rootBundle.loadString('assets/aurora.json');
 final aurora = ShikiTheme(id: 'aurora', type: 'dark', json: json);
@@ -762,12 +777,12 @@ final highlighter = ShikiHighlighter()
 
 ## Custom grammars
 
-Beyond the bundled catalog, you can load any TextMate grammar or VS Code theme JSON at runtime:
+Beyond the bundled catalog, you can load any TextMate grammar or theme JSON at runtime:
 
 **`custom.dart`**
 
 ```dart
-// Wrap a TextMate grammar / VS Code theme JSON in a CodeLanguage / ShikiTheme
+// Wrap a TextMate grammar / theme JSON in a CodeLanguage / ShikiTheme
 // and hand them straight to the renderer; the highlighter loads them on demand.
 final myLang = CodeLanguage(
   id: 'my-lang',
